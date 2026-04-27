@@ -25,9 +25,18 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name='yourStack'
+        options={{
+          title: 'Your Stack',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name='triangle' size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name='add2stack'
         options={{
-          title: 'stack',
+          title: 'Add-2-stack',
           tabBarIcon: ({ color, size }) => (
             <Ionicons name='add-circle' size={size} color={color} />
           ),
@@ -36,9 +45,9 @@ export default function TabLayout() {
       <Tabs.Screen
         name='settings'
         options={{
-          title: 'settings',
+          title: 'Settings',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name='list' size={size} color={color} />
+            <Ionicons name='settings-sharp' size={size} color={color} />
           ),
         }}
       />
