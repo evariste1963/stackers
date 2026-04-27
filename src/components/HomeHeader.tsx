@@ -18,7 +18,7 @@ export default function HomeHeader() {
 const styles = StyleSheet.create({
   date: {
     fontSize: 14,
-    color: colors.textSecondary,
+    color: '#550000',
     marginTop: 4,
     marginBottom: 30,
   },

@@ -24,7 +24,7 @@ export default function StackCard({
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#16213e',
+    backgroundColor: '#0d0d0d',
     borderRadius: 12,
     padding: 16,
     width: '47%',
@@ -32,17 +32,17 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 14,
-    color: '#a0a0b0',
+    color: '#B8860B',
   },
   value: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#ffffff',
+    color: '#B8860B',
     marginTop: 4,
   },
   goal: {
     fontSize: 14,
-    color: '#a0a0b0',
+    color: '#B8860B',
     marginTop: 2,
   },
 });

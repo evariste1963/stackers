@@ -1,19 +1,20 @@
 import { StyleSheet } from "react-native";
 
 export const colors = {
-  background: "#1a1a2e",
+  background: "#000000",
   header: "#242444",
   surface: "#2a2a4a",
-  primary: "#4fc3f7",
-  text: "#ccc",
-  textSecondary: "#a0a0b0",
-  alert: "#ff5252",
-  date: "#DAA520",
+  primary: "#550000",
+  text: "#550000",
+  textSecondary: "#550000",
+  alert: "#550000",
+  date: "#550000",
 };
 
 export const globalStyles = StyleSheet.create({
   container: {
     flex: 1,
+    flexDirection: 'column',
     backgroundColor: colors.background,
     paddingHorizontal: 20,
     paddingTop: 60,
@@ -23,19 +24,22 @@ export const globalStyles = StyleSheet.create({
     fontWeight: 'bold',
     paddingLeft: 10,
     marginTop: 0,
-    color: colors.text,
+    color: '#B8860B',
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: "600",
-    color: colors.textSecondary,
+    color: '#B8860B',
     marginBottom: 30,
     marginTop: 16,
   },
   chart: {
+    flex: 1,
     marginTop: 0,
-    height: '20%',
+    height: 150,
     width: '100%',
+    backgroundColor: colors.background,
+    alignItems: 'center',
   },
   empty: {
     color: colors.textSecondary,

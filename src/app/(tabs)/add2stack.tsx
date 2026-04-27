@@ -5,7 +5,7 @@ export default function AddToStackScreen() {
   return (
     <ScrollView style={globalStyles.container}>
       <View style={globalStyles.header}>
-        <Image source={require('@assets/images/stackers-logo.png')} style={globalStyles.logo} />
+        <Image source={require('../../../assets/images/stackers-logo.png')} style={globalStyles.logo} />
         <Text style={globalStyles.title}>Add to Stack</Text>
       </View>
     </ScrollView >
