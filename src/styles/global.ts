@@ -32,6 +32,11 @@ export const globalStyles = StyleSheet.create({
     marginBottom: 30,
     marginTop: 16,
   },
+  chart: {
+    marginTop: 0,
+    height: '20%',
+    width: '100%',
+  },
   empty: {
     color: colors.textSecondary,
     fontSize: 14,
