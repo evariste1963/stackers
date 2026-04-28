@@ -17,7 +17,7 @@ export default function StackCard({
     <View style={[styles.card, { borderLeftColor: color }]}>
       <Text style={styles.label}>{label}</Text>
       <Text style={styles.value}>{value}</Text>
-      <Text style={styles.goal}>/ {goal}</Text>
+      <Text style={styles.goal}> {goal}</Text>
     </View>
   );
 }

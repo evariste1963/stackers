@@ -1,71 +1,69 @@
 import { View, Text, useWindowDimensions } from 'react-native';
-import { LineChart } from 'react-native-gifted-charts';
+import { VictoryChart, VictoryLine, VictoryAxis } from 'victory-native';
 import { priceData } from '../../assets/priceData.js';
 import { colors } from '../styles/global';
 
 export default function ChartArea() {
   const { width: screenWidth } = useWindowDimensions();
 
-  const data = Object.entries(priceData).map(([date, price]) => ({
-    value: price
+  const data = Object.entries(priceData).map(([date, price], index) => ({
+    x: index,
+    y: price,
+    date,
   }));
 
-  const maxDataValue = Math.max(...data.map(d => d.value));
-  const roundedMax = Math.ceil(maxDataValue / 10) * 10 + 10;
-
-  const yAxisValues = [0, roundedMax / 4, roundedMax / 2, (3 * roundedMax) / 4, roundedMax];
-
-  const dataLength = data.length;
-  const yAxisWidth = 25;
-  const leftPadding = 8;
-  const rightPadding = 3;
-  const availableWidth = screenWidth - yAxisWidth - 40 - leftPadding - rightPadding;
-  const spacing = availableWidth / (dataLength - 1);
-  const chartWidth = availableWidth + leftPadding + rightPadding;
+  const prices = data.map(d => d.y);
+  const maxPrice = Math.max(...prices);
+  const minPrice = Math.min(...prices);
+  const roundedMax = Math.ceil(maxPrice / 100) * 100 + 50;
+  const roundedMin = Math.floor(minPrice / 100) * 100 - 50;
 
   return (
-    <View style={{ flex: 1, flexDirection: 'row' }}>
-      <View style={{ width: yAxisWidth, justifyContent: 'space-between', paddingVertical: 5, alignItems: 'flex-end' }}>
-        {yAxisValues.slice().reverse().map((val, idx) => (
-          <Text key={idx} style={{ color: colors.chartAxis, fontSize: 10 }}>{Math.round(val)}</Text>
-        ))}
-      </View>
-      <View style={{ flex: 1, alignItems: 'center' }}>
-        <LineChart
-          data={data}
-          width={chartWidth}
-          height={140}
-          color={colors.themeColorPrimary}
-          thickness={4}
-          showVerticalLines={false}
-          hideDataPoints
-          hideYAxisText
-          yAxisColor="transparent"
-          yAxisThickness={0}
-          hideRules={true}
-          xAxisColor={colors.chartAxis}
-          xAxisThickness={1}
-          spacing={spacing}
-          initialSpacing={leftPadding}
-          endSpacing={rightPadding}
-          maxValue={roundedMax}
-          noOfSections={4}
-          pointerConfig={{
-            pointerStripHeight: 100,
-            pointerStripColor: 'rgba(85, 0, 0, 0.5)',
-            pointerStripWidth: 2,
-            pointerColor: colors.themeColorPrimary,
-            radius: 5,
-            activatePointersOnLongPress: false,
-            autoAdjustPointerLabelPosition: false,
-            shiftPointerLabelY: 15,
-            pointerLabelComponent: (items: any) => (
-              <View style={{ backgroundColor: '#1a1a1a', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 }}>
-                <Text style={{ color: colors.gold, fontSize: 10 }}>{items[0].value}</Text>
-              </View>
-            ),
-          }}
-        />
+    <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}>
+      <View style={{ flex: 1 }}>
+        <VictoryChart
+          width={screenWidth - 30}
+          height={150}
+          padding={{ top: 10, bottom: 20, left: 45, right: 15 }}
+          domainPadding={{ x: 0 }}
+          domain={{ y: [roundedMin, roundedMax] }}
+        >
+          <VictoryAxis
+            dependentAxis
+            orientation="left"
+            tickValues={[roundedMax, (roundedMax + roundedMin) / 2, roundedMin]}
+            tickFormat={(t) => Math.round(t).toString()}
+            style={{
+              axis: { stroke: 'transparent' },
+              grid: { stroke: 'transparent' },
+              ticks: { stroke: 'transparent' },
+              tickLabels: { 
+                fill: colors.chartAxis, 
+                fontSize: 10,
+              },
+            }}
+          />
+          <VictoryAxis
+            tickFormat={() => ''}
+            style={{
+              axis: { stroke: 'transparent' },
+              grid: { stroke: 'transparent' },
+              ticks: { stroke: 'transparent' },
+            }}
+          />
+          <VictoryLine
+            data={data}
+            x="x"
+            y="y"
+            style={{
+              data: {
+                stroke: colors.themeColorPrimary,
+                strokeWidth: 5,
+              },
+            }}
+            interpolation="linear"
+          />
+        </VictoryChart>
       </View>
     </View>
   );
