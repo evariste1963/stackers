@@ -20,7 +20,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.gold,
     marginTop: 4,
-    marginBottom: 30,
+    marginBottom: 40,
   },
 });
 

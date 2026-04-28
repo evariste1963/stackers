@@ -11,7 +11,7 @@ export default function TabLayout() {
           backgroundColor: colors.background,
           borderTopColor: colors.surface,
         },
-        tabBarActiveTintColor: '#B8860B',
+        tabBarActiveTintColor: colors.themeColorPrimary,
         tabBarInactiveTintColor: '#B8860B',
       }}
     >
@@ -20,7 +20,7 @@ export default function TabLayout() {
         options={{
           title: 'Home',
           tabBarIcon: ({ size }) => (
-            <Ionicons name='home' size={size} color={colors.chartLine} />
+            <Ionicons name='home' size={size} color={colors.themeColorPrimary} />
           ),
         }}
       />
@@ -29,7 +29,7 @@ export default function TabLayout() {
         options={{
           title: 'Your Stack',
           tabBarIcon: ({ size }) => (
-            <Ionicons name='triangle' size={size} color={colors.chartLine} />
+            <Ionicons name='prism' size={size} color={colors.themeColorPrimary} />
           ),
         }}
       />
@@ -38,7 +38,7 @@ export default function TabLayout() {
         options={{
           title: 'Add-2-stack',
           tabBarIcon: ({ size }) => (
-            <Ionicons name='add-circle' size={size} color={colors.chartLine} />
+            <Ionicons name='add-circle' size={size} color={colors.themeColorPrimary} />
           ),
         }}
       />
@@ -47,7 +47,7 @@ export default function TabLayout() {
         options={{
           title: 'Settings',
           tabBarIcon: ({ size }) => (
-            <Ionicons name='settings-sharp' size={size} color={colors.chartLine} />
+            <Ionicons name='settings-sharp' size={size} color={colors.themeColorPrimary} />
           ),
         }}
       />

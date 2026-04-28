@@ -16,7 +16,7 @@ const styles = StyleSheet.create({
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 12,
-    marginTop: 32,
+    gap: 16,
+    marginTop: 40,
   },
 });

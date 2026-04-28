@@ -2,6 +2,7 @@ import { StyleSheet } from "react-native";
 
 export const colors = {
   background: "#000000",
+  themeBackground: "0d0d0d",
   header: "#242444",
   surface: "#2a2a4a",
   primary: "#550000",
@@ -10,7 +11,7 @@ export const colors = {
   alert: "#550000",
   date: "#550000",
   gold: "#B8860B",
-  chartLine: "#13336f",
+  themeColorPrimary: "#13336f",
   chartAxis: "#B8860B",
 };
 

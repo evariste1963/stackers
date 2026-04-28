@@ -35,7 +35,7 @@ export default function ChartArea() {
           data={data}
           width={chartWidth}
           height={140}
-          color={colors.chartLine}
+          color={colors.themeColorPrimary}
           thickness={4}
           showVerticalLines={false}
           hideDataPoints
@@ -54,7 +54,7 @@ export default function ChartArea() {
             pointerStripHeight: 100,
             pointerStripColor: 'rgba(85, 0, 0, 0.5)',
             pointerStripWidth: 2,
-            pointerColor: colors.chartLine,
+            pointerColor: colors.themeColorPrimary,
             radius: 5,
             activatePointersOnLongPress: false,
             autoAdjustPointerLabelPosition: false,
