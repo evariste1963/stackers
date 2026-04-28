@@ -1,6 +1,7 @@
 import { View, Text, useWindowDimensions } from 'react-native';
 import { LineChart } from 'react-native-gifted-charts';
 import { priceData } from '../../assets/priceData.js';
+import { colors } from '../styles/global';
 
 export default function ChartArea() {
   const { width: screenWidth } = useWindowDimensions();
@@ -26,7 +27,7 @@ export default function ChartArea() {
     <View style={{ flex: 1, flexDirection: 'row' }}>
       <View style={{ width: yAxisWidth, justifyContent: 'space-between', paddingVertical: 5, alignItems: 'flex-end' }}>
         {yAxisValues.slice().reverse().map((val, idx) => (
-          <Text key={idx} style={{ color: '#550000', fontSize: 10 }}>{Math.round(val)}</Text>
+          <Text key={idx} style={{ color: colors.chartAxis, fontSize: 10 }}>{Math.round(val)}</Text>
         ))}
       </View>
       <View style={{ flex: 1, alignItems: 'center' }}>
@@ -34,7 +35,7 @@ export default function ChartArea() {
           data={data}
           width={chartWidth}
           height={140}
-          color="#550000"
+          color={colors.chartLine}
           thickness={4}
           showVerticalLines={false}
           hideDataPoints
@@ -42,7 +43,7 @@ export default function ChartArea() {
           yAxisColor="transparent"
           yAxisThickness={0}
           hideRules={true}
-          xAxisColor="#550000"
+          xAxisColor={colors.chartAxis}
           xAxisThickness={1}
           spacing={spacing}
           initialSpacing={leftPadding}
@@ -53,14 +54,14 @@ export default function ChartArea() {
             pointerStripHeight: 100,
             pointerStripColor: 'rgba(85, 0, 0, 0.5)',
             pointerStripWidth: 2,
-            pointerColor: '#550000',
+            pointerColor: colors.chartLine,
             radius: 5,
             activatePointersOnLongPress: false,
             autoAdjustPointerLabelPosition: false,
             shiftPointerLabelY: 15,
             pointerLabelComponent: (items: any) => (
               <View style={{ backgroundColor: '#1a1a1a', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 }}>
-                <Text style={{ color: '#B8860B', fontSize: 10 }}>{items[0].value}</Text>
+                <Text style={{ color: colors.gold, fontSize: 10 }}>{items[0].value}</Text>
               </View>
             ),
           }}

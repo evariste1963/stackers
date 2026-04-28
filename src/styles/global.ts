@@ -9,6 +9,9 @@ export const colors = {
   textSecondary: "#550000",
   alert: "#550000",
   date: "#550000",
+  gold: "#B8860B",
+  chartLine: "#13336f",
+  chartAxis: "#B8860B",
 };
 
 export const globalStyles = StyleSheet.create({
