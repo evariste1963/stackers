@@ -59,4 +59,16 @@ export const globalStyles = StyleSheet.create({
     height: 40,
     marginRight: 0,
   },
+  button: {
+    backgroundColor: colors.surface,
+    padding: 16,
+    borderRadius: 8,
+    marginBottom: 12,
+    alignItems: 'center',
+  },
+  buttonText: {
+    color: colors.gold,
+    fontSize: 18,
+    fontWeight: '600',
+  },
 });

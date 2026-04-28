@@ -1,0 +1,24 @@
+import { globalStyles } from "@/styles/global";
+import { Text, View, ScrollView, Image, TouchableOpacity } from 'react-native';
+import { Link } from 'expo-router';
+
+export default function AccountScreen() {
+  return (
+    <ScrollView style={globalStyles.container}>
+      <View style={globalStyles.header}>
+        <Image source={require('../../../assets/images/stackers-logo.png')} style={globalStyles.logo} />
+        <Text style={globalStyles.title}>Account</Text>
+      </View>
+      <View style={{ padding: 16 }}>
+        <Link href="/settings" asChild>
+          <TouchableOpacity style={globalStyles.button}>
+            <Text style={globalStyles.buttonText}>Settings</Text>
+          </TouchableOpacity>
+        </Link>
+        <TouchableOpacity style={globalStyles.button}>
+          <Text style={[globalStyles.buttonText, { color: 'red' }]}>Log Out</Text>
+        </TouchableOpacity>
+      </View>
+    </ScrollView >
+  );
+}

@@ -43,12 +43,18 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name='account'
+        options={{
+          title: 'Account',
+          tabBarIcon: ({ size }) => (
+            <Ionicons name='person-sharp' size={size} color={colors.themeColorPrimary} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name='settings'
         options={{
-          title: 'Settings',
-          tabBarIcon: ({ size }) => (
-            <Ionicons name='settings-sharp' size={size} color={colors.themeColorPrimary} />
-          ),
+          href: null,
         }}
       />
     </Tabs>
