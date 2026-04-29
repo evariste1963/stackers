@@ -152,7 +152,7 @@ const bannerStyles = {
     marginTop: 4,
   } as const,
   button: {
-    backgroundColor: '#D4AF37',
+    backgroundColor: colors.themeColorPrimary,
     paddingHorizontal: 14,
     paddingVertical: 16,
     borderRadius: 16,
