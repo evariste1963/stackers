@@ -1,4 +1,5 @@
 import { StyleSheet, Text, View } from 'react-native';
+import { colors } from '@/styles/global';
 
 type StackCardProps = {
   label: string;
@@ -32,17 +33,17 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 14,
-    color: '#B8860B',
+    color: colors.gold
   },
   value: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#B8860B',
+    color: colors.gold,
     marginTop: 4,
   },
   goal: {
     fontSize: 14,
-    color: '#B8860B',
+    color: colors.gold,
     marginTop: 2,
   },
 });

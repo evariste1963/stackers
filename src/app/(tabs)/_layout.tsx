@@ -12,7 +12,7 @@ export default function TabLayout() {
           borderTopColor: colors.surface,
         },
         tabBarActiveTintColor: colors.themeColorPrimary,
-        tabBarInactiveTintColor: '#B8860B',
+        tabBarInactiveTintColor: colors.gold,
       }}
     >
       <Tabs.Screen

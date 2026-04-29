@@ -153,7 +153,7 @@ const bannerStyles = {
   button: {
     backgroundColor: '#D4AF37',
     paddingHorizontal: 14,
-    paddingVertical: 8,
+    paddingVertical: 16,
     borderRadius: 16,
   } as const,
   buttonDisabled: {
@@ -161,7 +161,7 @@ const bannerStyles = {
   } as const,
   buttonText: {
     color: '#fff',
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: '600' as const,
   } as const,
 };

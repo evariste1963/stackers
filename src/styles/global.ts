@@ -10,9 +10,9 @@ export const colors = {
   textSecondary: "#550000",
   alert: "#550000",
   date: "#550000",
-  gold: "#B8860B",
+  gold: "#D4AF37",
   themeColorPrimary: "#13336f",
-  chartAxis: "#B8860B",
+  chartAxis: "#D4AF37",
 };
 
 export const globalStyles = StyleSheet.create({
@@ -28,7 +28,7 @@ export const globalStyles = StyleSheet.create({
     fontWeight: 'bold',
     paddingLeft: 10,
     marginTop: 0,
-    color: '#B8860B',
+    color: colors.gold,
   },
   sectionTitle: {
     fontSize: 18,
