@@ -5,10 +5,10 @@ import { useEffect } from 'react';
 import HomeHeader from '@/components/HomeHeader';
 import StackGrid from '@/components/StackGrid';
 import ChartArea from '@/components/ChartArea';
-import { useGoldPrice } from '@/hooks/useGoldPrice';
+import { useGoldPrice, UseGoldPriceResult } from '@/hooks/useGoldPrice';
 
 function GoldPriceBanner() {
-  const { priceData, isLoading, error, refreshPrice, settings } = useGoldPrice();
+  const { priceData, isLoading, error, refreshPrice, settings }: UseGoldPriceResult = useGoldPrice();
 
   const formatPrice = (price: number | undefined) => {
     if (!price) return 'Tap refresh to fetch';
@@ -168,7 +168,7 @@ const bannerStyles = {
 
 export default function HomeScreen() {
   const router = useRouter();
-  const { apiKeyConfigured, isSettingsLoading } = useGoldPrice();
+  const { apiKeyConfigured, isSettingsLoading }: UseGoldPriceResult = useGoldPrice();
 
   useEffect(() => {
     if (!isSettingsLoading && !apiKeyConfigured) {

@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { getLatestPrice, saveSpotPrice, saveToHistory, migrateStaticData, getHistoryLength, getApiKey, getUserSettings, GoldPriceData, HistoryEntry, UserSettings } from '@/services/goldPriceStorage';
 import { fetchGoldPrice } from '@/services/goldPriceApi';
 
-interface UseGoldPriceResult {
+export interface UseGoldPriceResult {
   priceData: GoldPriceData | null;
   history: HistoryEntry[];
   settings: UserSettings;
