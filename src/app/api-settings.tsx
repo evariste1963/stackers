@@ -57,7 +57,7 @@ export default function ApiSettingsScreen() {
 
   function handleGoBack() {
     if (settings.hasApiKey) {
-      router.replace('/');
+      router.replace('/account');
     } else {
       router.back();
     }
@@ -128,7 +128,7 @@ export default function ApiSettingsScreen() {
 
       <View style={apiStyles.section}>
         <Text style={apiStyles.sectionTitle}>API Key</Text>
-        
+
         {settings.hasApiKey ? (
           <View style={apiStyles.statusContainer}>
             <Text style={apiStyles.statusText}>API Key configured ✓</Text>
@@ -151,8 +151,8 @@ export default function ApiSettingsScreen() {
               autoCapitalize="none"
               autoCorrect={false}
             />
-            <TouchableOpacity 
-              style={[apiStyles.saveButton, isSaving && apiStyles.buttonDisabled]} 
+            <TouchableOpacity
+              style={[apiStyles.saveButton, isSaving && apiStyles.buttonDisabled]}
               onPress={handleSaveApiKey}
               disabled={isSaving}
             >
@@ -166,7 +166,7 @@ export default function ApiSettingsScreen() {
 
       <View style={apiStyles.section}>
         <Text style={apiStyles.sectionTitle}>Preferences</Text>
-        
+
         <Text style={apiStyles.label}>Currency</Text>
         <View style={apiStyles.optionsRow}>
           {AVAILABLE_CURRENCIES.map((curr) => (
@@ -214,9 +214,11 @@ export default function ApiSettingsScreen() {
         </View>
       </View>
 
-      <TouchableOpacity style={apiStyles.returnButton} onPress={handleGoBack}>
-        <Text style={apiStyles.returnButtonText}>Return</Text>
-      </TouchableOpacity>
+      {settings.hasApiKey && (
+        <TouchableOpacity style={apiStyles.returnButton} onPress={handleGoBack}>
+          <Text style={apiStyles.returnButtonText}>Return</Text>
+        </TouchableOpacity>
+      )}
 
       <View style={{ height: 40 }} />
     </ScrollView>

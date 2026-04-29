@@ -39,8 +39,8 @@ export const globalStyles = StyleSheet.create({
   },
   chart: {
     flex: 1,
-    marginTop: 30,
-    height: 150,
+    marginTop: 20,
+    height: 160,
     width: '100%',
     backgroundColor: colors.background,
     alignItems: 'center',
