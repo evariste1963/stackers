@@ -161,7 +161,7 @@ const bannerStyles = {
     opacity: 0.7,
   } as const,
   buttonText: {
-    color: '#fff',
+    color: colors.gold,
     fontSize: 14,
     fontWeight: '600' as const,
   } as const,
