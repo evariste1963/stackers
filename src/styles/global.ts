@@ -51,9 +51,9 @@ export const globalStyles = StyleSheet.create({
   },
   header: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-start',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 15,
   },
   logoContainer: {
     flexDirection: 'row',

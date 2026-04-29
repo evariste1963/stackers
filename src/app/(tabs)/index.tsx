@@ -6,6 +6,7 @@ import HomeHeader from '@/components/HomeHeader';
 import StackGrid from '@/components/StackGrid';
 import ChartArea from '@/components/ChartArea';
 import { useGoldPrice, UseGoldPriceResult } from '@/hooks/useGoldPrice';
+import { colors } from '@/styles/global';
 
 function GoldPriceBanner() {
   const { priceData, isLoading, error, refreshPrice, settings }: UseGoldPriceResult = useGoldPrice();
@@ -91,7 +92,7 @@ function GoldPriceBanner() {
 const bannerStyles = {
   container: {
     width: '100%',
-    backgroundColor: '#1a1a2e',
+    backgroundColor: "#0d0d0d",
     borderRadius: 12,
     padding: 16,
     marginBottom: 20,
