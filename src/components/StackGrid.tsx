@@ -4,10 +4,10 @@ import StackCard from './StackCard';
 export default function StackGrid() {
   return (
     <View style={styles.grid}>
-      <StackCard label='9-carat' value='' goal='GBP' color='#B8860B' />
-      <StackCard label='18-carat' value='' goal='GBP' color='#B8860B' />
-      <StackCard label='22-carat' value='' goal='GBP' color='#B8860B' />
-      <StackCard label='24-carat' value='' goal='GBP' color='#B8860B' />
+      <StackCard label='9-Karat' value='' goal='GBP' color='#B8860B' />
+      <StackCard label='18-Karat' value='' goal='GBP' color='#B8860B' />
+      <StackCard label='22-Karat' value='' goal='GBP' color='#B8860B' />
+      <StackCard label='24-Karat' value='' goal='GBP' color='#B8860B' />
     </View>
   );
 }

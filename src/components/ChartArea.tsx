@@ -1,18 +1,50 @@
-import { View, Text, useWindowDimensions } from 'react-native';
+import { View, useWindowDimensions } from 'react-native';
 import { VictoryChart, VictoryLine, VictoryAxis } from 'victory-native';
-import { priceData } from '../../assets/priceData.js';
+import { useState, useEffect } from 'react';
+import { getHistory, HistoryEntry, migrateStaticData, getHistoryLength } from '@/services/goldPriceStorage';
 import { colors } from '../styles/global';
 
 export default function ChartArea() {
   const { width: screenWidth } = useWindowDimensions();
+  const [data, setData] = useState<HistoryEntry[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const data = Object.entries(priceData).map(([date, price], index) => ({
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const historyLength = await getHistoryLength();
+        if (historyLength === 0) {
+          await migrateStaticData();
+        }
+        const history = await getHistory();
+        setData(history);
+      } catch (error) {
+        console.error('Error loading chart data:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    loadData();
+  }, []);
+
+  if (isLoading || data.length === 0) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', height: 150 }}>
+        <VictoryChart
+          width={screenWidth - 30}
+          height={150}
+        />
+      </View>
+    );
+  }
+
+  const chartData = data.map((entry, index) => ({
     x: index,
-    y: price,
-    date,
+    y: entry.price,
+    date: entry.date,
   }));
 
-  const prices = data.map(d => d.y);
+  const prices = chartData.map(d => d.y);
   const maxPrice = Math.max(...prices);
   const minPrice = Math.min(...prices);
   const roundedMax = Math.ceil(maxPrice / 100) * 100 + 50;
@@ -52,7 +84,7 @@ export default function ChartArea() {
             }}
           />
           <VictoryLine
-            data={data}
+            data={chartData}
             x="x"
             y="y"
             style={{

@@ -10,6 +10,11 @@ export default function AccountScreen() {
         <Text style={globalStyles.title}>Account</Text>
       </View>
       <View style={{ padding: 16 }}>
+        <Link href="/api-settings" asChild>
+          <TouchableOpacity style={globalStyles.button}>
+            <Text style={globalStyles.buttonText}>API Settings</Text>
+          </TouchableOpacity>
+        </Link>
         <Link href="/settings" asChild>
           <TouchableOpacity style={globalStyles.button}>
             <Text style={globalStyles.buttonText}>Settings</Text>

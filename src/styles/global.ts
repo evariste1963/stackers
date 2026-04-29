@@ -39,7 +39,7 @@ export const globalStyles = StyleSheet.create({
   },
   chart: {
     flex: 1,
-    marginTop: 40,
+    marginTop: 30,
     height: 150,
     width: '100%',
     backgroundColor: colors.background,
@@ -51,7 +51,12 @@ export const globalStyles = StyleSheet.create({
   },
   header: {
     flexDirection: 'row',
-    justifyContent: 'flex-start',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  logoContainer: {
+    flexDirection: 'row',
     alignItems: 'center',
   },
   logo: {
