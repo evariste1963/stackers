@@ -181,7 +181,7 @@ const styles = {
   },
   modalMessage: {
     fontSize: 18,
-    color: '#ffffff',
+    color: colors.white,
     marginBottom: 24,
     textAlign: 'center',
   },

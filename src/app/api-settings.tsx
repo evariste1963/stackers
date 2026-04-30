@@ -272,16 +272,16 @@ const apiStyles = {
     paddingVertical: 6,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#e74c3c',
+    borderColor: colors.red,
   } as const,
   removeButtonText: {
-    color: '#e74c3c',
+    color: colors.red,
     fontSize: 14,
     fontWeight: '600',
   } as const,
   notConfiguredText: {
     fontSize: 14,
-    color: '#e74c3c',
+    color: colors.red,
     marginBottom: 12,
   } as const,
   linkButton: {
@@ -289,7 +289,7 @@ const apiStyles = {
   } as const,
   linkButtonText: {
     fontSize: 14,
-    color: '#3498db',
+    color: colors.white,
     textDecorationLine: 'underline' as const,
   } as const,
   input: {
@@ -312,7 +312,7 @@ const apiStyles = {
     opacity: 0.7,
   } as const,
   saveButtonText: {
-    color: '#fff',
+    color: colors.white,
     fontSize: 16,
     fontWeight: '600',
   } as const,

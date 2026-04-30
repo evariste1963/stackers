@@ -1,6 +1,7 @@
 import { globalStyles } from "@/styles/global";
 import { Text, View, ScrollView, Image, TouchableOpacity } from 'react-native';
 import { Link } from 'expo-router';
+import { colors } from '@/styles/global';
 
 export default function AccountScreen() {
   return (
@@ -21,7 +22,7 @@ export default function AccountScreen() {
           </TouchableOpacity>
         </Link>
         <TouchableOpacity style={globalStyles.button}>
-          <Text style={[globalStyles.buttonText, { color: 'red' }]}>Log Out</Text>
+          <Text style={[globalStyles.buttonText, { color: colors.red }]}>Log Out</Text>
         </TouchableOpacity>
       </View>
     </ScrollView >
