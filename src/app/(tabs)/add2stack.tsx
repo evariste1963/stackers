@@ -1,5 +1,5 @@
 import { globalStyles, colors } from "@/styles/global";
-import { Text, View, TextInput, TouchableOpacity, Image, ScrollView } from 'react-native';
+import { Text, View, TextInput, TouchableOpacity, Image, ScrollView, Modal } from 'react-native';
 import { router } from 'expo-router';
 import { useState } from 'react';
 
@@ -10,8 +10,10 @@ export default function AddToStackScreen() {
   const [premium, setPremium] = useState('');
   const [spare1, setSpare1] = useState('');
   const [spare2, setSpare2] = useState('');
+  const [modalVisible, setModalVisible] = useState(false);
 
   const handleSubmit = () => {
+    setModalVisible(true);
   };
 
   const handleCancel = () => {
@@ -62,6 +64,44 @@ export default function AddToStackScreen() {
           <Text style={styles.cancelBtnText}>Cancel</Text>
         </TouchableOpacity>
       </View>
+      <Modal
+        visible={modalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Success!</Text>
+            <Text style={styles.modalMessage}>Submit Something Else?</Text>
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={styles.yesBtn}
+                onPress={() => {
+                  setModalVisible(false);
+                  setCode('');
+                  setWeight('');
+                  setPurchasePrice('');
+                  setPremium('');
+                  setSpare1('');
+                  setSpare2('');
+                }}
+              >
+                <Text style={styles.yesBtnText}>Yes</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.noBtn}
+                onPress={() => {
+                  setModalVisible(false);
+                  router.push('/yourStack');
+                }}
+              >
+                <Text style={styles.noBtnText}>No</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
   );
 }
@@ -86,7 +126,7 @@ const styles = {
     marginBottom: 4,
   },
   input: {
-    backgroundColor: colors.themeBackground,
+    backgroundColor: colors.themeGrey,
     borderRadius: 8,
     padding: 12,
     fontSize: 18,
@@ -95,7 +135,7 @@ const styles = {
     borderColor: colors.gold,
   },
   submitBtn: {
-    backgroundColor: colors.primary,
+    backgroundColor: colors.green,
     padding: 16,
     borderRadius: 8,
     alignItems: 'center',
@@ -107,7 +147,7 @@ const styles = {
     fontWeight: 'bold',
   },
   cancelBtn: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.surfaceGrey,
     padding: 16,
     borderRadius: 8,
     alignItems: 'center',
@@ -116,6 +156,61 @@ const styles = {
   cancelBtnText: {
     color: colors.gold,
     fontSize: 20,
+    fontWeight: 'bold',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.9)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    backgroundColor: colors.themeGrey,
+    borderRadius: 16,
+    padding: 24,
+    width: '80%',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: colors.gold,
+  },
+  modalTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: colors.gold,
+    marginBottom: 8,
+  },
+  modalMessage: {
+    fontSize: 18,
+    color: '#ffffff',
+    marginBottom: 24,
+    textAlign: 'center',
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    gap: 16,
+  },
+  yesBtn: {
+    backgroundColor: colors.themeBlue,
+    paddingVertical: 12,
+    paddingHorizontal: 32,
+    borderRadius: 8,
+  },
+  yesBtnText: {
+    color: colors.gold,
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  noBtn: {
+    backgroundColor: colors.themeGrey,
+    paddingVertical: 12,
+    paddingHorizontal: 32,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.gold,
+  },
+  noBtnText: {
+    color: colors.gold,
+    fontSize: 18,
     fontWeight: 'bold',
   },
 };

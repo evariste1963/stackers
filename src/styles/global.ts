@@ -2,17 +2,18 @@ import { StyleSheet } from "react-native";
 
 export const colors = {
   background: "#000000",
-  themeBackground: "0d0d0d",
-  header: "#242444",
-  surface: "#2a2a4a",
-  primary: "#550000",
-  text: "#550000",
-  textSecondary: "#550000",
-  alert: "#550000",
-  date: "#550000",
+  themeGrey: "#1a1a1a",
+  surfaceGrey: "#2a2a4a",
   gold: "#D4AF37",
-  themeColorPrimary: "#13336f",
+  darkGold: "#B8860B",
+  themeBlue: "#13336f",
   chartAxis: "#D4AF37",
+  green: "#006600",
+  grey: "#888888",
+  lightGrey: "#666666",
+  red: "#e74c3c",
+  orange: "#f39c12",
+  white: "#ffffff"
 };
 
 export const globalStyles = StyleSheet.create({
@@ -33,7 +34,7 @@ export const globalStyles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: "600",
-    color: '#B8860B',
+    color: colors.darkGold,
     marginBottom: 30,
     marginTop: 16,
   },
@@ -46,7 +47,7 @@ export const globalStyles = StyleSheet.create({
     alignItems: 'center',
   },
   empty: {
-    color: colors.textSecondary,
+    color: colors.gold,
     fontSize: 14,
   },
   header: {
@@ -65,7 +66,7 @@ export const globalStyles = StyleSheet.create({
     marginRight: 0,
   },
   button: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.surfaceGrey,
     padding: 16,
     borderRadius: 8,
     marginBottom: 12,

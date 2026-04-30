@@ -230,7 +230,7 @@ const apiStyles = {
     marginBottom: 10,
   } as const,
   returnButton: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.surfaceGrey,
     borderRadius: 12,
     padding: 16,
     alignItems: 'center',
@@ -247,7 +247,7 @@ const apiStyles = {
     color: colors.gold,
   } as const,
   section: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.surfaceGrey,
     borderRadius: 12,
     padding: 16,
     marginBottom: 20,
@@ -293,7 +293,7 @@ const apiStyles = {
     textDecorationLine: 'underline' as const,
   } as const,
   input: {
-    backgroundColor: colors.themeBackground,
+    backgroundColor: colors.themeGrey,
     borderRadius: 8,
     padding: 12,
     fontSize: 14,
@@ -333,7 +333,7 @@ const apiStyles = {
     borderRadius: 8,
     borderWidth: 1,
     borderColor: '#444',
-    backgroundColor: colors.themeBackground,
+    backgroundColor: colors.themeGrey,
   } as const,
   optionButtonActive: {
     borderColor: colors.gold,

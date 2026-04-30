@@ -9,9 +9,9 @@ export default function TabLayout() {
         headerShown: false,
         tabBarStyle: {
           backgroundColor: colors.background,
-          borderTopColor: colors.surface,
+          borderTopColor: colors.surfaceGrey,
         },
-        tabBarActiveTintColor: colors.themeColorPrimary,
+        tabBarActiveTintColor: colors.themeBlue,
         tabBarInactiveTintColor: colors.gold,
       }}
     >
@@ -20,7 +20,7 @@ export default function TabLayout() {
         options={{
           title: 'Home',
           tabBarIcon: ({ size }) => (
-            <Ionicons name='home' size={size} color={colors.themeColorPrimary} />
+            <Ionicons name='home' size={size} color={colors.themeBlue} />
           ),
         }}
       />
@@ -29,7 +29,7 @@ export default function TabLayout() {
         options={{
           title: 'Your Stack',
           tabBarIcon: ({ size }) => (
-            <Ionicons name='prism' size={size} color={colors.themeColorPrimary} />
+            <Ionicons name='prism' size={size} color={colors.themeBlue} />
           ),
         }}
       />
@@ -38,7 +38,7 @@ export default function TabLayout() {
         options={{
           title: 'Add-2-stack',
           tabBarIcon: ({ size }) => (
-            <Ionicons name='add-circle' size={size} color={colors.themeColorPrimary} />
+            <Ionicons name='add-circle' size={size} color={colors.themeBlue} />
           ),
         }}
       />
@@ -47,7 +47,7 @@ export default function TabLayout() {
         options={{
           title: 'Account',
           tabBarIcon: ({ size }) => (
-            <Ionicons name='person-sharp' size={size} color={colors.themeColorPrimary} />
+            <Ionicons name='person-sharp' size={size} color={colors.themeBlue} />
           ),
         }}
       />

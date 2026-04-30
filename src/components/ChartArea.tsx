@@ -5,29 +5,38 @@ import { useState, useEffect } from 'react';
 import { getHistory, HistoryEntry, migrateStaticData, getHistoryLength } from '@/services/goldPriceStorage';
 import { colors } from '../styles/global';
 
-export default function ChartArea() {
+type ChartAreaProps = {
+  history?: HistoryEntry[];
+};
+
+export default function ChartArea({ history: propHistory }: ChartAreaProps) {
   const { width: screenWidth } = useWindowDimensions();
   const [data, setData] = useState<HistoryEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const scrollViewRef = useRef<ScrollView>(null);
 
   useEffect(() => {
-    async function loadData() {
-      try {
-        const historyLength = await getHistoryLength();
-        if (historyLength === 0) {
-          await migrateStaticData();
+    if (propHistory && propHistory.length > 0) {
+      setData(propHistory);
+      setIsLoading(false);
+    } else {
+      async function loadData() {
+        try {
+          const historyLength = await getHistoryLength();
+          if (historyLength === 0) {
+            await migrateStaticData();
+          }
+          const history = await getHistory();
+          setData(history);
+        } catch (error) {
+          console.error('Error loading chart data:', error);
+        } finally {
+          setIsLoading(false);
         }
-        const history = await getHistory();
-        setData(history);
-      } catch (error) {
-        console.error('Error loading chart data:', error);
-      } finally {
-        setIsLoading(false);
       }
+      loadData();
     }
-    loadData();
-  }, []);
+  }, [propHistory]);
 
   useEffect(() => {
     if (!isLoading && scrollViewRef.current && hasTwelveMonths) {
@@ -36,6 +45,14 @@ export default function ChartArea() {
       });
     }
   }, [isLoading]);
+
+  useEffect(() => {
+    if (propHistory && propHistory.length > 0 && scrollViewRef.current) {
+      requestAnimationFrame(() => {
+        scrollViewRef.current?.scrollToEnd({ animated: true });
+      });
+    }
+  }, [propHistory]);
 
   if (isLoading || data.length === 0) {
     return (
@@ -164,7 +181,7 @@ export default function ChartArea() {
             y="y"
             style={{
               data: {
-                stroke: colors.themeColorPrimary,
+                stroke: colors.themeBlue,
                 strokeWidth: 5,
               },
             }}

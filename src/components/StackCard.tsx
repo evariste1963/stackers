@@ -25,7 +25,7 @@ export default function StackCard({
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#0d0d0d',
+    backgroundColor: colors.themeGrey,
     borderRadius: 12,
     padding: 16,
     width: '47%',
