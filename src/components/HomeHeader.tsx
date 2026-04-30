@@ -7,6 +7,3 @@ export default function HomeHeader() {
     </View >
   );
 }
-
-const styles = StyleSheet.create({});
-

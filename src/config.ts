@@ -7,13 +7,25 @@ export const STORAGE_KEYS = {
   userSettings: 'user_settings',
 };
 
-export const AVAILABLE_CURRENCIES = [
+export interface CurrencyOption {
+  code: string;
+  name: string;
+  symbol: string;
+}
+
+export interface UnitOption {
+  code: string;
+  name: string;
+  abbrev: string;
+}
+
+export const AVAILABLE_CURRENCIES: CurrencyOption[] = [
   { code: 'GBP', name: 'British Pound', symbol: '£' },
   { code: 'USD', name: 'US Dollar', symbol: '$' },
   { code: 'EUR', name: 'Euro', symbol: '€' },
 ];
 
-export const AVAILABLE_UNITS = [
+export const AVAILABLE_UNITS: UnitOption[] = [
   { code: 'toz', name: 'Troy Ounce', abbrev: 'oz' },
   { code: 'gram', name: 'Gram', abbrev: 'g' },
   { code: 'kg', name: 'Kilogram', abbrev: 'kg' },
