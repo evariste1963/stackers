@@ -1,5 +1,5 @@
 import { globalStyles, colors } from "@/styles/global";
-import { Text, View, TextInput, TouchableOpacity, Image, ScrollView, Modal } from 'react-native';
+import { Text, View, TextInput, TouchableOpacity, Image, ScrollView, Modal, StyleSheet } from 'react-native';
 import { router } from 'expo-router';
 import { useState } from 'react';
 
@@ -106,7 +106,7 @@ export default function AddToStackScreen() {
   );
 }
 
-const styles = {
+const styles = StyleSheet.create({
   form: {
     padding: 16,
     marginTop: 32,
@@ -213,4 +213,4 @@ const styles = {
     fontSize: 18,
     fontWeight: 'bold',
   },
-};
+});
