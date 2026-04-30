@@ -147,7 +147,7 @@ const styles = {
     fontWeight: 'bold',
   },
   cancelBtn: {
-    backgroundColor: colors.surfaceGrey,
+    backgroundColor: colors.themeGrey,
     padding: 16,
     borderRadius: 8,
     alignItems: 'center',

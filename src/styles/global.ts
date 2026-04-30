@@ -3,7 +3,6 @@ import { StyleSheet } from "react-native";
 export const colors = {
   background: "#000000",
   themeGrey: "#1a1a1a",
-  surfaceGrey: "#2a2a4a",
   gold: "#D4AF37",
   darkGold: "#B8860B",
   themeBlue: "#13336f",
@@ -66,7 +65,7 @@ export const globalStyles = StyleSheet.create({
     marginRight: 0,
   },
   button: {
-    backgroundColor: colors.surfaceGrey,
+    backgroundColor: colors.themeGrey,
     padding: 16,
     borderRadius: 8,
     marginBottom: 12,

@@ -230,7 +230,7 @@ const apiStyles = {
     marginBottom: 10,
   } as const,
   returnButton: {
-    backgroundColor: colors.surfaceGrey,
+    backgroundColor: colors.themeGrey,
     borderRadius: 12,
     padding: 16,
     alignItems: 'center',
@@ -247,7 +247,7 @@ const apiStyles = {
     color: colors.gold,
   } as const,
   section: {
-    backgroundColor: colors.surfaceGrey,
+    backgroundColor: colors.themeGrey,
     borderRadius: 12,
     padding: 16,
     marginBottom: 20,

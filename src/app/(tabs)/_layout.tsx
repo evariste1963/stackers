@@ -9,7 +9,7 @@ export default function TabLayout() {
         headerShown: false,
         tabBarStyle: {
           backgroundColor: colors.background,
-          borderTopColor: colors.surfaceGrey,
+          borderTopColor: colors.themeGrey,
         },
         tabBarActiveTintColor: colors.themeBlue,
         tabBarInactiveTintColor: colors.gold,
