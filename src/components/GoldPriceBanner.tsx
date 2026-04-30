@@ -40,7 +40,7 @@ export default function GoldPriceBanner({ priceData, isLoading, error, refreshPr
     if (change === undefined || change === null) return colors.grey;
     if (change < 0) return colors.red;
     if (change === 0) return colors.orange;
-    return colors.green;
+    return colors.changeGreen;
   };
 
   const changeColor = getChangeColor(priceData?.change);

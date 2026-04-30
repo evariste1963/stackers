@@ -8,6 +8,7 @@ export const colors = {
   themeBlue: "#13336f",
   chartAxis: "#D4AF37",
   green: "#006600",
+  changeGreen: "#00AA00",
   grey: "#888888",
   lightGrey: "#666666",
   red: "#e74c3c",
