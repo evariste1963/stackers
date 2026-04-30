@@ -2,6 +2,14 @@ import { colors } from '@/styles/global';
 import { Ionicons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
 
+const tabs = [
+  { name: 'index', title: 'Home', icon: 'home' },
+  { name: 'yourStack', title: 'Your Stack', icon: 'prism' },
+  { name: 'add2stack', title: 'Add-2-stack', icon: 'add-circle' },
+  { name: 'account', title: 'Account', icon: 'person-sharp' },
+  { name: 'settings', title: 'Settings', href: null },
+];
+
 export default function TabLayout() {
   return (
     <Tabs
@@ -15,48 +23,21 @@ export default function TabLayout() {
         tabBarInactiveTintColor: colors.gold,
       }}
     >
-      <Tabs.Screen
-        name='index'
-        options={{
-          title: 'Home',
-          tabBarIcon: ({ size }) => (
-            <Ionicons name='home' size={size} color={colors.themeBlue} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name='yourStack'
-        options={{
-          title: 'Your Stack',
-          tabBarIcon: ({ size }) => (
-            <Ionicons name='prism' size={size} color={colors.themeBlue} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name='add2stack'
-        options={{
-          title: 'Add-2-stack',
-          tabBarIcon: ({ size }) => (
-            <Ionicons name='add-circle' size={size} color={colors.themeBlue} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name='account'
-        options={{
-          title: 'Account',
-          tabBarIcon: ({ size }) => (
-            <Ionicons name='person-sharp' size={size} color={colors.themeBlue} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name='settings'
-        options={{
-          href: null,
-        }}
-      />
+      {tabs.map((tab) => (
+        <Tabs.Screen
+          key={tab.name}
+          name={tab.name}
+          options={{
+            title: tab.title,
+            href: tab.href,
+            ...(tab.href !== null && {
+              tabBarIcon: ({ size }) => (
+                <Ionicons name={tab.icon as any} size={size} color={colors.themeBlue} />
+              ),
+            }),
+          }}
+        />
+      ))}
     </Tabs>
   );
 }
