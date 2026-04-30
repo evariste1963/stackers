@@ -2,6 +2,7 @@ import { View, useWindowDimensions, ScrollView, Text } from 'react-native';
 import { useRef } from 'react';
 import { VictoryChart, VictoryLine, VictoryAxis } from 'victory-native';
 import { useState, useEffect } from 'react';
+import { useIsFocused } from 'expo-router';
 import { getHistory, HistoryEntry, migrateStaticData, getHistoryLength } from '@/services/goldPriceStorage';
 import { colors } from '../styles/global';
 
@@ -10,6 +11,7 @@ type ChartAreaProps = {
 };
 
 export default function ChartArea({ history: propHistory }: ChartAreaProps) {
+  const isFocused = useIsFocused();
   const { width: screenWidth } = useWindowDimensions();
   const [data, setData] = useState<HistoryEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -53,6 +55,14 @@ export default function ChartArea({ history: propHistory }: ChartAreaProps) {
       });
     }
   }, [propHistory]);
+
+  useEffect(() => {
+    if (isFocused && scrollViewRef.current && !isLoading) {
+      requestAnimationFrame(() => {
+        scrollViewRef.current?.scrollToEnd({ animated: true });
+      });
+    }
+  }, [isFocused, isLoading]);
 
   if (isLoading || data.length === 0) {
     return (
