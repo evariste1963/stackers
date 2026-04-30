@@ -135,8 +135,8 @@ const styles = {
     alignItems: 'flex-start',
   } as const,
   changeValue: {
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 14,
+    fontWeight: '500',
   } as const,
   changePercent: {
     fontSize: 14,
