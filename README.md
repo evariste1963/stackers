@@ -197,6 +197,34 @@ This will upload your project to Expo's servers and return a downloadable APK.
 
 ---
 
+## Database
+
+This project uses SQLite via `expo-sqlite`.
+
+### Querying the database from terminal
+
+**Find the database file:**
+```bash
+adb shell "find /data/data -name '*.db'"  # Android emulator
+```
+
+**Query using sqlite3:**
+```bash
+sqlite3 <path-to-db> "SELECT * FROM table_name;"
+```
+
+**List tables:**
+```bash
+sqlite3 <path-to-db> ".tables"
+```
+
+**Interactive mode:**
+```bash
+sqlite3 <path-to-db>
+```
+
+---
+
 ## Common Issues
 
 **"JAVA_HOME not found"** - Ensure JAVA_HOME is set correctly (see above)
