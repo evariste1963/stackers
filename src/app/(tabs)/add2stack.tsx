@@ -1,10 +1,13 @@
 import { globalStyles, colors } from "@/styles/global";
 import { Text, View, TextInput, TouchableOpacity, Image, ScrollView, Modal, StyleSheet, Alert } from 'react-native';
 import { router } from 'expo-router';
-import { useState } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
+import { useState, useCallback } from 'react';
 import * as ImagePicker from 'expo-image-picker';
 import { documentDirectory, makeDirectoryAsync, moveAsync } from 'expo-file-system';
 import { addItem } from '@/services/stackStorage';
+import { getUserSettings } from '@/services/goldPriceStorage';
+import { AVAILABLE_UNITS } from '@/config';
 
 export default function AddToStackScreen() {
   const [code, setCode] = useState('');
@@ -14,6 +17,18 @@ export default function AddToStackScreen() {
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
+  const [weightUnit, setWeightUnit] = useState('toz');
+
+  const getUnitAbbrev = (code: string) => 
+    AVAILABLE_UNITS.find(u => u.code === code)?.abbrev ?? code;
+
+  useFocusEffect(
+    useCallback(() => {
+      getUserSettings().then(settings => {
+        setWeightUnit(settings.unit || 'toz');
+      });
+    }, [])
+  );
 
   const openCamera = async () => {
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
@@ -97,14 +112,14 @@ export default function AddToStackScreen() {
             <TextInput style={styles.input} placeholder="XUA" placeholderTextColor="#666" value={code} onChangeText={setCode} />
           </View>
           <View style={styles.col}>
-            <Text style={styles.label}>Weight</Text>
-            <TextInput style={styles.input} placeholder="Weight" placeholderTextColor="#666" value={weight} onChangeText={setWeight} />
+            <Text style={styles.label}>Weight ({getUnitAbbrev(weightUnit)})</Text>
+            <TextInput style={styles.input} placeholder={`Weight (${getUnitAbbrev(weightUnit)})`} placeholderTextColor="#666" value={weight} onChangeText={setWeight} />
           </View>
         </View>
         <View style={styles.row}>
           <View style={styles.col}>
-            <Text style={styles.label}>Cost/oz</Text>
-            <TextInput style={styles.input} placeholder="Cost/oz" placeholderTextColor="#666" value={purchasePrice} onChangeText={setPurchasePrice} />
+            <Text style={styles.label}>Cost/{getUnitAbbrev(weightUnit)}</Text>
+            <TextInput style={styles.input} placeholder={`Cost/${getUnitAbbrev(weightUnit)}`} placeholderTextColor="#666" value={purchasePrice} onChangeText={setPurchasePrice} />
           </View>
           <View style={styles.col}>
             <Text style={styles.label}>Premium %</Text>

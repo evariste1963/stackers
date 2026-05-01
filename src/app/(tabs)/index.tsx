@@ -1,7 +1,8 @@
 import { globalStyles } from '@/styles/global';
 import { Text, Image, ScrollView, View } from 'react-native';
-import { useRouter } from 'expo-router';
-import { useEffect } from 'react';
+import { router } from 'expo-router';
+import { useEffect, useCallback, useState } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import HomeHeader from '@/components/HomeHeader';
 import StackGrid from '@/components/StackGrid';
 import ChartArea from '@/components/ChartArea';
@@ -9,10 +10,28 @@ import GoldPriceBanner from '@/components/GoldPriceBanner';
 import StackValueBlock from '@/components/StackValueBlock';
 import { useGoldPrice, UseGoldPriceResult } from '@/hooks/useGoldPrice';
 import { colors } from '@/styles/global';
+import { getAllItems, type StackItem } from '@/services/stackStorage';
 
 export default function HomeScreen() {
-  const router = useRouter();
   const { priceData, history, isLoading, error, refreshPrice, settings, apiKeyConfigured, isSettingsLoading }: UseGoldPriceResult = useGoldPrice();
+  const [items, setItems] = useState<StackItem[]>([]);
+
+  const loadItems = useCallback(async () => {
+    const all = await getAllItems();
+    setItems(all);
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadItems();
+    }, [loadItems])
+  );
+
+  const totalStackValue = items.reduce((sum, item) => {
+    const weight = parseFloat(item.weight) || 0;
+    const price = priceData?.price || 0;
+    return sum + (weight * price);
+  }, 0);
 
   useEffect(() => {
     if (!isSettingsLoading && !apiKeyConfigured) {
@@ -47,7 +66,7 @@ export default function HomeScreen() {
           <ChartArea history={history} />
         </View>
         <StackGrid price={priceData} />
-        <StackValueBlock value={undefined} settings={settings} />
+        <StackValueBlock value={totalStackValue || undefined} settings={settings} />
       </View>
     </ScrollView >
   );

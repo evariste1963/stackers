@@ -4,6 +4,7 @@ import { useState, useCallback } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import { getAllItems, type StackItem } from '@/services/stackStorage';
 import { getLatestPrice, getUserSettings } from '@/services/goldPriceStorage';
+import { AVAILABLE_UNITS } from '@/config';
 import StackItemCard from '@/components/StackItemCard';
 import EmptyStackState from '@/components/EmptyStackState';
 
@@ -11,6 +12,10 @@ export default function YourStackScreen() {
   const [items, setItems] = useState<StackItem[]>([]);
   const [latestPrice, setLatestPrice] = useState<number | null>(null);
   const [currency, setCurrency] = useState('GBP');
+  const [weightUnit, setWeightUnit] = useState('toz');
+
+  const getUnitAbbrev = (code: string) =>
+    AVAILABLE_UNITS.find(u => u.code === code)?.abbrev ?? code;
 
   const loadItems = useCallback(async () => {
     const all = await getAllItems();
@@ -26,6 +31,9 @@ export default function YourStackScreen() {
     const settings = await getUserSettings();
     if (settings.currency) {
       setCurrency(settings.currency);
+    }
+    if (settings.unit) {
+      setWeightUnit(settings.unit);
     }
   }, []);
 
@@ -61,12 +69,13 @@ export default function YourStackScreen() {
               <View key={`row-${ri}`} style={styles.row}>
                 {row.map(item => (
                   <StackItemCard
-                    key={item.id}
-                    item={item}
-                    latestPrice={latestPrice}
-                    currency={currency}
-                    onDeleted={handleDeleted}
-                  />
+                     key={item.id}
+                     item={item}
+                     latestPrice={latestPrice}
+                     currency={currency}
+                     weightUnit={weightUnit}
+                     onDeleted={handleDeleted}
+                   />
                 ))}
               </View>
             ))}

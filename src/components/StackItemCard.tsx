@@ -2,15 +2,20 @@ import { StyleSheet, Text, TouchableOpacity, View, Image, Alert } from 'react-na
 import { colors } from '@/styles/global';
 import type { StackItem } from '@/services/stackStorage';
 import { deleteItems } from '@/services/stackStorage';
+import { AVAILABLE_UNITS } from '@/config';
 
 type StackItemCardProps = {
   item: StackItem;
   latestPrice: number | null;
   currency: string;
+  weightUnit?: string;
   onDeleted: () => void;
 };
 
-export default function StackItemCard({ item, latestPrice, currency, onDeleted }: StackItemCardProps) {
+const getUnitAbbrev = (code: string) =>
+  AVAILABLE_UNITS.find(u => u.code === code)?.abbrev ?? code;
+
+export default function StackItemCard({ item, latestPrice, currency, weightUnit = 'toz', onDeleted }: StackItemCardProps) {
   const handleDelete = () => {
     Alert.alert(
       'Delete Item',
@@ -61,8 +66,8 @@ export default function StackItemCard({ item, latestPrice, currency, onDeleted }
       </View>
       <View style={styles.info}>
         <Text style={styles.code}>{item.code}</Text>
-        <Text style={styles.detail}>Weight: {item.weight}</Text>
-        <Text style={styles.detail}>Cost/toz: {sym}{costPerToz.toFixed(2)}</Text>
+        <Text style={styles.detail}>Weight {getUnitAbbrev(weightUnit)}: {item.weight}</Text>
+        <Text style={styles.detail}>Cost/{getUnitAbbrev(weightUnit)}: {sym}{costPerToz.toFixed(2)}</Text>
         <Text style={styles.detail}>Total cost: {sym}{totalCost.toFixed(2)}</Text>
 
         <View style={styles.divider} />

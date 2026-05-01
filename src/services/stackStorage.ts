@@ -32,9 +32,9 @@ export interface StackItem {
 export async function getAllItems(): Promise<StackItem[]> {
   const database = await getDb();
   const rows = await database.getAllAsync('SELECT * FROM stack_items ORDER BY createdAt DESC') as any[];
-    return rows.map(row => ({
-      id: Number(row.id),
-      code: row.code,
+  return rows.map(row => ({
+    id: Number(row.id),
+    code: row.code,
     weight: row.weight,
     purchasePrice: row.purchasePrice,
     premium: row.premium,
