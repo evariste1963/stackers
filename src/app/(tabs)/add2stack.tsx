@@ -1,23 +1,79 @@
 import { globalStyles, colors } from "@/styles/global";
-import { Text, View, TextInput, TouchableOpacity, Image, ScrollView, Modal, StyleSheet } from 'react-native';
+import { Text, View, TextInput, TouchableOpacity, Image, ScrollView, Modal, StyleSheet, Alert } from 'react-native';
 import { router } from 'expo-router';
 import { useState } from 'react';
+import * as ImagePicker from 'expo-image-picker';
+import { documentDirectory, makeDirectoryAsync, moveAsync } from 'expo-file-system';
+import { addItem } from '@/services/stackStorage';
 
 export default function AddToStackScreen() {
   const [code, setCode] = useState('');
   const [weight, setWeight] = useState('');
   const [purchasePrice, setPurchasePrice] = useState('');
   const [premium, setPremium] = useState('');
-  const [spare1, setSpare1] = useState('');
-  const [spare2, setSpare2] = useState('');
+  const [imageUri, setImageUri] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
 
-  const handleSubmit = () => {
-    setModalVisible(true);
+  const openCamera = async () => {
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission needed', 'Camera permission is required to take photos.');
+      return;
+    }
+    const result = await ImagePicker.launchCameraAsync({
+      quality: 0.7,
+      allowsEditing: false,
+    });
+    if (!result.canceled) {
+      setImageUri(result.assets[0].uri);
+    }
   };
 
-  const handleCancel = () => {
-    router.push('/');
+  const handleSubmit = async () => {
+    if (!code || !weight || !purchasePrice || !premium) {
+      Alert.alert('Missing fields', 'Please fill in all required fields.');
+      return;
+    }
+    setSubmitting(true);
+    try {
+      let savedUri: string | null = null;
+      if (imageUri) {
+        const filename = `${Date.now()}.jpg`;
+        const dest = documentDirectory + 'images/' + filename;
+        await makeDirectoryAsync(documentDirectory + 'images/', {
+          intermediates: true,
+        });
+        await moveAsync({ from: imageUri, to: dest });
+        savedUri = dest;
+      }
+      await addItem({
+        code,
+        weight,
+        purchasePrice,
+        premium,
+        imageUri: savedUri,
+      });
+      setModalVisible(true);
+    } catch (err) {
+      Alert.alert('Error', 'Failed to save item. Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleModalYes = () => {
+    setModalVisible(false);
+    setCode('');
+    setWeight('');
+    setPurchasePrice('');
+    setPremium('');
+    setImageUri(null);
+  };
+
+  const handleModalNo = () => {
+    setModalVisible(false);
+    router.push('/yourStack');
   };
 
   return (
@@ -27,6 +83,14 @@ export default function AddToStackScreen() {
         <Text style={globalStyles.title}>Add to Stack</Text>
       </View>
       <View style={styles.form}>
+        <TouchableOpacity style={styles.cameraBtn} onPress={openCamera}>
+          <Text style={styles.cameraBtnText}>
+            {imageUri ? 'Retake Photo' : 'Take Photo'}
+          </Text>
+        </TouchableOpacity>
+        {imageUri && (
+          <Image source={{ uri: imageUri }} style={styles.preview} />
+        )}
         <View style={styles.row}>
           <View style={styles.col}>
             <Text style={styles.label}>Code</Text>
@@ -39,28 +103,18 @@ export default function AddToStackScreen() {
         </View>
         <View style={styles.row}>
           <View style={styles.col}>
-            <Text style={styles.label}>Purchase Price</Text>
-            <TextInput style={styles.input} placeholder="Purchase Price" placeholderTextColor="#666" value={purchasePrice} onChangeText={setPurchasePrice} />
+            <Text style={styles.label}>Cost/oz</Text>
+            <TextInput style={styles.input} placeholder="Cost/oz" placeholderTextColor="#666" value={purchasePrice} onChangeText={setPurchasePrice} />
           </View>
           <View style={styles.col}>
             <Text style={styles.label}>Premium %</Text>
             <TextInput style={styles.input} placeholder="23" placeholderTextColor="#666" keyboardType="numeric" value={premium} onChangeText={setPremium} />
           </View>
         </View>
-        <View style={styles.row}>
-          <View style={styles.col}>
-            <Text style={styles.label}>Spare1</Text>
-            <TextInput style={styles.input} placeholder="Spare1" placeholderTextColor="#666" value={spare1} onChangeText={setSpare1} />
-          </View>
-          <View style={styles.col}>
-            <Text style={styles.label}>Spare2</Text>
-            <TextInput style={styles.input} placeholder="23" placeholderTextColor="#666" keyboardType="numeric" value={spare2} onChangeText={setSpare2} />
-          </View>
-        </View>
-        <TouchableOpacity style={styles.submitBtn} onPress={handleSubmit}>
-          <Text style={styles.submitBtnText}>Submit</Text>
+        <TouchableOpacity style={styles.submitBtn} onPress={handleSubmit} disabled={submitting}>
+          <Text style={styles.submitBtnText}>{submitting ? 'Saving...' : 'Submit'}</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.cancelBtn} onPress={handleCancel}>
+        <TouchableOpacity style={styles.cancelBtn} onPress={() => router.push('/')}>
           <Text style={styles.cancelBtnText}>Cancel</Text>
         </TouchableOpacity>
       </View>
@@ -75,27 +129,10 @@ export default function AddToStackScreen() {
             <Text style={styles.modalTitle}>Success!</Text>
             <Text style={styles.modalMessage}>Submit Something Else?</Text>
             <View style={styles.modalButtons}>
-              <TouchableOpacity
-                style={styles.yesBtn}
-                onPress={() => {
-                  setModalVisible(false);
-                  setCode('');
-                  setWeight('');
-                  setPurchasePrice('');
-                  setPremium('');
-                  setSpare1('');
-                  setSpare2('');
-                }}
-              >
+              <TouchableOpacity style={styles.yesBtn} onPress={handleModalYes}>
                 <Text style={styles.yesBtnText}>Yes</Text>
               </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.noBtn}
-                onPress={() => {
-                  setModalVisible(false);
-                  router.push('/yourStack');
-                }}
-              >
+              <TouchableOpacity style={styles.noBtn} onPress={handleModalNo}>
                 <Text style={styles.noBtnText}>No</Text>
               </TouchableOpacity>
             </View>
@@ -110,6 +147,25 @@ const styles = StyleSheet.create({
   form: {
     padding: 16,
     marginTop: 32,
+  },
+  cameraBtn: {
+    backgroundColor: colors.themeBlue,
+    padding: 14,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  cameraBtnText: {
+    color: colors.gold,
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  preview: {
+    width: '100%',
+    height: 200,
+    borderRadius: 8,
+    marginBottom: 16,
+    resizeMode: 'cover',
   },
   row: {
     flexDirection: 'row',
