@@ -75,12 +75,12 @@ export default function GoldPriceBanner({ priceData, isLoading, error, refreshPr
           {error && <Text style={styles.error}>{error}</Text>}
         </View>
         <TouchableOpacity
-          style={[styles.button, isLoading && styles.buttonDisabled]}
+          style={[styles.button, isLoading && styles.buttonLoading, isLoading && styles.buttonDisabled]}
           onPress={refreshPrice}
           disabled={isLoading}
         >
           {isLoading ? (
-            <ActivityIndicator size="small" color={colors.white} />
+            <ActivityIndicator size="large" color={colors.white} />
           ) : (
             <Text style={styles.buttonText}>↻ Refresh</Text>
           )}
@@ -96,7 +96,7 @@ const styles = {
     backgroundColor: colors.themeGrey,
     borderRadius: 12,
     padding: 16,
-    marginBottom: 20,
+    marginBottom: 15,
   } as const,
   content: {
     flexDirection: 'row',
@@ -157,6 +157,9 @@ const styles = {
     paddingHorizontal: 14,
     paddingVertical: 16,
     borderRadius: 16,
+  } as const,
+  buttonLoading: {
+    backgroundColor: 'transparent',
   } as const,
   buttonDisabled: {
     opacity: 0.7,

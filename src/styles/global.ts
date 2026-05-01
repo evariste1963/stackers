@@ -40,7 +40,7 @@ export const globalStyles = StyleSheet.create({
   },
   chart: {
     flex: 1,
-    marginTop: 20,
+    marginTop: 0,
     height: 160,
     width: '100%',
     backgroundColor: colors.background,

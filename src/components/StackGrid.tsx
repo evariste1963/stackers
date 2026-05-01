@@ -49,6 +49,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 16,
-    marginTop: 40,
+    marginTop: 15,
   },
 });

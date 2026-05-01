@@ -6,6 +6,7 @@ import HomeHeader from '@/components/HomeHeader';
 import StackGrid from '@/components/StackGrid';
 import ChartArea from '@/components/ChartArea';
 import GoldPriceBanner from '@/components/GoldPriceBanner';
+import StackValueBlock from '@/components/StackValueBlock';
 import { useGoldPrice, UseGoldPriceResult } from '@/hooks/useGoldPrice';
 import { colors } from '@/styles/global';
 
@@ -46,6 +47,7 @@ export default function HomeScreen() {
           <ChartArea history={history} />
         </View>
         <StackGrid price={priceData} />
+        <StackValueBlock value={undefined} settings={settings} />
       </View>
     </ScrollView >
   );

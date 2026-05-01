@@ -27,22 +27,22 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.themeGrey,
     borderRadius: 12,
-    padding: 16,
+    padding: 14,
     width: '47%',
     borderLeftWidth: 4,
   },
   label: {
-    fontSize: 14,
+    fontSize: 12,
     color: colors.grey
   },
   value: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: 'bold',
     color: colors.gold,
     marginTop: 4,
   },
   goal: {
-    fontSize: 14,
+    fontSize: 12,
     color: colors.grey,
     marginTop: 2,
   },
