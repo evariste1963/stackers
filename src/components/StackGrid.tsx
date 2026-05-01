@@ -1,14 +1,45 @@
+import { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import StackCard from './StackCard';
+import { getLatestPrice, type GoldPriceData } from '@/services/goldPriceStorage';
 import { colors } from '@/styles/global';
 
-export default function StackGrid() {
+interface StackGridProps {
+  price?: GoldPriceData;
+}
+
+export default function StackGrid({ price }: StackGridProps) {
+  const [priceData, setPriceData] = useState<GoldPriceData | null>(price ?? null);
+
+  useEffect(() => {
+    if (priceData) return;
+    getLatestPrice().then(setPriceData);
+  }, [priceData]);
+
+  useEffect(() => {
+    if (price) {
+      setPriceData(price);
+    }
+  }, [price]);
+
+  const cards = [
+    { label: 'ask-price', field: 'ask' as const },
+    { label: 'bid-price', field: 'bid' as const },
+    { label: 'high', field: 'high' as const },
+    { label: 'low', field: 'low' as const },
+  ];
+
   return (
     <View style={styles.grid}>
-      <StackCard label='9-Karat' value='' goal='GBP' color={colors.darkGold} />
-      <StackCard label='18-Karat' value='' goal='GBP' color={colors.darkGold} />
-      <StackCard label='22-Karat' value='' goal='GBP' color={colors.darkGold} />
-      <StackCard label='24-Karat' value='' goal='GBP' color={colors.darkGold} />
+      {cards.map(({ label, field }) => (
+        <StackCard
+          key={field}
+          label={label}
+          value={priceData ? (priceData[field] as number).toFixed(2) : ''}
+          goal={priceData?.currency ?? 'GBP'}
+          color={colors.darkGold}
+        />
+      ))}
     </View>
   );
 }

@@ -45,7 +45,7 @@ export default function HomeScreen() {
         <View style={globalStyles.chart}>
           <ChartArea history={history} />
         </View>
-        <StackGrid />
+        <StackGrid price={priceData} />
       </View>
     </ScrollView >
   );

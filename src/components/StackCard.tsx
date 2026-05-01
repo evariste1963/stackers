@@ -33,17 +33,17 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 14,
-    color: colors.gold
+    color: colors.grey
   },
   value: {
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: 'bold',
     color: colors.gold,
     marginTop: 4,
   },
   goal: {
     fontSize: 14,
-    color: colors.gold,
+    color: colors.grey,
     marginTop: 2,
   },
 });
