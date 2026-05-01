@@ -33,6 +33,12 @@ export default function HomeScreen() {
     return sum + (weight * price);
   }, 0);
 
+  const totalCostValue = items.reduce((sum, item) => {
+    const weight = parseFloat(item.weight) || 0;
+    const costPerUnit = parseFloat(item.purchasePrice) || 0;
+    return sum + (weight * costPerUnit);
+  }, 0);
+
   useEffect(() => {
     if (!isSettingsLoading && !apiKeyConfigured) {
       router.replace('/api-settings');
@@ -52,22 +58,22 @@ export default function HomeScreen() {
   }
 
   return (
-    <ScrollView style={globalStyles.container}>
-      <View style={globalStyles.header}>
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
+      <View style={[globalStyles.header, { paddingHorizontal: 20, paddingTop: 60 }]}>
         <View style={globalStyles.logoContainer}>
           <Image source={require('../../../assets/images/stackers-logo.png')} style={globalStyles.logo} />
           <Text style={globalStyles.title}>Stackers</Text>
         </View>
       </View>
-      <HomeHeader />
-      <GoldPriceBanner priceData={priceData} isLoading={isLoading} error={error} refreshPrice={refreshPrice} settings={settings} />
-      <View style={{ flex: 1, flexDirection: 'column' }}>
-        <View style={globalStyles.chart}>
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 20 }}>
+        <HomeHeader />
+        <GoldPriceBanner priceData={priceData} isLoading={isLoading} error={error} refreshPrice={refreshPrice} settings={settings} />
+        <View style={{ height: 160, width: '100%', marginTop: 0, backgroundColor: colors.background, alignItems: 'center' }}>
           <ChartArea history={history} />
         </View>
-        <StackGrid price={priceData} />
-        <StackValueBlock value={totalStackValue || undefined} settings={settings} />
-      </View>
-    </ScrollView >
+        <StackGrid price={priceData ?? undefined} />
+        <StackValueBlock value={totalStackValue || undefined} costValue={totalCostValue || undefined} settings={settings} />
+      </ScrollView >
+    </View>
   );
 }

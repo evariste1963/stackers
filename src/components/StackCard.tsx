@@ -28,7 +28,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.themeGrey,
     borderRadius: 12,
     padding: 14,
-    width: '47%',
+    width: '49%',
     borderLeftWidth: 4,
   },
   label: {

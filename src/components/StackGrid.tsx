@@ -29,26 +29,38 @@ export default function StackGrid({ price }: StackGridProps) {
     { label: 'low', field: 'low' as const },
   ];
 
+  const rows = [
+    [cards[0], cards[1]],
+    [cards[2], cards[3]],
+  ];
+
   return (
-    <View style={styles.grid}>
-      {cards.map(({ label, field }) => (
-        <StackCard
-          key={field}
-          label={label}
-          value={priceData ? (priceData[field] as number).toFixed(2) : ''}
-          goal={priceData?.currency ?? 'GBP'}
-          color={colors.darkGold}
-        />
+    <View style={styles.container}>
+      {rows.map((row, rowIndex) => (
+        <View key={rowIndex} style={styles.row}>
+          {row.map(({ label, field }) => (
+            <StackCard
+              key={field}
+              label={label}
+              value={priceData ? (priceData[field] as number).toFixed(2) : ''}
+              goal={priceData?.currency ?? 'GBP'}
+              color={colors.darkGold}
+            />
+          ))}
+        </View>
       ))}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  grid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 16,
+  container: {
     marginTop: 15,
+    marginBottom: 8,
+    gap: 8,
+  },
+  row: {
+    flexDirection: 'row',
+    gap: 8,
   },
 });
