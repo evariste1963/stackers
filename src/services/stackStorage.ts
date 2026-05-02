@@ -18,7 +18,7 @@ export async function getDb(): Promise<SQLite.SQLiteDatabase> {
           code TEXT NOT NULL,
           weight TEXT NOT NULL,
           purchasePrice TEXT NOT NULL,
-          premium TEXT NOT NULL,
+          premium TEXT NOT NULL DEFAULT '',
           imageUri TEXT,
           createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
         );
@@ -53,7 +53,7 @@ export async function getAllItems(): Promise<StackItem[]> {
     code: row.code,
     weight: row.weight,
     purchasePrice: row.purchasePrice,
-    premium: row.premium,
+    premium: row.premium || '',
     imageUri: row.imageUri,
     createdAt: row.createdAt,
   }));
@@ -63,14 +63,14 @@ export async function addItem(item: Omit<StackItem, 'id' | 'createdAt'>): Promis
   const database = await getDb();
   const result = await database.runAsync(
     'INSERT INTO stack_items (code, weight, purchasePrice, premium, imageUri) VALUES (?, ?, ?, ?, ?)',
-    [item.code, item.weight, item.purchasePrice, item.premium, item.imageUri]
+    [item.code, item.weight, item.purchasePrice, item.premium || '', item.imageUri || null]
   );
   return {
     id: Number(result.lastInsertRowId),
     code: item.code,
     weight: item.weight,
     purchasePrice: item.purchasePrice,
-    premium: item.premium,
+    premium: item.premium || '',
     imageUri: item.imageUri,
     createdAt: new Date().toISOString(),
   };

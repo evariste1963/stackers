@@ -4,21 +4,20 @@ import { router } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { useState, useCallback } from 'react';
 import * as ImagePicker from 'expo-image-picker';
-import { documentDirectory, makeDirectoryAsync, moveAsync } from 'expo-file-system/legacy';
+import { File, Directory, Paths } from 'expo-file-system';
 import { addItem } from '@/services/stackStorage';
 import { getUserSettings } from '@/services/goldPriceStorage';
 import { AVAILABLE_UNITS } from '@/config';
 import GoldPriceBanner from '@/components/GoldPriceBanner';
 import { useGoldPrice, UseGoldPriceResult } from '@/hooks/useGoldPrice';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function AddToStackScreen() {
   const { priceData, isLoading, error, refreshPrice, settings }: UseGoldPriceResult = useGoldPrice();
   const [code, setCode] = useState('');
   const [weight, setWeight] = useState('');
   const [purchasePrice, setPurchasePrice] = useState('');
-  const [premium, setPremium] = useState('');
   const [totalAmount, setTotalAmount] = useState('');
-  const [calculatorWeight, setCalculatorWeight] = useState('');
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
@@ -28,8 +27,8 @@ export default function AddToStackScreen() {
     AVAILABLE_UNITS.find(u => u.code === code)?.abbrev ?? code;
 
   const computedCostPerUnit = (() => {
-    if (!calculatorWeight || !totalAmount) return '';
-    const w = parseFloat(calculatorWeight);
+    if (!weight || !totalAmount) return '';
+    const w = parseFloat(weight);
     const t = parseFloat(totalAmount);
     if (w > 0 && !isNaN(t)) {
       return (t / w).toFixed(2);
@@ -38,7 +37,6 @@ export default function AddToStackScreen() {
   })();
 
   const costPerUnit = totalAmount ? computedCostPerUnit : purchasePrice;
-  const effectiveWeight = calculatorWeight || weight;
 
   useFocusEffect(
     useCallback(() => {
@@ -53,9 +51,7 @@ export default function AddToStackScreen() {
       setCode('');
       setWeight('');
       setPurchasePrice('');
-      setPremium('');
       setTotalAmount('');
-      setCalculatorWeight('');
       setImageUri(null);
     }, [])
   );
@@ -76,7 +72,7 @@ export default function AddToStackScreen() {
   };
 
   const handleSubmit = async () => {
-    if (!code || !effectiveWeight || !costPerUnit || !premium) {
+    if (!code || !weight || !costPerUnit) {
       Alert.alert('Missing fields', 'Please fill in all required fields.');
       return;
     }
@@ -85,19 +81,21 @@ export default function AddToStackScreen() {
     try {
       let savedUri: string | null = null;
       if (imageUri) {
+        const imagesDir = new Directory(Paths.document, 'images');
+        if (!imagesDir.exists) {
+          imagesDir.create();
+        }
         const filename = `${Date.now()}.jpg`;
-        const dest = documentDirectory + 'images/' + filename;
-        await makeDirectoryAsync(documentDirectory + 'images/', {
-          intermediates: true,
-        });
-        await moveAsync({ from: imageUri, to: dest });
-        savedUri = dest;
+        const destFile = new File(imagesDir, filename);
+        const sourceFile = new File(imageUri);
+        sourceFile.copy(destFile);
+        savedUri = destFile.uri;
       }
       await addItem({
         code,
-        weight: effectiveWeight,
+        weight,
         purchasePrice: finalCost,
-        premium,
+        premium: '',
         imageUri: savedUri,
       });
       setModalVisible(true);
@@ -113,9 +111,7 @@ export default function AddToStackScreen() {
     setCode('');
     setWeight('');
     setPurchasePrice('');
-    setPremium('');
     setTotalAmount('');
-    setCalculatorWeight('');
     setImageUri(null);
   };
 
@@ -135,35 +131,31 @@ return (
       </View>
       <ScrollView style={[styles.form, { paddingHorizontal: 20 }]}>
         <TouchableOpacity style={styles.cameraBtn} onPress={openCamera}>
-          <Text style={styles.cameraBtnText}>
-            {imageUri ? 'Retake Photo' : 'Take Photo'}
-          </Text>
+          <View style={styles.cameraBtnContent}>
+            <Ionicons name="camera" size={20} color={colors.gold} style={{ marginRight: 8 }} />
+            <Text style={styles.cameraBtnText}>{imageUri ? 'Retake Photo' : 'Take Photo'}</Text>
+          </View>
         </TouchableOpacity>
         {imageUri && (
           <Image source={{ uri: imageUri }} style={styles.preview} />
         )}
         <View style={styles.row}>
           <View style={styles.col}>
-            <Text style={styles.label}>Code</Text>
+            <Text style={styles.label}>Item</Text>
             <TextInput style={styles.input} placeholder="XUA" placeholderTextColor="#666" value={code} onChangeText={setCode} />
           </View>
           <View style={styles.col}>
-            <Text style={styles.label}>Premium %</Text>
-            <TextInput style={styles.input} placeholder="23" placeholderTextColor="#666" keyboardType="numeric" value={premium} onChangeText={setPremium} />
+            <Text style={[styles.label, { textAlign: 'right' }]}>Weight ({getUnitAbbrev(weightUnit)})</Text>
+            <TextInput 
+              style={styles.input} 
+              placeholder={`Weight (${getUnitAbbrev(weightUnit)})`} 
+              placeholderTextColor="#666" 
+              value={weight} 
+              onChangeText={setWeight}
+            />
           </View>
         </View>
         <View style={styles.row}>
-          <View style={styles.col}>
-            <Text style={styles.label}>Weight ({getUnitAbbrev(weightUnit)})</Text>
-            <TextInput 
-              style={[styles.input, calculatorWeight ? styles.disabledInput : null]} 
-              placeholder={`Weight (${getUnitAbbrev(weightUnit)})`} 
-              placeholderTextColor="#666" 
-              value={effectiveWeight} 
-              onChangeText={setWeight}
-              editable={!calculatorWeight}
-            />
-          </View>
           <View style={styles.col}>
             <Text style={styles.label}>Cost/{getUnitAbbrev(weightUnit)}</Text>
             <TextInput 
@@ -175,32 +167,18 @@ return (
               editable={!totalAmount}
             />
           </View>
-        </View>
-        <Text style={styles.calcTitle}>OR</Text>
-        <View style={styles.row}>
-          <View style={[styles.col, { width: '48%' }]}>
-            <Text style={styles.label}>Weight ({getUnitAbbrev(weightUnit)})</Text>
-            <TextInput 
-              style={styles.input} 
-              placeholder={`Weight (${getUnitAbbrev(weightUnit)})`} 
-              placeholderTextColor="#666" 
-              value={calculatorWeight} 
-              onChangeText={setCalculatorWeight}
-            />
-          </View>
-          <View style={[styles.col, { width: '48%' }]}>
-            <Text style={styles.label}>Total Amount Paid</Text>
+          <Text style={styles.orText}>OR</Text>
+          <View style={styles.col}>
+            <Text style={[styles.label, { textAlign: 'right' }]}>Total Amount</Text>
             <TextInput style={styles.input} placeholder="Total" placeholderTextColor="#666" value={totalAmount} onChangeText={setTotalAmount} />
           </View>
         </View>
-        <View style={styles.buttonRow}>
-          <TouchableOpacity style={styles.submitBtn} onPress={handleSubmit} disabled={submitting}>
-            <Text style={styles.submitBtnText}>{submitting ? 'Saving...' : 'Submit'}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.cancelBtn} onPress={() => router.push('/')}>
-            <Text style={styles.cancelBtnText}>Cancel</Text>
-          </TouchableOpacity>
-        </View>
+        <TouchableOpacity style={styles.submitBtn} onPress={handleSubmit} disabled={submitting}>
+          <Text style={styles.submitBtnText}>{submitting ? 'Saving...' : 'Submit'}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.cancelBtn} onPress={() => router.push('/')}>
+          <Text style={styles.cancelBtnText}>Cancel</Text>
+        </TouchableOpacity>
       </ScrollView>
       <Modal
         visible={modalVisible}
@@ -234,6 +212,7 @@ const styles = StyleSheet.create({
   bannerContainer: {
     paddingHorizontal: 20,
     paddingTop: 8,
+    marginBottom: 30,
   },
   cameraBtn: {
     backgroundColor: colors.themeBlue,
@@ -242,10 +221,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 12,
   },
+  cameraBtnContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   cameraBtnText: {
     color: colors.gold,
     fontSize: 18,
     fontWeight: 'bold',
+    textAlign: 'left',
   },
   preview: {
     width: '100%',
@@ -258,6 +242,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 16,
     marginBottom: 16,
+  },
+  orText: {
+    alignSelf: 'center',
+    color: colors.gold,
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginTop: 20,
   },
   col: {
     flex: 1,
@@ -285,21 +276,19 @@ disabledInput: {
     gap: 12,
     marginTop: 16,
   },
-  submitBtn: {
+submitBtn: {
     backgroundColor: colors.green,
     padding: 16,
     borderRadius: 8,
     alignItems: 'center',
-    width: '48%',
+    marginTop: 16,
   },
   cancelBtn: {
     backgroundColor: colors.themeGrey,
     padding: 16,
     borderRadius: 8,
     alignItems: 'center',
-    width: '48%',
-    borderWidth: 1,
-    borderColor: colors.gold,
+    marginTop: 12,
   },
   calcTitle: {
     fontSize: 18,
