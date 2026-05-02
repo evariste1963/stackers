@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
-import { getLatestPrice, saveSpotPrice, saveToHistory, migrateStaticData, getHistoryLength, getApiKey, getUserSettings, migrateFromKVStore, GoldPriceData, HistoryEntry, UserSettings } from '@/services/goldPriceStorage';
+import { getLatestPrice, saveSpotPrice, type GoldPriceData } from '@/services/priceService';
+import { getHistory, saveToHistory, migrateStaticData, getHistoryLength, type HistoryEntry } from '@/services/historyService';
+import { getApiKey, getUserSettings, migrateFromKVStore, type UserSettings } from '@/services/settingsService';
 import { fetchGoldPrice } from '@/services/goldPriceApi';
 
 export interface UseGoldPriceResult {
@@ -35,14 +37,12 @@ export function useGoldPrice(): UseGoldPriceResult {
   }, []);
 
   const loadHistory = useCallback(async () => {
-    // Run migration from old KV-store (one-time)
     await migrateFromKVStore();
     
     const historyLength = await getHistoryLength();
     if (historyLength === 0) {
       await migrateStaticData();
     }
-    const { getHistory } = await import('@/services/goldPriceStorage');
     const fullHistory = await getHistory();
     setHistory(fullHistory);
   }, []);
@@ -90,7 +90,6 @@ export function useGoldPrice(): UseGoldPriceResult {
       await saveToHistory(result.price, result.change, result.changePercent);
       setPriceData(savedData);
       
-      const { getHistory } = await import('@/services/goldPriceStorage');
       const fullHistory = await getHistory();
       setHistory(fullHistory);
     } catch (err) {

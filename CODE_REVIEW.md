@@ -13,22 +13,30 @@ This is an **Expo/React Native** mobile app called "Stackers" - a gold stack tra
 
 | Issue | Locations |
 |-------|-----------|
-| `getUnitAbbrev()` function | StackItemCard.tsx:15, yourStack.tsx:17, add2stack.tsx:26 |
-| Currency symbol logic (`£$€`) | StackValueBlock.tsx:14, StackItemCard.tsx:50, GoldPriceBanner.tsx:17 |
-| Date formatting helpers | Multiple components |
+| `getUnitAbbrev()` function | ~~StackItemCard.tsx:15, yourStack.tsx:17, add2stack.tsx:26~~ - **FIXED** |
+| Currency symbol logic (`£$€`) | ~~StackValueBlock.tsx:14, StackItemCard.tsx:50, GoldPriceBanner.tsx:17~~ - **FIXED** |
+| Date formatting helpers | ~~Multiple components~~ - **FIXED** |
 
 ---
 
 ## Refactoring Opportunities
 
-### 1. Split goldPriceStorage.ts (506 lines)
+### 1. ~~Split goldPriceStorage.ts (506 lines)~~ - DONE
 
-This file handles: DB init, price CRUD, history, settings, API key, migration. **Split into multiple services**:
-- `priceService.ts` - Price fetching and caching
-- `settingsService.ts` - User preferences
-- `historyService.ts` - Historical price data
+Split into multiple services:
+- `src/services/priceService.ts` - Price fetching and caching (GoldPriceData)
+- `src/services/settingsService.ts` - User preferences (UserSettings)
+- `src/services/historyService.ts` - Historical price data (HistoryEntry)
+- `src/services/index.ts` - Re-exports for backwards compatibility
 
-### 2. Extract duplicate currency formatting
+### 2. ~~Extract duplicate currency formatting~~ - DONE
+
+Created `src/utils/formatters.ts`:
+- `getUnitAbbrev()`
+- `getCurrencySymbol()`
+- `formatDate()`
+
+### 3. Add state management
 
 Create a shared utility:
 ```typescript
@@ -74,8 +82,8 @@ Each screen fetches data independently via `useFocusEffect`. Consider React Cont
 
 ## Summary
 
-The codebase is functional and reasonably organized, but has clear refactoring opportunities. The main priorities would be:
+The codebase is functional and well-organized. Refactoring completed:
 
-1. Split `goldPriceStorage.ts` into smaller services
-2. Extract duplicate utility functions (currency, units)
+1. ✅ Split `goldPriceStorage.ts` into 3 service files (price, history, settings)
+2. ✅ Extracted duplicate utility functions to `src/utils/formatters.ts`
 3. Consider a state management solution to reduce repetitive data fetching

@@ -1,6 +1,8 @@
 import { Text, View, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { colors } from '@/styles/global';
-import { GoldPriceData, UserSettings } from '@/services/goldPriceStorage';
+import { type GoldPriceData } from '@/services/priceService';
+import { type UserSettings } from '@/services/settingsService';
+import { getCurrencySymbol, formatDate } from '@/utils/formatters';
 
 type GoldPriceBannerProps = {
   priceData: GoldPriceData | null;
@@ -14,7 +16,7 @@ export default function GoldPriceBanner({ priceData, isLoading, error, refreshPr
 
   const formatPrice = (price: number | undefined) => {
     if (!price) return 'Tap refresh to fetch';
-    const symbol = settings.currency === 'GBP' ? '£' : settings.currency === 'USD' ? '$' : '€';
+    const symbol = getCurrencySymbol(settings.currency);
     return `${symbol}${price.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
 
@@ -28,12 +30,6 @@ export default function GoldPriceBanner({ priceData, isLoading, error, refreshPr
     if (changePercent === undefined || changePercent === null) return '';
     const symbol = changePercent > 0 ? '+' : '';
     return `(${symbol}${changePercent.toFixed(2)}%)`;
-  };
-
-  const formatDate = (dateStr: string | undefined) => {
-    if (!dateStr) return '';
-    const date = new Date(dateStr);
-    return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
   };
 
   const getChangeColor = (change: number | undefined) => {

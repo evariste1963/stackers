@@ -6,8 +6,8 @@ import { useState, useCallback } from 'react';
 import * as ImagePicker from 'expo-image-picker';
 import { File, Directory, Paths } from 'expo-file-system';
 import { addItem } from '@/services/stackStorage';
-import { getUserSettings } from '@/services/goldPriceStorage';
-import { AVAILABLE_UNITS } from '@/config';
+import { getUserSettings } from '@/services/settingsService';
+import { getUnitAbbrev } from '@/utils/formatters';
 import GoldPriceBanner from '@/components/GoldPriceBanner';
 import { useGoldPrice, UseGoldPriceResult } from '@/hooks/useGoldPrice';
 import { Ionicons } from '@expo/vector-icons';
@@ -22,9 +22,6 @@ export default function AddToStackScreen() {
   const [submitting, setSubmitting] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [weightUnit, setWeightUnit] = useState('toz');
-
-  const getUnitAbbrev = (code: string) => 
-    AVAILABLE_UNITS.find(u => u.code === code)?.abbrev ?? code;
 
   const computedCostPerUnit = (() => {
     if (!weight || !totalAmount) return '';

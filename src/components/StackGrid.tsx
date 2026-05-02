@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import StackCard from './StackCard';
-import { getLatestPrice, type GoldPriceData } from '@/services/goldPriceStorage';
+import { getLatestPrice, type GoldPriceData } from '@/services/priceService';
 import { colors } from '@/styles/global';
 
 interface StackGridProps {

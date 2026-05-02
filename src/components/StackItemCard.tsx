@@ -2,7 +2,7 @@ import { StyleSheet, Text, TouchableOpacity, View, Image, Alert } from 'react-na
 import { colors } from '@/styles/global';
 import type { StackItem } from '@/services/stackStorage';
 import { deleteItems } from '@/services/stackStorage';
-import { AVAILABLE_UNITS } from '@/config';
+import { getUnitAbbrev, getCurrencySymbol } from '@/utils/formatters';
 
 type StackItemCardProps = {
   item: StackItem;
@@ -11,9 +11,6 @@ type StackItemCardProps = {
   weightUnit?: string;
   onDeleted: () => void;
 };
-
-const getUnitAbbrev = (code: string) =>
-  AVAILABLE_UNITS.find(u => u.code === code)?.abbrev ?? code;
 
 export default function StackItemCard({ item, latestPrice, currency, weightUnit = 'toz', onDeleted }: StackItemCardProps) {
   const handleDelete = () => {
@@ -47,7 +44,7 @@ export default function StackItemCard({ item, latestPrice, currency, weightUnit 
     valueChangePct = (valueChange / totalCost) * 100;
   }
 
-  const sym = currency === 'GBP' ? '£' : currency === 'USD' ? '$' : '€';
+  const sym = getCurrencySymbol(currency);
   const isPositive = (valueChange ?? 0) >= 0;
 
   return (

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'expo-router';
 import { globalStyles, colors } from '@/styles/global';
 import { Text, View, TextInput, TouchableOpacity, ScrollView, Alert, Linking, Image } from 'react-native';
-import { getUserSettings, updateApiKey, removeApiKey, updatePreference, UserSettings } from '@/services/goldPriceStorage';
+import { getUserSettings, updateApiKey, removeApiKey, updatePreference, type UserSettings } from '@/services/settingsService';
 import { AVAILABLE_CURRENCIES, AVAILABLE_UNITS, METALS_DEV_URL } from '@/config';
 
 export default function ApiSettingsScreen() {

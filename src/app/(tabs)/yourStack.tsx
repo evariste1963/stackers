@@ -3,8 +3,8 @@ import { Text, View, ScrollView, StyleSheet, Image } from 'react-native';
 import { useState, useCallback } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import { getAllItems, type StackItem } from '@/services/stackStorage';
-import { getLatestPrice, getUserSettings } from '@/services/goldPriceStorage';
-import { AVAILABLE_UNITS } from '@/config';
+import { getLatestPrice } from '@/services/priceService';
+import { getUserSettings } from '@/services/settingsService';
 import StackItemCard from '@/components/StackItemCard';
 import EmptyStackState from '@/components/EmptyStackState';
 
@@ -13,9 +13,6 @@ export default function YourStackScreen() {
   const [latestPrice, setLatestPrice] = useState<number | null>(null);
   const [currency, setCurrency] = useState('GBP');
   const [weightUnit, setWeightUnit] = useState('toz');
-
-  const getUnitAbbrev = (code: string) =>
-    AVAILABLE_UNITS.find(u => u.code === code)?.abbrev ?? code;
 
   const loadItems = useCallback(async () => {
     const all = await getAllItems();

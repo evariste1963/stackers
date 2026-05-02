@@ -3,7 +3,7 @@ import { useRef } from 'react';
 import { VictoryChart, VictoryLine, VictoryAxis } from 'victory-native';
 import { useState, useEffect } from 'react';
 import { useIsFocused } from 'expo-router';
-import { getHistory, HistoryEntry, migrateStaticData, getHistoryLength } from '@/services/goldPriceStorage';
+import { getHistory, type HistoryEntry, migrateStaticData, getHistoryLength } from '@/services/historyService';
 import { colors } from '../styles/global';
 
 type ChartAreaProps = {

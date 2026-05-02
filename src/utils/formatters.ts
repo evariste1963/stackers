@@ -1,0 +1,14 @@
+import { AVAILABLE_UNITS } from '@/config';
+
+export function getUnitAbbrev(code: string): string {
+  return AVAILABLE_UNITS.find(u => u.code === code)?.abbrev ?? code;
+}
+
+export function getCurrencySymbol(currency: string): string {
+  return currency === 'GBP' ? '£' : currency === 'USD' ? '$' : '€';
+}
+
+export function formatDate(dateStr: string): string {
+  const date = new Date(dateStr);
+  return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+}

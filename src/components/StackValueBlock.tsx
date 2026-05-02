@@ -1,6 +1,7 @@
 import { Text, View } from 'react-native';
 import { colors } from '@/styles/global';
-import { UserSettings } from '@/services/goldPriceStorage';
+import { type UserSettings } from '@/services/settingsService';
+import { getCurrencySymbol } from '@/utils/formatters';
 
 type StackValueBlockProps = {
   value: string | number | undefined;
@@ -11,7 +12,7 @@ type StackValueBlockProps = {
 export default function StackValueBlock({ value, costValue, settings }: StackValueBlockProps) {
   const formatValue = (val: string | number | undefined) => {
     if (val === undefined || val === null || val === '') return '';
-    const symbol = settings.currency === 'GBP' ? '£' : settings.currency === 'USD' ? '$' : '€';
+    const symbol = getCurrencySymbol(settings.currency);
     const numVal = typeof val === 'string' ? parseFloat(val) : val;
     if (isNaN(numVal)) return '';
     return `${symbol}${numVal.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -27,7 +28,7 @@ export default function StackValueBlock({ value, costValue, settings }: StackVal
 
   const formatChange = (change: number) => {
     const sign = change > 0 ? '+' : '';
-    const symbol = settings.currency === 'GBP' ? '£' : settings.currency === 'USD' ? '$' : '€';
+    const symbol = getCurrencySymbol(settings.currency);
     return `${sign}${symbol}${Math.abs(change).toFixed(2)}`;
   };
 
