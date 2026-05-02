@@ -7,7 +7,6 @@ const tabs = [
   { name: 'yourStack', title: 'Your Stack', icon: 'prism' },
   { name: 'add2stack', title: 'Add-2-stack', icon: 'add-circle' },
   { name: 'account', title: 'Account', icon: 'person-sharp' },
-  { name: 'settings', title: 'Settings', href: null },
 ];
 
 export default function TabLayout() {
@@ -29,12 +28,9 @@ export default function TabLayout() {
           name={tab.name}
           options={{
             title: tab.title,
-            href: tab.href,
-            ...(tab.href !== null && {
-              tabBarIcon: ({ size }) => (
-                <Ionicons name={tab.icon as any} size={size} color={colors.themeBlue} />
-              ),
-            }),
+            tabBarIcon: ({ size }) => (
+              <Ionicons name={tab.icon as any} size={size} color={colors.themeBlue} />
+            ),
           }}
         />
       ))}

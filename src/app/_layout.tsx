@@ -1,9 +1,47 @@
 import { Stack } from "expo-router";
+import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { View, ActivityIndicator } from "react-native";
+import { colors } from "@/styles/global";
+import { useEffect } from "react";
+import { useRouter } from "expo-router";
 
-export default function RootLayout() {
+function AuthRouter() {
+  const { isAuthenticated, isLoading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!isLoading) {
+      if (isAuthenticated) {
+        if (router.canGoBack()) {
+          router.replace('/');
+        }
+      } else {
+        router.replace('/lock');
+      }
+    }
+  }, [isLoading, isAuthenticated]);
+
+  if (isLoading) {
+    return (
+      <View style={{ flex: 1, backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" color={colors.gold} />
+      </View>
+    );
+  }
+
   return (
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name='(tabs)' />
+      <Stack.Screen name='lock' />
+      <Stack.Screen name='pin-management' />
     </Stack>
+  );
+}
+
+export default function RootLayout() {
+  return (
+    <AuthProvider>
+      <AuthRouter />
+    </AuthProvider>
   );
 }

@@ -2,8 +2,17 @@ import { globalStyles } from "@/styles/global";
 import { Text, View, ScrollView, Image, TouchableOpacity } from 'react-native';
 import { Link } from 'expo-router';
 import { colors } from '@/styles/global';
+import { useAuth } from '@/contexts/AuthContext';
+import { useRouter } from 'expo-router';
 
 export default function AccountScreen() {
+  const { hasPinSet, lock } = useAuth();
+  const router = useRouter();
+
+  function handleLogOut() {
+    lock();
+  }
+
   return (
     <ScrollView style={globalStyles.container}>
       <View style={globalStyles.header}>
@@ -16,15 +25,41 @@ export default function AccountScreen() {
             <Text style={globalStyles.buttonText}>API Settings</Text>
           </TouchableOpacity>
         </Link>
-        <Link href="/settings" asChild>
-          <TouchableOpacity style={globalStyles.button}>
-            <Text style={globalStyles.buttonText}>Settings</Text>
+
+        {!hasPinSet && (
+          <TouchableOpacity 
+            style={globalStyles.button} 
+            onPress={() => router.push('/pin-management?mode=set')}
+          >
+            <Text style={globalStyles.buttonText}>Set PIN</Text>
           </TouchableOpacity>
-        </Link>
-        <TouchableOpacity style={globalStyles.button}>
+        )}
+
+        {hasPinSet && (
+          <>
+            <TouchableOpacity 
+              style={globalStyles.button} 
+              onPress={() => router.push('/pin-management?mode=change')}
+            >
+              <Text style={globalStyles.buttonText}>Change PIN</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={globalStyles.button} 
+              onPress={() => router.push('/pin-management?mode=remove')}
+            >
+              <Text style={globalStyles.buttonText}>Remove PIN</Text>
+            </TouchableOpacity>
+          </>
+        )}
+        
+        <TouchableOpacity 
+          style={[globalStyles.button, { marginTop: 20, borderColor: colors.red, borderWidth: 1 }]} 
+          onPress={handleLogOut}
+        >
           <Text style={[globalStyles.buttonText, { color: colors.red }]}>Log Out</Text>
         </TouchableOpacity>
       </View>
-    </ScrollView >
+    </ScrollView>
   );
 }
