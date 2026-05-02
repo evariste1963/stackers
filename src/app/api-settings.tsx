@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'expo-router';
 import { globalStyles, colors } from '@/styles/global';
 import { Text, View, TextInput, TouchableOpacity, ScrollView, Alert, Linking, Image } from 'react-native';
-import Storage from 'expo-sqlite/kv-store';
 import { getUserSettings, updateApiKey, removeApiKey, updatePreference, UserSettings } from '@/services/goldPriceStorage';
 import { AVAILABLE_CURRENCIES, AVAILABLE_UNITS, METALS_DEV_URL } from '@/config';
 
@@ -75,10 +74,6 @@ export default function ApiSettingsScreen() {
           onPress: async () => {
             try {
               await removeApiKey();
-              // Also clear the fallback storage
-              await Storage.removeItemAsync('gold_api_key_fallback');
-              // Clear user settings completely
-              await Storage.removeItemAsync('user_settings');
               setSettings({ currency: 'GBP', unit: 'toz', hasApiKey: false, createdAt: '', updatedAt: '' });
               Alert.alert('Success', 'API key removed. Restart the app to test the setup flow.');
             } catch (error) {

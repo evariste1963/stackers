@@ -1,10 +1,82 @@
-import Storage from 'expo-sqlite/kv-store';
+import * as SQLite from 'expo-sqlite';
 import * as SecureStore from 'expo-secure-store';
+import { getDb } from './stackStorage';
 import { priceData as staticPriceData } from '../../assets/priceData.js';
 
-const PRICE_KEY = 'gold_price_latest';
-const HISTORY_KEY = 'gold_price_history';
-const USER_SETTINGS_KEY = 'user_settings';
+// Remove kv-store dependency - migration handled by migrateFromKVStore()
+
+let goldPriceDb: SQLite.SQLiteDatabase | null = null;
+let initPromise: Promise<SQLite.SQLiteDatabase> | null = null;
+
+async function initGoldPriceTables(): Promise<SQLite.SQLiteDatabase> {
+  if (goldPriceDb) return goldPriceDb;
+  
+  // Prevent multiple simultaneous init calls
+  if (initPromise) return initPromise;
+  
+  initPromise = (async () => {
+    try {
+      const database = await getDb();
+      goldPriceDb = database;
+      
+      await database.execAsync(`
+        CREATE TABLE IF NOT EXISTS user_settings (
+          id INTEGER PRIMARY KEY CHECK (id = 1),
+          currency TEXT DEFAULT 'GBP',
+          unit TEXT DEFAULT 'toz',
+          hasApiKey INTEGER DEFAULT 0,
+          createdAt TEXT,
+          updatedAt TEXT
+        );
+      `);
+      
+      await database.execAsync(`
+        CREATE TABLE IF NOT EXISTS gold_price_latest (
+          id INTEGER PRIMARY KEY CHECK (id = 1),
+          price REAL,
+          ask REAL,
+          bid REAL,
+          high REAL,
+          low REAL,
+          change REAL,
+          changePercent REAL,
+          date TEXT,
+          currency TEXT,
+          unit TEXT,
+          fetchedAt TEXT
+        );
+      `);
+      
+      await database.execAsync(`
+        CREATE TABLE IF NOT EXISTS gold_price_history (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          date TEXT,
+          price REAL,
+          change REAL,
+          changePercent REAL
+        );
+      `);
+      
+      // Insert default user settings if not exists
+      const existingSettings = await database.getFirstAsync('SELECT id FROM user_settings WHERE id = 1');
+      if (!existingSettings) {
+        const now = new Date().toISOString();
+        await database.runAsync(
+          'INSERT INTO user_settings (id, currency, unit, hasApiKey, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?)',
+          [1, 'GBP', 'toz', 0, now, now]
+        );
+      }
+      
+      return database;
+    } catch (error) {
+      console.error('Error initializing gold price tables:', error);
+      initPromise = null;
+      throw error;
+    }
+  })();
+  
+  return initPromise;
+}
 
 export interface GoldPriceData {
   price: number;
@@ -29,13 +101,30 @@ export interface HistoryEntry {
 
 export async function getLatestPrice(): Promise<GoldPriceData | null> {
   try {
-    const data = await Storage.getItemAsync(PRICE_KEY);
-    if (data) {
-      return JSON.parse(data) as GoldPriceData;
+    const database = await initGoldPriceTables();
+    const rows = await database.getAllAsync(
+      'SELECT * FROM gold_price_latest WHERE id = 1'
+    ) as any[];
+    
+    if (rows.length > 0) {
+      const row = rows[0];
+      return {
+        price: row.price,
+        ask: row.ask,
+        bid: row.bid,
+        high: row.high,
+        low: row.low,
+        change: row.change,
+        changePercent: row.changePercent,
+        date: row.date,
+        currency: row.currency,
+        unit: row.unit,
+        fetchedAt: row.fetchedAt,
+      };
     }
     return null;
   } catch (error) {
-    console.error('Error reading gold price from storage:', error);
+    console.error('Error reading gold price:', error);
     return null;
   }
 }
@@ -44,12 +133,39 @@ export async function savePrice(
   priceData: GoldPriceData
 ): Promise<GoldPriceData> {
   try {
-    await Storage.setItemAsync(PRICE_KEY, JSON.stringify(priceData));
+    const database = await initGoldPriceTables();
+    
+    // Log what we're about to save
+    console.log('Saving gold price:', JSON.stringify(priceData));
+    
+    await database.runAsync(`
+      INSERT OR REPLACE INTO gold_price_latest
+      (id, price, ask, bid, high, low, change, changePercent, date, currency, unit, fetchedAt)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `, [
+      1,
+      priceData.price ?? 0,
+      priceData.ask ?? 0,
+      priceData.bid ?? 0,
+      priceData.high ?? 0,
+      priceData.low ?? 0,
+      priceData.change ?? 0,
+      priceData.changePercent ?? 0,
+      priceData.date,
+      priceData.currency,
+      priceData.unit,
+      priceData.fetchedAt,
+    ]);
+    
+    // Verify it was saved
+    const saved = await database.getFirstAsync('SELECT * FROM gold_price_latest WHERE id = 1');
+    console.log('Verified save:', saved);
+    
     return priceData;
-  } catch (error) {
-    console.error('Error saving gold price:', error);
-    throw error;
-  }
+   } catch (error) {
+      console.error('Error saving gold price:', error);
+      throw error;
+    }
 }
 
 export async function saveSpotPrice(
@@ -84,7 +200,8 @@ export async function saveSpotPrice(
 
 export async function clearPrice(): Promise<void> {
   try {
-    await Storage.removeItemAsync(PRICE_KEY);
+    const database = await initGoldPriceTables();
+    await database.runAsync('DELETE FROM gold_price_latest WHERE id = 1');
   } catch (error) {
     console.error('Error clearing gold price:', error);
   }
@@ -92,13 +209,19 @@ export async function clearPrice(): Promise<void> {
 
 export async function getHistory(): Promise<HistoryEntry[]> {
   try {
-    const data = await Storage.getItemAsync(HISTORY_KEY);
-    if (data) {
-      return JSON.parse(data) as HistoryEntry[];
-    }
-    return [];
+    const database = await initGoldPriceTables();
+    const rows = await database.getAllAsync(
+      'SELECT * FROM gold_price_history ORDER BY date ASC'
+    ) as any[];
+    
+    return rows.map(row => ({
+      date: row.date,
+      price: row.price,
+      change: row.change,
+      changePercent: row.changePercent,
+    }));
   } catch (error) {
-    console.error('Error reading history from storage:', error);
+    console.error('Error reading history:', error);
     return [];
   }
 }
@@ -119,18 +242,27 @@ export async function saveToHistory(
   };
 
   try {
-    const history = await getHistory();
+    const database = await initGoldPriceTables();
     
-    const existingIndex = history.findIndex(h => h.date === targetDate);
-    if (existingIndex >= 0) {
-      history[existingIndex] = entry;
+    // Upsert: update if exists, insert if not
+    const existing = await database.getAllAsync(
+      'SELECT id FROM gold_price_history WHERE date = ?',
+      [targetDate]
+    );
+    
+    if (existing.length > 0) {
+      await database.runAsync(`
+        UPDATE gold_price_history 
+        SET price = ?, change = ?, changePercent = ?
+        WHERE date = ?
+      `, [price, change, changePercent, targetDate]);
     } else {
-      history.push(entry);
+      await database.runAsync(`
+        INSERT INTO gold_price_history (date, price, change, changePercent)
+        VALUES (?, ?, ?, ?)
+      `, [targetDate, price, change, changePercent]);
     }
     
-    history.sort((a, b) => a.date.localeCompare(b.date));
-    
-    await Storage.setItemAsync(HISTORY_KEY, JSON.stringify(history));
     return entry;
   } catch (error) {
     console.error('Error saving to history:', error);
@@ -140,18 +272,25 @@ export async function saveToHistory(
 
 export async function migrateStaticData(): Promise<void> {
   try {
-    const existingHistory = await getHistory();
-    if (existingHistory.length > 0) {
-      return;
-    }
-
+    const database = await initGoldPriceTables();
+    const rows = await database.getAllAsync('SELECT COUNT(*) as count FROM gold_price_history') as any[];
+    
+    if (rows[0].count > 0) return;
+    
     const staticEntries: HistoryEntry[] = Object.entries(staticPriceData).map(([date, price]) => ({
       date,
       price: typeof price === 'number' ? price : parseFloat(price as string),
+      change: 0,
+      changePercent: 0,
     }));
 
     if (staticEntries.length > 0) {
-      await Storage.setItemAsync(HISTORY_KEY, JSON.stringify(staticEntries));
+      for (const entry of staticEntries) {
+        await database.runAsync(`
+          INSERT INTO gold_price_history (date, price, change, changePercent)
+          VALUES (?, ?, ?, ?)
+        `, [entry.date, entry.price, entry.change, entry.changePercent]);
+      }
       console.log('Migrated', staticEntries.length, 'static price entries to SQLite');
     }
   } catch (error) {
@@ -160,8 +299,14 @@ export async function migrateStaticData(): Promise<void> {
 }
 
 export async function getHistoryLength(): Promise<number> {
-  const history = await getHistory();
-  return history.length;
+  try {
+    const database = await initGoldPriceTables();
+    const rows = await database.getAllAsync('SELECT COUNT(*) as count FROM gold_price_history') as any[];
+    return rows[0].count;
+  } catch (error) {
+    console.error('Error getting history length:', error);
+    return 0;
+  }
 }
 
 export interface UserSettings {
@@ -182,9 +327,20 @@ export const DEFAULT_USER_SETTINGS: UserSettings = {
 
 export async function getUserSettings(): Promise<UserSettings> {
   try {
-    const data = await Storage.getItemAsync(USER_SETTINGS_KEY);
-    if (data) {
-      return JSON.parse(data) as UserSettings;
+    const database = await initGoldPriceTables();
+    const rows = await database.getAllAsync(
+      'SELECT * FROM user_settings WHERE id = 1'
+    ) as any[];
+    
+    if (rows.length > 0) {
+      const row = rows[0];
+      return {
+        currency: row.currency,
+        unit: row.unit,
+        hasApiKey: Boolean(row.hasApiKey),
+        createdAt: row.createdAt,
+        updatedAt: row.updatedAt,
+      };
     }
     return { ...DEFAULT_USER_SETTINGS };
   } catch (error) {
@@ -195,7 +351,19 @@ export async function getUserSettings(): Promise<UserSettings> {
 
 export async function saveUserSettings(settings: UserSettings): Promise<void> {
   try {
-    await Storage.setItemAsync(USER_SETTINGS_KEY, JSON.stringify(settings));
+    const database = await initGoldPriceTables();
+    await database.runAsync(`
+      INSERT OR REPLACE INTO user_settings 
+      (id, currency, unit, hasApiKey, createdAt, updatedAt)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `, [
+      1,
+      settings.currency,
+      settings.unit,
+      settings.hasApiKey ? 1 : 0,
+      settings.createdAt || new Date().toISOString(),
+      settings.updatedAt || new Date().toISOString(),
+    ]);
   } catch (error) {
     console.error('Error saving user settings:', error);
     throw error;
@@ -204,18 +372,25 @@ export async function saveUserSettings(settings: UserSettings): Promise<void> {
 
 export async function updateApiKey(apiKey: string): Promise<void> {
   try {
-    // Try SecureStore first
-    try {
-      await SecureStore.setItemAsync('gold_api_key', apiKey);
-    } catch (secureError) {
-      // Fallback: store in SQLite if SecureStore fails
-      await Storage.setItemAsync('gold_api_key_fallback', apiKey);
-    }
+    await SecureStore.setItemAsync('gold_api_key', apiKey);
     
-    const settings = await getUserSettings();
-    settings.hasApiKey = true;
-    settings.updatedAt = new Date().toISOString();
-    await saveUserSettings(settings);
+    const database = await initGoldPriceTables();
+    const now = new Date().toISOString();
+    
+    // Check if row exists first
+    const existing = await database.getFirstAsync('SELECT id FROM user_settings WHERE id = 1');
+    
+    if (existing) {
+      await database.runAsync(
+        'UPDATE user_settings SET hasApiKey = 1, updatedAt = ? WHERE id = 1',
+        [now]
+      );
+    } else {
+      await database.runAsync(
+        'INSERT INTO user_settings (id, currency, unit, hasApiKey, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?)',
+        [1, 'GBP', 'toz', 1, now, now]
+      );
+    }
   } catch (error) {
     console.error('Error updating API key:', error);
     throw error;
@@ -224,23 +399,8 @@ export async function updateApiKey(apiKey: string): Promise<void> {
 
 export async function getApiKey(): Promise<string | null> {
   try {
-    // Try SecureStore first
-    try {
-      const key = await SecureStore.getItemAsync('gold_api_key');
-      if (key) {
-        return key;
-      }
-    } catch (e) {
-      // Fallback: check SQLite
-    }
-    
-    // Fallback: check SQLite
-    const fallbackKey = await Storage.getItemAsync('gold_api_key_fallback');
-    if (fallbackKey) {
-      return fallbackKey;
-    }
-    
-    return null;
+    const key = await SecureStore.getItemAsync('gold_api_key');
+    return key;
   } catch (error) {
     console.error('Error getting API key:', error);
     return null;
@@ -251,10 +411,11 @@ export async function removeApiKey(): Promise<void> {
   try {
     await SecureStore.deleteItemAsync('gold_api_key');
     
-    const settings = await getUserSettings();
-    settings.hasApiKey = false;
-    settings.updatedAt = new Date().toISOString();
-    await saveUserSettings(settings);
+    const database = await initGoldPriceTables();
+    await database.runAsync(
+      'UPDATE user_settings SET hasApiKey = 0, updatedAt = ? WHERE id = 1',
+      [new Date().toISOString()]
+    );
   } catch (error) {
     console.error('Error removing API key:', error);
     throw error;
@@ -263,10 +424,11 @@ export async function removeApiKey(): Promise<void> {
 
 export async function updatePreference(key: 'currency' | 'unit', value: string): Promise<void> {
   try {
-    const settings = await getUserSettings();
-    settings[key] = value;
-    settings.updatedAt = new Date().toISOString();
-    await saveUserSettings(settings);
+    const database = await initGoldPriceTables();
+    await database.runAsync(
+      `UPDATE user_settings SET ${key} = ?, updatedAt = ? WHERE id = 1`,
+      [value, new Date().toISOString()]
+    );
   } catch (error) {
     console.error('Error updating preference:', error);
     throw error;
@@ -276,7 +438,8 @@ export async function updatePreference(key: 'currency' | 'unit', value: string):
 export async function clearUserSettings(): Promise<void> {
   try {
     await SecureStore.deleteItemAsync('gold_api_key');
-    await Storage.removeItemAsync(USER_SETTINGS_KEY);
+    const database = await initGoldPriceTables();
+    await database.runAsync('DELETE FROM user_settings WHERE id = 1');
   } catch (error) {
     console.error('Error clearing user settings:', error);
     throw error;
@@ -284,6 +447,60 @@ export async function clearUserSettings(): Promise<void> {
 }
 
 export async function hasApiKey(): Promise<boolean> {
-  const settings = await getUserSettings();
-  return settings.hasApiKey;
+  try {
+    const database = await initGoldPriceTables();
+    const rows = await database.getAllAsync(
+      'SELECT hasApiKey FROM user_settings WHERE id = 1'
+    ) as any[];
+    if (rows.length > 0) {
+      return Boolean(rows[0].hasApiKey);
+    }
+    return false;
+  } catch (error) {
+    console.error('Error checking API key:', error);
+    return false;
+  }
+}
+
+export async function migrateFromKVStore(): Promise<void> {
+  try {
+    const Storage = (await import('expo-sqlite/kv-store')).default;
+    
+    // Check if migration already done
+    const migrationKey = await Storage.getItemAsync('migration_done');
+    if (migrationKey) return;
+    
+    // Migrate user settings
+    const settingsData = await Storage.getItemAsync('user_settings');
+    if (settingsData) {
+      const settings = JSON.parse(settingsData) as UserSettings;
+      await saveUserSettings(settings);
+    }
+    
+    // Migrate gold price
+    const priceData = await Storage.getItemAsync('gold_price_latest');
+    if (priceData) {
+      const price = JSON.parse(priceData) as GoldPriceData;
+      await savePrice(price);
+    }
+    
+    // Migrate history
+    const historyData = await Storage.getItemAsync('gold_price_history');
+    if (historyData) {
+      const history = JSON.parse(historyData) as HistoryEntry[];
+      const database = await initGoldPriceTables();
+      for (const entry of history) {
+        await database.runAsync(`
+          INSERT OR IGNORE INTO gold_price_history (date, price, change, changePercent)
+          VALUES (?, ?, ?, ?)
+        `, [entry.date, entry.price, entry.change, entry.changePercent]);
+      }
+    }
+    
+    // Mark migration as done
+    await Storage.setItemAsync('migration_done', 'true');
+    console.log('Migration from KV-store completed');
+  } catch (error) {
+    console.error('Error during migration:', error);
+  }
 }

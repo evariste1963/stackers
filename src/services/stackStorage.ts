@@ -1,22 +1,38 @@
 import * as SQLite from 'expo-sqlite';
 
 let db: SQLite.SQLiteDatabase | null = null;
+let dbPromise: Promise<SQLite.SQLiteDatabase> | null = null;
 
-async function getDb(): Promise<SQLite.SQLiteDatabase> {
+export async function getDb(): Promise<SQLite.SQLiteDatabase> {
   if (db) return db;
-  db = await SQLite.openDatabaseAsync('stackers.db');
-  await db.execAsync(`
-    CREATE TABLE IF NOT EXISTS stack_items (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      code TEXT NOT NULL,
-      weight TEXT NOT NULL,
-      purchasePrice TEXT NOT NULL,
-      premium TEXT NOT NULL,
-      imageUri TEXT,
-      createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
-    );
-  `);
-  return db;
+  
+  // Prevent multiple simultaneous open calls
+  if (dbPromise) return dbPromise;
+  
+  dbPromise = (async () => {
+    try {
+      const database = await SQLite.openDatabaseAsync('stackers.db');
+      await database.execAsync(`
+        CREATE TABLE IF NOT EXISTS stack_items (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          code TEXT NOT NULL,
+          weight TEXT NOT NULL,
+          purchasePrice TEXT NOT NULL,
+          premium TEXT NOT NULL,
+          imageUri TEXT,
+          createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
+        );
+      `);
+      db = database;
+      return database;
+    } catch (error) {
+      console.error('Error opening database:', error);
+      dbPromise = null;
+      throw error;
+    }
+  })();
+  
+  return dbPromise;
 }
 
 export interface StackItem {
