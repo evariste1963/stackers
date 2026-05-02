@@ -199,19 +199,23 @@ This will upload your project to Expo's servers and return a downloadable APK.
 
 ## Database
 
-This project uses SQLite via `expo-sqlite` (kv-store). Data persists locally on the device.
+This project uses SQLite via `expo-sqlite`. Data persists locally on the device.
 
-### DB File Location (Emulator)
+### Database File
 
-- **Path**: `files/SQLite/ExpoSQLiteStorage`
+- **Filename**: `stackers.db`
+- **Location (Emulator)**: `files/SQLite/stackers.db` (requires `run-as`)
 - **App package**: `com.thisme.stackers`
 
 ### Pull DB from Emulator
 
-The app's private DB is not directly accessible. Use `run-as` + base64 encoding to copy it out:
-
 ```bash
-adb shell "run-as com.thisme.stackers base64 files/SQLite/ExpoSQLiteStorage" | base64 -d > ~/Downloads/stackers.db
+adb shell "run-as com.thisme.stackers cat files/SQLite/stackers.db" > ~/Downloads/stackers.db
+```
+
+Or for base64 encoding (safer for large files):
+```bash
+adb shell "run-as com.thisme.stackers base64 files/SQLite/stackers.db" | base64 -d > ~/Downloads/stackers.db
 ```
 
 > **Note**: The app must be installed on a debuggable emulator/device. Run `npx expo run:android` (not Expo Go) to ensure debuggable build.
@@ -219,7 +223,7 @@ adb shell "run-as com.thisme.stackers base64 files/SQLite/ExpoSQLiteStorage" | b
 To verify:
 ```bash
 sqlite3 ~/Downloads/stackers.db ".tables"
-# Output: storage
+# Output: gold_price_history gold_price_latest stack_items user_settings
 ```
 
 ### Open in DBeaver
@@ -228,63 +232,111 @@ sqlite3 ~/Downloads/stackers.db ".tables"
 2. Set **Database file** to: `~/Downloads/stackers.db`
 3. Finish
 
-**Viewing JSON values**: DBeaver shows each key as one row. The `value` column contains a JSON string. To view full content:
+### Schema
 
-1. Run a query in the **SQL Editor** (Ctrl+Enter):
-   ```sql
-   SELECT key, value FROM storage;
-   ```
-2. Click on a **cell** in the `value` column
-3. DBeaver opens a **cell editor** — click the **Text** tab or look for an expand button to see the full JSON
+#### stack_items
+| Column | Type | Description |
+|--------|------|-------------|
+| `id` | INTEGER | Primary key (auto-increment) |
+| `code` | TEXT | Item code (e.g., "1oz gold bar") |
+| `weight` | TEXT | Weight as string |
+| `purchasePrice` | TEXT | Purchase price as string |
+| `premium` | TEXT | Premium as string |
+| `imageUri` | TEXT | Image URI or null |
+| `createdAt` | DATETIME | Creation timestamp |
 
-> **DBeaver shows "4 entries"**: DBeaver's table view may truncate JSON arrays. The actual data is complete — open the cell editor to see full content.
+#### user_settings
+| Column | Type | Description |
+|--------|------|-------------|
+| `id` | INTEGER | Primary key (always 1) |
+| `currency` | TEXT | Currency code (default: GBP) |
+| `unit` | TEXT | Unit code (default: toz) |
+| `hasApiKey` | INTEGER | 0 or 1 |
+| `createdAt` | TEXT | ISO timestamp |
+| `updatedAt` | TEXT | ISO timestamp |
 
-### Storage Schema
+#### gold_price_latest
+| Column | Type | Description |
+|--------|------|-------------|
+| `id` | INTEGER | Primary key (always 1) |
+| `price` | REAL | Current price |
+| `ask` | REAL | Ask price |
+| `bid` | REAL | Bid price |
+| `high` | REAL | Daily high |
+| `low` | REAL | Daily low |
+| `change` | REAL | Price change |
+| `changePercent` | REAL | Change percentage |
+| `date` | TEXT | Date (YYYY-MM-DD) |
+| `currency` | TEXT | Currency code |
+| `unit` | TEXT | Unit code |
+| `fetchedAt` | TEXT | ISO timestamp |
 
-The DB uses a simple key-value store:
-
-| Table | Columns |
-|-------|---------|
-| `storage` | `key TEXT PRIMARY KEY`, `value TEXT` |
-
-**Keys stored:**
-- `gold_price_history` — JSON array of `{date, price}` objects (chart data)
-- `gold_price_latest` — JSON object with current price data
-- `user_settings` — JSON object with user preferences
+#### gold_price_history
+| Column | Type | Description |
+|--------|------|-------------|
+| `id` | INTEGER | Primary key (auto-increment) |
+| `date` | TEXT | Date (YYYY-MM-DD) |
+| `price` | REAL | Price on that date |
+| `change` | REAL | Price change |
+| `changePercent` | REAL | Change percentage |
 
 ### Query Examples
 
-**List all keys:**
+**List all tables:**
 ```sql
-SELECT key, length(value) as len FROM storage;
-```
-
-**Get gold price history (chart data):**
-```sql
-SELECT value FROM storage WHERE key = 'gold_price_history';
-```
-
-**Get latest price:**
-```sql
-SELECT value FROM storage WHERE key = 'gold_price_latest';
+.tables
 ```
 
 **Get user settings:**
 ```sql
-SELECT value FROM storage WHERE key = 'user_settings';
+SELECT * FROM user_settings;
+```
+
+**Get latest gold price:**
+```sql
+SELECT * FROM gold_price_latest;
+```
+
+**Get gold price history (last 30 days):**
+```sql
+SELECT * FROM gold_price_history ORDER BY date DESC LIMIT 30;
+```
+
+**Get all stack items:**
+```sql
+SELECT * FROM stack_items ORDER BY createdAt DESC;
+```
+
+**Get gold prices in a date range:**
+```sql
+SELECT * FROM gold_price_history 
+WHERE date BETWEEN '2025-01-01' AND '2025-12-31' 
+ORDER BY date;
+```
+
+**Count records in each table:**
+```sql
+SELECT 'stack_items' as tbl, COUNT(*) as cnt FROM stack_items
+UNION ALL
+SELECT 'gold_price_history', COUNT(*) FROM gold_price_history
+UNION ALL
+SELECT 'gold_price_latest', COUNT(*) FROM gold_price_latest;
 ```
 
 ### CLI Access (No DBeaver)
 
 ```bash
-# List all keys
-sqlite3 ~/Downloads/stackers.db "SELECT key FROM storage;"
+# List all tables
+sqlite3 ~/Downloads/stackers.db ".tables"
 
-# View gold price history as formatted JSON
-sqlite3 ~/Downloads/stackers.db "SELECT value FROM storage WHERE key = 'gold_price_history';" | python3 -m json.tool
+# View user settings
+sqlite3 ~/Downloads/stackers.db "SELECT * FROM user_settings;"
 
-# View latest price
-sqlite3 ~/Downloads/stackers.db "SELECT value FROM storage WHERE key = 'gold_price_latest';" | python3 -m json.tool
+# View latest gold price
+sqlite3 ~/Downloads/stackers.db "SELECT * FROM gold_price_latest;"
+
+# View gold price history (formatted)
+sqlite3 ~/Downloads/stackers.db "SELECT * FROM gold_price_history ORDER BY date DESC LIMIT 10;"
 
 # Interactive mode
 sqlite3 ~/Downloads/stackers.db
@@ -292,13 +344,13 @@ sqlite3 ~/Downloads/stackers.db
 
 ### Reset / Repopulate DB
 
-The DB auto-migrates from `assets/priceData.js` on first launch. To manually reset:
+To clear and repopulate the database:
 
 ```bash
-npm run reset-project
+adb shell "run-as com.thisme.stackers rm files/stackers.db"
 ```
 
-This runs `scripts/reset-project.js` which clears and repopulates `gold_price_history` from the static data file.
+Then rebuild and run the app - it will recreate all tables with default data.
 
 ---
 

@@ -4,7 +4,7 @@ import { router } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { useState, useCallback } from 'react';
 import * as ImagePicker from 'expo-image-picker';
-import { documentDirectory, makeDirectoryAsync, moveAsync } from 'expo-file-system';
+import { documentDirectory, makeDirectoryAsync, moveAsync } from 'expo-file-system/legacy';
 import { addItem } from '@/services/stackStorage';
 import { getUserSettings } from '@/services/goldPriceStorage';
 import { AVAILABLE_UNITS } from '@/config';
