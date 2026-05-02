@@ -90,8 +90,6 @@ export async function savePrice(priceData: GoldPriceData): Promise<GoldPriceData
   try {
     const database = await initPriceTables();
     
-    console.log('Saving gold price:', JSON.stringify(priceData));
-    
     await database.runAsync(`
       INSERT OR REPLACE INTO gold_price_latest
       (id, price, ask, bid, high, low, change, changePercent, date, currency, unit, fetchedAt)
@@ -110,9 +108,6 @@ export async function savePrice(priceData: GoldPriceData): Promise<GoldPriceData
       priceData.unit,
       priceData.fetchedAt,
     ]);
-    
-    const saved = await database.getFirstAsync('SELECT * FROM gold_price_latest WHERE id = 1');
-    console.log('Verified save:', saved);
     
     return priceData;
    } catch (error) {
@@ -149,13 +144,4 @@ export async function saveSpotPrice(
   };
 
   return savePrice(priceData);
-}
-
-export async function clearPrice(): Promise<void> {
-  try {
-    const database = await initPriceTables();
-    await database.runAsync('DELETE FROM gold_price_latest WHERE id = 1');
-  } catch (error) {
-    console.error('Error clearing gold price:', error);
-  }
 }

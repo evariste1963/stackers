@@ -2,22 +2,17 @@ import { globalStyles } from "@/styles/global";
 import { Text, View, ScrollView, StyleSheet, Image } from 'react-native';
 import { useState, useCallback } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
-import { getAllItems, type StackItem } from '@/services/stackStorage';
 import { getLatestPrice } from '@/services/priceService';
 import { getUserSettings } from '@/services/settingsService';
+import { useStack } from '@/contexts/StackContext';
 import StackItemCard from '@/components/StackItemCard';
 import EmptyStackState from '@/components/EmptyStackState';
 
 export default function YourStackScreen() {
-  const [items, setItems] = useState<StackItem[]>([]);
+  const { items, refresh } = useStack();
   const [latestPrice, setLatestPrice] = useState<number | null>(null);
   const [currency, setCurrency] = useState('GBP');
   const [weightUnit, setWeightUnit] = useState('toz');
-
-  const loadItems = useCallback(async () => {
-    const all = await getAllItems();
-    setItems(all);
-  }, []);
 
   const loadPriceAndSettings = useCallback(async () => {
     const priceData = await getLatestPrice();
@@ -36,16 +31,16 @@ export default function YourStackScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      loadItems();
+      refresh();
       loadPriceAndSettings();
-    }, [loadItems, loadPriceAndSettings])
+    }, [refresh, loadPriceAndSettings])
   );
 
   const handleDeleted = useCallback(() => {
-    loadItems();
-  }, [loadItems]);
+    refresh();
+  }, [refresh]);
 
-  const rows: StackItem[][] = [];
+  const rows = [];
   for (let i = 0; i < items.length; i += 2) {
     rows.push(items.slice(i, i + 2));
   }

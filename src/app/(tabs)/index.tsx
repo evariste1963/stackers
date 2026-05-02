@@ -1,30 +1,23 @@
 import { globalStyles } from '@/styles/global';
 import { Text, Image, ScrollView, View } from 'react-native';
 import { router } from 'expo-router';
-import { useEffect, useCallback, useState } from 'react';
+import { useEffect } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import StackGrid from '@/components/StackGrid';
 import ChartArea from '@/components/ChartArea';
 import GoldPriceBanner from '@/components/GoldPriceBanner';
 import StackValueBlock from '@/components/StackValueBlock';
 import { useGoldPrice, UseGoldPriceResult } from '@/hooks/useGoldPrice';
+import { useStack } from '@/contexts/StackContext';
 import { colors } from '@/styles/global';
-import { getAllItems, type StackItem } from '@/services/stackStorage';
 
 export default function HomeScreen() {
   const { priceData, history, isLoading, error, refreshPrice, settings, apiKeyConfigured, isSettingsLoading }: UseGoldPriceResult = useGoldPrice();
-  const [items, setItems] = useState<StackItem[]>([]);
+  const { items, refresh } = useStack();
 
-  const loadItems = useCallback(async () => {
-    const all = await getAllItems();
-    setItems(all);
-  }, []);
-
-  useFocusEffect(
-    useCallback(() => {
-      loadItems();
-    }, [loadItems])
-  );
+  useFocusEffect(() => {
+    refresh();
+  });
 
   const totalStackValue = items.reduce((sum, item) => {
     const weight = parseFloat(item.weight) || 0;

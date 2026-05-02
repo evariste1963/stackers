@@ -1,5 +1,6 @@
 import { Stack } from "expo-router";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { StackProvider } from "@/contexts/StackContext";
 import { View, ActivityIndicator } from "react-native";
 import { colors } from "@/styles/global";
 import { useEffect } from "react";
@@ -41,7 +42,9 @@ function AuthRouter() {
 export default function RootLayout() {
   return (
     <AuthProvider>
-      <AuthRouter />
+      <StackProvider>
+        <AuthRouter />
+      </StackProvider>
     </AuthProvider>
   );
 }

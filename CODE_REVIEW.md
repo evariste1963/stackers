@@ -42,17 +42,25 @@ Created `src/utils/formatters.ts`:
 - `settings.tsx` - **Removed** earlier (no actual settings UI)
 - `account.tsx` - **Fixed** (Log Out now works with PIN authentication)
 
-### 4. Add state management
+### 4. ~~Add state management~~ - DONE
 
-Each screen fetches data independently via `useFocusEffect`. Consider React Context or a global store (Zustand/Redux) to avoid repetition.
+Created `src/contexts/StackContext.tsx`:
+- Provides global stack items state
+- Both index and yourStack now use `useStack()` hook
+- Eliminates duplicate `getAllItems()` calls
 
-### 5. Clean up unused imports
+Added `StackProvider` in `_layout.tsx` alongside `AuthProvider`.
 
-- `add2stack.tsx:7` - `File`, `Directory`, `Paths` imported but not used
+### 5. ~~Clean up unused imports~~ - RESOLVED
 
-### 6. Simplify UI components
+- `add2stack.tsx:7` - **Actually used** for saving images to document directory
 
-- StackGrid + GoldPriceBanner both display ask/bid/high/low - possible UI overlap
+### 6. ~~Simplify UI components~~ - NOT AN ISSUE
+
+- StackGrid + GoldPriceBanner display **different data** - no overlap:
+  - **GoldPriceBanner**: Main price, change, change %, date, refresh button
+  - **StackGrid**: Ask, Bid, High, Low (trading spread details)
+  - Both are useful for different purposes - keep both
 
 ---
 
