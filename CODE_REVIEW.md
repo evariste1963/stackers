@@ -36,20 +36,11 @@ Created `src/utils/formatters.ts`:
 - `getCurrencySymbol()`
 - `formatDate()`
 
-### 3. Add state management
+### 3. ~~Remove unused components~~ - DONE
 
-Create a shared utility:
-```typescript
-// src/utils/formatCurrency.ts
-export const getCurrencySymbol = (code: string) =>
-  code === 'GBP' ? '£' : code === 'USD' ? '$' : '€';
-```
-
-### 3. Remove unused components
-
-- `HomeHeader.tsx` - Empty component (only renders empty View)
-- `settings.tsx` - Only has a header, no actual settings UI (incomplete?)
-- `account.tsx` - Log Out button is non-functional
+- `HomeHeader.tsx` - **Removed** (empty component)
+- `settings.tsx` - **Removed** earlier (no actual settings UI)
+- `account.tsx` - **Fixed** (Log Out now works with PIN authentication)
 
 ### 4. Add state management
 
