@@ -59,13 +59,12 @@ export async function fetchGoldPrice(
   currency: string = 'GBP', 
   unit: string = 'toz'
 ): Promise<GoldPriceResult> {
-  const url = `${METALS_DEV_BASE_URL}?metal=gold&currency=${currency}&unit=${unit}`;
+  const url = `${METALS_DEV_BASE_URL}?api_key=${apiKey}&metal=gold&currency=${currency}&unit=${unit}`;
   
   const response = await fetch(url, {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `ApiKey ${apiKey}`,
     },
   });
 

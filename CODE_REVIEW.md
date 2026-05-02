@@ -73,9 +73,10 @@ Added `StackProvider` in `_layout.tsx` alongside `AuthProvider`.
 - Separated config constants
 
 ### Needs Attention
-- Large components (add2stack.tsx at 366 lines) could be split
-- Some inline styles are verbose (could use StyleSheet constants consistently)
-- Error handling present but could be more robust
+- ~~Large components (add2stack.tsx at 366 lines) could be split~~ - Low priority, works fine as-is
+- ~~Some inline styles are verbose~~ - Low priority, minimal issue
+- - ~~ - Error handling present but could be more robust - ~~
+
 
 ---
 
