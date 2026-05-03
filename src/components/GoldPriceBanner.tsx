@@ -3,6 +3,7 @@ import { colors } from '@/styles/global';
 import { type GoldPriceData } from '@/services/priceService';
 import { type UserSettings } from '@/services/settingsService';
 import { getCurrencySymbol, formatDate } from '@/utils/formatters';
+import { router } from 'expo-router';
 
 type GoldPriceBannerProps = {
   priceData: GoldPriceData | null;
@@ -10,9 +11,10 @@ type GoldPriceBannerProps = {
   error: string | null;
   refreshPrice: () => Promise<void>;
   settings: UserSettings;
+  showRefresh?: boolean;
 };
 
-export default function GoldPriceBanner({ priceData, isLoading, error, refreshPrice, settings }: GoldPriceBannerProps) {
+export default function GoldPriceBanner({ priceData, isLoading, error, refreshPrice, settings, showRefresh = true }: GoldPriceBannerProps) {
 
   const formatPrice = (price: number | undefined) => {
     if (!price) return 'Tap refresh to fetch';
@@ -42,7 +44,7 @@ export default function GoldPriceBanner({ priceData, isLoading, error, refreshPr
   const changeColor = getChangeColor(priceData?.change);
 
   return (
-    <View style={styles.container}>
+    <TouchableOpacity style={styles.container} onPress={() => router.push('/')} activeOpacity={0.7}>
       <View style={styles.content}>
         <View style={styles.left}>
           <Text style={styles.label}>Gold Price ({settings.currency}/{settings.unit})</Text>
@@ -70,19 +72,21 @@ export default function GoldPriceBanner({ priceData, isLoading, error, refreshPr
           )}
           {error && <Text style={styles.error}>{error}</Text>}
         </View>
-        <TouchableOpacity
-          style={[styles.button, isLoading && styles.buttonLoading, isLoading && styles.buttonDisabled]}
-          onPress={refreshPrice}
-          disabled={isLoading}
-        >
-          {isLoading ? (
-            <ActivityIndicator size="large" color={colors.white} />
-          ) : (
-            <Text style={styles.buttonText}>↻ Refresh</Text>
-          )}
-        </TouchableOpacity>
+        {showRefresh && (
+          <TouchableOpacity
+            style={[styles.button, isLoading && styles.buttonLoading, isLoading && styles.buttonDisabled]}
+            onPress={refreshPrice}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <ActivityIndicator size="large" color={colors.white} />
+            ) : (
+              <Text style={styles.buttonText}>↻ Refresh</Text>
+            )}
+          </TouchableOpacity>
+        )}
       </View>
-    </View>
+    </TouchableOpacity>
   );
 }
 

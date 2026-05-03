@@ -1,0 +1,200 @@
+import { globalStyles, colors } from "@/styles/global";
+import { Text, View, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
+import { Link, useRouter } from 'expo-router';
+import { useState, useEffect } from 'react';
+import { getUserSettings } from '@/services/settingsService';
+
+export default function GuideScreen() {
+  const router = useRouter();
+  const [hasApiKey, setHasApiKey] = useState(false);
+
+  useEffect(() => {
+    getUserSettings().then(settings => {
+      setHasApiKey(settings.hasApiKey);
+    });
+  }, []);
+
+  return (
+    <ScrollView style={globalStyles.container} contentContainerStyle={{ paddingBottom: 100 }}>
+      <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+        <Text style={styles.backText}>Back</Text>
+      </TouchableOpacity>
+
+      <View style={styles.header}>
+        <Text style={styles.title}>How to Use Stackers</Text>
+      </View>
+
+      <Link href="/api-settings" asChild>
+        <TouchableOpacity 
+          style={hasApiKey ? styles.apiButtonDisabled : styles.apiButton} 
+          disabled={hasApiKey}
+        >
+          <Text style={globalStyles.buttonText}>{hasApiKey ? 'API Key Set' : 'Set Up API Key'}</Text>
+        </TouchableOpacity>
+      </Link>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Getting Started</Text>
+        <Text style={styles.stepNumber}>1</Text>
+        <Text style={styles.text}>On first launch, the app will prompt you to set up an API key. This is required to fetch live gold prices.</Text>
+        
+        <Text style={styles.stepNumber}>2</Text>
+        <Text style={styles.text}>Get a free API key from <Text style={styles.link}>metals.dev</Text></Text>
+        
+        <Text style={styles.stepNumber}>3</Text>
+        <Text style={styles.text}>Enter your API key in the settings page and choose your preferred currency (GBP, USD, or EUR) and weight unit (troy ounces, grams, or kg).</Text>
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Setting Up Security (PIN)</Text>
+        <Text style={styles.stepNumber}>1</Text>
+        <Text style={styles.text}>Go to the Account tab.</Text>
+        
+        <Text style={styles.stepNumber}>2</Text>
+        <Text style={styles.text}>Tap "Set PIN" to create a 4-digit PIN.</Text>
+        
+        <Text style={styles.stepNumber}>3</Text>
+        <Text style={styles.text}>Enter your PIN twice to confirm it.</Text>
+        
+        <Text style={styles.stepNumber}>4</Text>
+        <Text style={styles.text}>The app will now require your PIN every time you open it.</Text>
+        
+        <Text style={styles.note}>Note: You can change or remove your PIN anytime from the Account tab.</Text>
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Adding Items to Your Stack</Text>
+        <Text style={styles.stepNumber}>1</Text>
+        <Text style={styles.text}>Navigate to the "Add" tab at the bottom of the screen.</Text>
+        
+        <Text style={styles.stepNumber}>2</Text>
+        <Text style={styles.text}>Optionally, tap "Take Photo" to capture an image of your item (great for keeping records).</Text>
+        
+        <Text style={styles.stepNumber}>3</Text>
+        <Text style={styles.text}>Enter the Item name (e.g., "American Gold Eagle 1oz").</Text>
+        
+        <Text style={styles.stepNumber}>4</Text>
+        <Text style={styles.text}>Enter the weight of the item in your chosen unit.</Text>
+        
+        <Text style={styles.stepNumber}>5</Text>
+        <Text style={styles.text}>Enter the cost. Choose ONE option:</Text>
+        <Text style={styles.listItem}>• Cost per unit: the price you paid per ounce/gram</Text>
+        <Text style={styles.listItem}>• Total amount: the total price you paid for the item</Text>
+        
+        <Text style={styles.stepNumber}>6</Text>
+        <Text style={styles.text}>Tap "Submit" to save the item.</Text>
+        
+        <Text style={styles.stepNumber}>7</Text>
+        <Text style={styles.text}>Choose to add another item or view your stack.</Text>
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Viewing Your Portfolio</Text>
+        <Text style={styles.text}>The Home tab displays:</Text>
+        <Text style={styles.listItem}>• Gold price banner with live price and 24h change</Text>
+        <Text style={styles.listItem}>• Price history chart</Text>
+        <Text style={styles.listItem}>• Grid showing all your items with current values</Text>
+        <Text style={styles.listItem}>• Total stack value and total cost</Text>
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Managing Settings</Text>
+        <Text style={styles.text}>From the Account tab, you can:</Text>
+        <Text style={styles.listItem}>• Access API Settings to change currency, weight unit, or update your API key</Text>
+        <Text style={styles.listItem}>• Change your PIN</Text>
+        <Text style={styles.listItem}>• Remove your PIN</Text>
+        <Text style={styles.listItem}>• Log out</Text>
+        <Text style={styles.note}>Note: To remove the API key, you must be logged in with your PIN if one is set.</Text>
+      </View>
+
+      <Text style={styles.credit}>coded by this.me</Text>
+
+      <View style={{ height: 60 }} />
+    </ScrollView>
+  );
+}
+
+const styles = StyleSheet.create({
+  backButton: {
+    alignSelf: 'flex-start',
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    marginBottom: 10,
+  },
+  backText: {
+    color: colors.gold,
+    fontSize: 16,
+  },
+  header: {
+    marginBottom: 10,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: colors.gold,
+  },
+  section: {
+    backgroundColor: colors.themeGrey,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 20,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: colors.gold,
+    marginBottom: 16,
+    marginTop: 8,
+  },
+  stepNumber: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: colors.darkGold,
+    marginTop: 12,
+  },
+  text: {
+    fontSize: 16,
+    color: colors.white,
+    lineHeight: 24,
+    marginBottom: 4,
+  },
+  listItem: {
+    fontSize: 16,
+    color: colors.white,
+    lineHeight: 24,
+    marginLeft: 12,
+  },
+  note: {
+    fontSize: 14,
+    color: colors.grey,
+    fontStyle: 'italic',
+    marginTop: 12,
+    marginBottom: 8,
+  },
+  link: {
+    color: colors.white,
+    textDecorationLine: 'underline',
+  },
+  credit: {
+    fontSize: 14,
+    color: colors.grey,
+    fontStyle: 'italic',
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  apiButton: {
+    backgroundColor: colors.green,
+    padding: 16,
+    borderRadius: 8,
+    marginBottom: 12,
+    alignItems: 'center',
+  },
+  apiButtonDisabled: {
+    backgroundColor: colors.themeGrey,
+    padding: 16,
+    borderRadius: 8,
+    marginBottom: 12,
+    alignItems: 'center',
+    opacity: 0.6,
+  },
+});

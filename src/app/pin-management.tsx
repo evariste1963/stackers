@@ -35,14 +35,28 @@ export default function PinManagementScreen() {
 
   const handlePinComplete = async (enteredPin: string) => {
     if (activeMode === 'remove') {
-      const success = await userRemovePin(enteredPin);
-      if (success) {
-        Alert.alert('Success', 'PIN removed');
-        router.back();
-      } else {
-        Alert.alert('Error', 'Incorrect PIN');
-        setPin('');
-      }
+      Alert.alert(
+        'Remove PIN',
+        'Are you sure you want to remove your PIN?',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Remove',
+            style: 'destructive',
+            onPress: async () => {
+              const success = await userRemovePin(enteredPin);
+              if (success) {
+                Alert.alert('Success', 'PIN removed');
+                router.back();
+              } else {
+                Alert.alert('Error', 'Incorrect PIN');
+                setPin('');
+              }
+            },
+          },
+        ]
+      );
+      setPin('');
     } else if (activeMode === 'set') {
       if (step === 'new') {
         setNewPin(enteredPin);

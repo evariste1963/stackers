@@ -124,7 +124,7 @@ return (
         <Text style={globalStyles.title}>Add to Stack</Text>
       </View>
       <View style={styles.bannerContainer}>
-        <GoldPriceBanner priceData={priceData} isLoading={isLoading} error={error} refreshPrice={refreshPrice} settings={settings} />
+        <GoldPriceBanner priceData={priceData} isLoading={isLoading} error={error} refreshPrice={refreshPrice} settings={settings} showRefresh={false} />
       </View>
       <ScrollView style={[styles.form, { paddingHorizontal: 20 }]}>
         <TouchableOpacity style={styles.cameraBtn} onPress={openCamera}>
@@ -139,7 +139,7 @@ return (
         <View style={styles.row}>
           <View style={styles.col}>
             <Text style={styles.label}>Item</Text>
-            <TextInput style={styles.input} placeholder="XUA" placeholderTextColor="#666" value={code} onChangeText={setCode} />
+            <TextInput style={styles.input} placeholder="Coin" placeholderTextColor="#666" value={code} onChangeText={setCode} />
           </View>
           <View style={styles.col}>
             <Text style={[styles.label, { textAlign: 'right' }]}>Weight ({getUnitAbbrev(weightUnit)})</Text>

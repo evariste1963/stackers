@@ -33,7 +33,7 @@ export default function HomeScreen() {
 
   useEffect(() => {
     if (!isSettingsLoading && !apiKeyConfigured) {
-      router.replace('/api-settings');
+      router.replace('/guide');
     }
   }, [isSettingsLoading, apiKeyConfigured, router]);
 

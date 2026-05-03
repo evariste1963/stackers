@@ -4,9 +4,11 @@ import { globalStyles, colors } from '@/styles/global';
 import { Text, View, TextInput, TouchableOpacity, ScrollView, Alert, Linking, Image } from 'react-native';
 import { getUserSettings, updateApiKey, removeApiKey, updatePreference, type UserSettings } from '@/services/settingsService';
 import { AVAILABLE_CURRENCIES, AVAILABLE_UNITS, METALS_DEV_URL } from '@/config';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function ApiSettingsScreen() {
   const router = useRouter();
+  const { isAuthenticated, hasPinSet } = useAuth();
   const [settings, setSettings] = useState<UserSettings>({
     currency: 'GBP',
     unit: 'toz',
@@ -63,9 +65,13 @@ export default function ApiSettingsScreen() {
   }
 
   async function handleRemoveApiKey() {
+    if (hasPinSet && !isAuthenticated) {
+      Alert.alert('Authentication Required', 'Please log in with your PIN to remove the API key.');
+      return;
+    }
     Alert.alert(
       'Remove API Key',
-      'Are you sure you want to remove your API key? This will allow you to test the setup flow again.',
+      'Are you sure? Without an API key, you will not be able to see live gold prices.',
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -75,7 +81,7 @@ export default function ApiSettingsScreen() {
             try {
               await removeApiKey();
               setSettings({ currency: 'GBP', unit: 'toz', hasApiKey: false, createdAt: '', updatedAt: '' });
-              Alert.alert('Success', 'API key removed. Restart the app to test the setup flow.');
+              Alert.alert('Success', 'API key removed. You can add a new key from Account > API Settings.');
             } catch (error) {
               Alert.alert('Error', 'Failed to remove API key');
             }
@@ -127,7 +133,14 @@ export default function ApiSettingsScreen() {
         {settings.hasApiKey ? (
           <View style={apiStyles.statusContainer}>
             <Text style={apiStyles.statusText}>API Key configured ✓</Text>
-            <TouchableOpacity style={apiStyles.removeButton} onPress={handleRemoveApiKey}>
+            <TouchableOpacity 
+              style={[
+                apiStyles.removeButton, 
+                (hasPinSet && !isAuthenticated) && apiStyles.removeButtonDisabled
+              ]} 
+              onPress={handleRemoveApiKey}
+              disabled={hasPinSet && !isAuthenticated}
+            >
               <Text style={apiStyles.removeButtonText}>Remove</Text>
             </TouchableOpacity>
           </View>
@@ -273,6 +286,9 @@ const apiStyles = {
     color: colors.red,
     fontSize: 14,
     fontWeight: '600',
+  } as const,
+  removeButtonDisabled: {
+    opacity: 0.5,
   } as const,
   notConfiguredText: {
     fontSize: 14,

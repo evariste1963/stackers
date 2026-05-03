@@ -39,7 +39,7 @@ export default function StackValueBlock({ value, costValue, settings }: StackVal
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Stack Info</Text>
+      <Text style={styles.title}>Stack Value</Text>
       <View style={styles.row}>
         <View style={styles.columnLeft}>
           <Text style={[styles.label, styles.labelLeft]}>Total cost</Text>

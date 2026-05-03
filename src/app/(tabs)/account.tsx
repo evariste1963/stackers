@@ -20,6 +20,12 @@ export default function AccountScreen() {
         <Text style={globalStyles.title}>Account</Text>
       </View>
       <View style={{ padding: 16 }}>
+        <Link href="/guide" asChild>
+          <TouchableOpacity style={globalStyles.button}>
+            <Text style={globalStyles.buttonText}>Guide</Text>
+          </TouchableOpacity>
+        </Link>
+
         <Link href="/api-settings" asChild>
           <TouchableOpacity style={globalStyles.button}>
             <Text style={globalStyles.buttonText}>API Settings</Text>
@@ -50,15 +56,15 @@ export default function AccountScreen() {
             >
               <Text style={globalStyles.buttonText}>Remove PIN</Text>
             </TouchableOpacity>
+            
+            <TouchableOpacity 
+              style={[globalStyles.button, { marginTop: 20, borderColor: colors.red, borderWidth: 1 }]} 
+              onPress={handleLogOut}
+            >
+              <Text style={[globalStyles.buttonText, { color: colors.red }]}>Log Out</Text>
+            </TouchableOpacity>
           </>
         )}
-        
-        <TouchableOpacity 
-          style={[globalStyles.button, { marginTop: 20, borderColor: colors.red, borderWidth: 1 }]} 
-          onPress={handleLogOut}
-        >
-          <Text style={[globalStyles.buttonText, { color: colors.red }]}>Log Out</Text>
-        </TouchableOpacity>
       </View>
     </ScrollView>
   );
