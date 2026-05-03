@@ -1,7 +1,3 @@
-export const API_CONFIG = {
-  metalsDevApiKey: '', // No longer used - stored in SQLite/SecureStore
-};
-
 export const STORAGE_KEYS = {
   goldPriceLatest: 'gold_price_latest',
   userSettings: 'user_settings',

@@ -9,11 +9,11 @@ import { addItem, cleanOrphanedImages } from '@/services/stackStorage';
 import { getUserSettings } from '@/services/settingsService';
 import { getUnitAbbrev } from '@/utils/formatters';
 import GoldPriceBanner from '@/components/GoldPriceBanner';
-import { useGoldPrice, UseGoldPriceResult } from '@/hooks/useGoldPrice';
+import { usePrice } from '@/contexts/PriceContext';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function AddToStackScreen() {
-  const { priceData, isLoading, error, refreshPrice, settings }: UseGoldPriceResult = useGoldPrice();
+  const { priceData, isLoading, error, refreshPrice, settings } = usePrice();
   const [code, setCode] = useState('');
   const [weight, setWeight] = useState('');
   const [purchasePrice, setPurchasePrice] = useState('');

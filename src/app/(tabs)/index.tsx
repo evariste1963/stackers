@@ -7,12 +7,12 @@ import StackGrid from '@/components/StackGrid';
 import ChartArea from '@/components/ChartArea';
 import GoldPriceBanner from '@/components/GoldPriceBanner';
 import StackValueBlock from '@/components/StackValueBlock';
-import { useGoldPrice, UseGoldPriceResult } from '@/hooks/useGoldPrice';
+import { usePrice } from '@/contexts/PriceContext';
 import { useStack } from '@/contexts/StackContext';
 import { colors } from '@/styles/global';
 
 export default function HomeScreen() {
-  const { priceData, history, isLoading, error, refreshPrice, settings, apiKeyConfigured, isSettingsLoading }: UseGoldPriceResult = useGoldPrice();
+  const { priceData, history, isLoading, error, refreshPrice, settings, apiKeyConfigured, isSettingsLoading } = usePrice();
   const { items, refresh } = useStack();
 
   useFocusEffect(() => {

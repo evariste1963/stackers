@@ -3,7 +3,6 @@ import { colors } from '@/styles/global';
 import { type GoldPriceData } from '@/services/priceService';
 import { type UserSettings } from '@/services/settingsService';
 import { getCurrencySymbol, formatDate } from '@/utils/formatters';
-import { router } from 'expo-router';
 
 type GoldPriceBannerProps = {
   priceData: GoldPriceData | null;
@@ -17,7 +16,7 @@ type GoldPriceBannerProps = {
 export default function GoldPriceBanner({ priceData, isLoading, error, refreshPrice, settings, showRefresh = true }: GoldPriceBannerProps) {
 
   const formatPrice = (price: number | undefined) => {
-    if (!price) return 'Tap refresh to fetch';
+    if (!price) return showRefresh ? 'Tap refresh to fetch' : 'No price data';
     const symbol = getCurrencySymbol(settings.currency);
     return `${symbol}${price.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
@@ -44,28 +43,22 @@ export default function GoldPriceBanner({ priceData, isLoading, error, refreshPr
   const changeColor = getChangeColor(priceData?.change);
 
   return (
-    <TouchableOpacity style={styles.container} onPress={() => router.push('/')} activeOpacity={0.7}>
+    <View style={styles.container}>
       <View style={styles.content}>
         <View style={styles.left}>
           <Text style={styles.label}>Gold Price ({settings.currency}/{settings.unit})</Text>
-          <View style={styles.priceContainer}>
-            <View style={styles.priceRow}>
-              <View style={styles.priceWrapper}>
-                <Text style={styles.price}>{formatPrice(priceData?.price)}</Text>
+          <View style={styles.priceRow}>
+            <Text style={[styles.price, { flex: 0.6 }]}>{formatPrice(priceData?.price)}</Text>
+            {priceData?.change !== undefined && priceData?.change !== null && (
+              <View style={styles.changeBlockWrapper}>
+                <Text style={[styles.changeValue, { color: changeColor }]}>
+                  {formatChange(priceData.change)}
+                </Text>
+                <Text style={[styles.changePercent, { color: changeColor }]}>
+                  {formatChangePercent(priceData.changePercent)}
+                </Text>
               </View>
-              {priceData?.change !== undefined && priceData?.change !== null && (
-                <View style={styles.changeBlockWrapper}>
-                  <View style={styles.changeBlock}>
-                    <Text style={[styles.changeValue, { color: changeColor }]}>
-                      {formatChange(priceData.change)}
-                    </Text>
-                    <Text style={[styles.changePercent, { color: changeColor }]}>
-                      {formatChangePercent(priceData.changePercent)}
-                    </Text>
-                  </View>
-                </View>
-              )}
-            </View>
+            )}
           </View>
           {priceData?.date && (
             <Text style={styles.date}>Last updated: {formatDate(priceData.date)}</Text>
@@ -86,7 +79,7 @@ export default function GoldPriceBanner({ priceData, isLoading, error, refreshPr
           </TouchableOpacity>
         )}
       </View>
-    </TouchableOpacity>
+    </View>
   );
 }
 
@@ -117,21 +110,12 @@ const styles = {
     color: colors.gold,
     fontWeight: 'bold',
   } as const,
-  priceContainer: {
-    alignItems: 'flex-start',
-  } as const,
   priceRow: {
     flexDirection: 'row',
     gap: 8,
   } as const,
-  priceWrapper: {
-    flex: 0.6,
-  } as const,
   changeBlockWrapper: {
     flex: 0.4,
-    alignItems: 'flex-start',
-  } as const,
-  changeBlock: {
     alignItems: 'flex-start',
   } as const,
   changeValue: {
