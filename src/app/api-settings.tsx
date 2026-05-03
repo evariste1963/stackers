@@ -3,6 +3,7 @@ import { useRouter } from 'expo-router';
 import { globalStyles, colors } from '@/styles/global';
 import { Text, View, TextInput, TouchableOpacity, ScrollView, Alert, Linking, Image } from 'react-native';
 import { getUserSettings, updateApiKey, removeApiKey, updatePreference, type UserSettings } from '@/services/settingsService';
+import { getAllItems } from '@/services/stackStorage';
 import { AVAILABLE_CURRENCIES, AVAILABLE_UNITS, METALS_DEV_URL } from '@/config';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -19,10 +20,21 @@ export default function ApiSettingsScreen() {
   const [apiKeyInput, setApiKeyInput] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [hasStackItems, setHasStackItems] = useState(false);
 
   useEffect(() => {
     loadSettings();
+    checkStackItems();
   }, []);
+
+  async function checkStackItems() {
+    try {
+      const items = await getAllItems();
+      setHasStackItems(items.length > 0);
+    } catch (error) {
+      console.error('Error checking stack items:', error);
+    }
+  }
 
   async function loadSettings() {
     try {
@@ -175,50 +187,71 @@ export default function ApiSettingsScreen() {
       <View style={apiStyles.section}>
         <Text style={apiStyles.sectionTitle}>Preferences</Text>
 
+        {/* Currency and unit cannot be changed while stack has items - see guide.tsx for details */}
+        {hasStackItems && (
+          <Text style={apiStyles.lockedNote}>
+            Currency and unit are locked because you have items in your stack. Remove all items to change preferences.
+          </Text>
+        )}
+
         <Text style={apiStyles.label}>Currency</Text>
         <View style={apiStyles.optionsRow}>
-          {AVAILABLE_CURRENCIES.map((curr) => (
-            <TouchableOpacity
-              key={curr.code}
-              style={[
-                apiStyles.optionButton,
-                settings.currency === curr.code && apiStyles.optionButtonActive,
-              ]}
-              onPress={() => handleCurrencyChange(curr.code)}
-            >
-              <Text
+          {AVAILABLE_CURRENCIES.map((curr) => {
+            const isActive = settings.currency === curr.code;
+            const isDisabled = hasStackItems && !isActive;
+            return (
+              <TouchableOpacity
+                key={curr.code}
                 style={[
-                  apiStyles.optionButtonText,
-                  settings.currency === curr.code && apiStyles.optionButtonTextActive,
+                  apiStyles.optionButton,
+                  isActive && apiStyles.optionButtonActive,
+                  isDisabled && apiStyles.optionButtonDisabled,
                 ]}
+                onPress={() => !isDisabled && handleCurrencyChange(curr.code)}
+                disabled={isDisabled}
               >
-                {curr.code} ({curr.symbol})
-              </Text>
-            </TouchableOpacity>
-          ))}
+                <Text
+                  style={[
+                    apiStyles.optionButtonText,
+                    isActive && apiStyles.optionButtonTextActive,
+                    isDisabled && apiStyles.optionButtonTextDisabled,
+                  ]}
+                >
+                  {curr.code} ({curr.symbol})
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
         </View>
 
         <Text style={apiStyles.label}>Unit</Text>
         <View style={apiStyles.optionsRow}>
-          {AVAILABLE_UNITS.map((u) => (
-            <TouchableOpacity
-              key={u.code}
-              style={[
-                apiStyles.optionButton,
-                settings.unit === u.code && apiStyles.optionButtonActive,
-              ]}
-              onPress={() => handleUnitChange(u.code)}
-            >
-              <Text
+          {AVAILABLE_UNITS.map((u) => {
+            const isActive = settings.unit === u.code;
+            const isDisabled = hasStackItems && !isActive;
+            return (
+              <TouchableOpacity
+                key={u.code}
                 style={[
-                  apiStyles.optionButtonText,
-                  settings.unit === u.code && apiStyles.optionButtonTextActive,
+                  apiStyles.optionButton,
+                  isActive && apiStyles.optionButtonActive,
+                  isDisabled && apiStyles.optionButtonDisabled,
                 ]}
+                onPress={() => !isDisabled && handleUnitChange(u.code)}
+                disabled={isDisabled}
               >
-                {u.name} ({u.abbrev})
-              </Text>
-            </TouchableOpacity>
-          ))}
+                <Text
+                  style={[
+                    apiStyles.optionButtonText,
+                    isActive && apiStyles.optionButtonTextActive,
+                    isDisabled && apiStyles.optionButtonTextDisabled,
+                  ]}
+                >
+                  {u.name} ({u.abbrev})
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
         </View>
       </View>
 
@@ -350,6 +383,11 @@ const apiStyles = {
     borderColor: colors.gold,
     backgroundColor: colors.gold + '20',
   } as const,
+  optionButtonDisabled: {
+    borderColor: '#333',
+    backgroundColor: '#2a2a2a',
+    opacity: 0.5,
+  } as const,
   optionButtonText: {
     fontSize: 14,
     color: '#888',
@@ -357,5 +395,17 @@ const apiStyles = {
   optionButtonTextActive: {
     color: colors.gold,
     fontWeight: '600' as const,
+  } as const,
+  optionButtonTextDisabled: {
+    color: '#555',
+  } as const,
+  lockedNote: {
+    fontSize: 13,
+    color: colors.orange,
+    fontStyle: 'italic',
+    marginBottom: 16,
+    padding: 10,
+    backgroundColor: colors.orange + '20',
+    borderRadius: 8,
   } as const,
 };

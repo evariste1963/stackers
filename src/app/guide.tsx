@@ -105,6 +105,12 @@ export default function GuideScreen() {
         <Text style={styles.listItem}>• Remove your PIN</Text>
         <Text style={styles.listItem}>• Log out</Text>
         <Text style={styles.note}>Note: To remove the API key, you must be logged in with your PIN if one is set.</Text>
+        
+        <Text style={styles.note}>
+          Important: Once you add items to your stack, the currency and unit preferences become locked. 
+          This prevents mismatched calculations when you have existing items. To change currency or unit, 
+          you must first remove all items from your stack (Your Stack tab, tap each item and delete).
+        </Text>
       </View>
 
       <Text style={styles.credit}>coded by this.me</Text>
