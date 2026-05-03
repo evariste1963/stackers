@@ -359,3 +359,239 @@ Then rebuild and run the app - it will recreate all tables with default data.
 cd android && ./gradlew clean
 cd android && ./gradlew assembleRelease
 ```
+
+---
+
+## Installing Directly on Physical Phone (ADB)
+
+For direct installation via USB debugging, no file transfer needed.
+
+### Prerequisites
+
+1. Enable **Developer Options** on your phone:
+   - Go to **Settings → About Phone**
+   - Tap **Build Number** 7 times
+   - Enter your PIN/pattern if prompted
+
+2. Enable **USB Debugging**:
+   - Go to **Settings → Developer Options**
+   - Enable **USB Debugging**
+
+3. Connect your phone via USB to your computer
+
+### Install via ADB
+
+```bash
+# Build the APK first
+cd android && ./gradlew assembleRelease
+
+# Find the APK
+cp android/app/build/outputs/apk/release/app-release.apk ../stackers-release.apk
+
+# Install on connected phone
+adb install -r stackers-release.apk
+```
+
+This installs the APK directly on your connected Android device.
+
+### If USB Debugging is Already Enabled
+
+```bash
+# Check if phone is connected
+adb devices
+
+# Install ( -r flag replaces existing app)
+adb install -r stackers-release.apk
+```
+
+---
+
+## Custom App Icon (Launcher Icon)
+
+The app uses your custom logo as the launcher icon. To update the icon:
+
+### Icon Files Location
+
+- **Source**: `assets/images/stackers-logo.png` (should be square, 1024x1024 recommended)
+- **Generated to**: `android/app/src/main/res/mipmap-*/ic_launcher_foreground.webp`
+
+### Regenerate Launcher Icons
+
+```bash
+# Update the source logo if needed
+# Then regenerate the mipmap icons:
+
+magick assets/images/stackers-logo.png -resize 48x48 \
+  android/app/src/main/res/mipmap-hdpi/ic_launcher_foreground.webp
+
+magick assets/images/stackers-logo.png -resize 72x72 \
+  android/app/src/main/res/mipmap-mdpi/ic_launcher_foreground.webp
+
+magick assets/images/stackers-logo.png -resize 96x96 \
+  android/app/src/main/res/mipmap-xhdpi/ic_launcher_foreground.webp
+
+magick assets/images/stackers-logo.png -resize 144x144 \
+  android/app/src/main/res/mipmap-xxhdpi/ic_launcher_foreground.webp
+
+magick assets/images/stackers-logo.png -resize 192x192 \
+  android/app/src/main/res/mipmap-xxxhdpi/ic_launcher_foreground.webp
+
+# Rebuild the APK
+cd android && ./gradlew assembleRelease
+```
+
+### Using Expo's Asset Generator
+
+```bash
+npx expo generate:android-assets
+```
+
+This will regenerate all Android icons from your source logo.
+
+---
+
+## Publishing to Google Play Store
+
+### Prerequisites
+
+1. **Google Play Developer Account** - https://play.google.com/console ($25 one-time fee)
+2. **Release APK or AAB** (Android App Bundle)
+
+### Target SDK Requirement
+
+As of August 2025, new apps must target **Android API 35** (Android 15). Ensure your `app.json` has:
+```json
+"android": {
+  "targetSdkVersion": 35
+}
+```
+
+### Step 1: Configure App in Play Console
+
+1. Go to https://play.google.com/console
+2. Create a new app (select "Android App")
+3. Fill in:
+   - App name: Stackers
+   - Default language: English
+   - App type: Apps
+   - Category: Finance
+
+### Step 2: Prepare Store Listing
+
+You'll need:
+- **Screenshots**: Take screenshots on a phone/emulator (1080x1920 recommended)
+- **Feature graphic**: 1024x500
+- **Phone icon**: 512x512
+- **Privacy policy URL**: Required if app collects data
+- **App description**: Describe the app's functionality
+
+### Step 3: Create Release
+
+1. In Play Console, go to **Release → Production**
+2. Upload your AAB or APK:
+   ```bash
+   # Create Android App Bundle (recommended)
+   cd android && ./gradlew assembleRelease
+   # AAB location: android/app/build/outputs/apk/release/app-release.apk
+   ```
+
+3. Set release notes
+4. Click **Review Release** → **Confirm Rollout**
+
+### Using EAS Build (No Local Android Studio)
+
+```bash
+# Install EAS CLI
+npm install -g eas-cli
+
+# Login to Expo
+eas login
+
+# Build for Android (creates AAB)
+eas build --platform android
+
+# Follow prompts - download the AAB from the link provided
+```
+
+### App Signing
+
+- **Play App Signing** (recommended): Google manages your signing key
+- **Self-signed**: You provide your own keystore
+
+For production, keep your keystore safe - you cannot update the app without the same key.
+
+---
+
+## Publishing to iOS App Store
+
+### Prerequisites (Mac Required)
+
+1. **Apple Developer Account** - https://developer.apple.com ($99/year)
+2. **Xcode** - From Mac App Store
+3. **CocoaPods** - `sudo gem install cocoapods`
+
+### Step 1: Configure in Expo
+
+Update `app.json` with iOS details:
+```json
+"ios": {
+  "bundleIdentifier": "com.thisme.stackers",
+  "buildNumber": "1",
+  "supportsTablet": true
+}
+```
+
+### Step 2: Generate Native iOS Project
+
+```bash
+npx expo prebuild --platform ios
+```
+
+This creates the `ios/` folder.
+
+### Step 3: Configure Xcode
+
+1. Open `ios/Stackers.xcworkspace` in Xcode
+2. Select your team in **Signing & Capabilities**
+3. Set the bundle identifier if different
+
+### Step 4: Build for App Store
+
+```bash
+# Using xcodebuild
+cd ios && xcodebuild -workspace Stackers.xcworkspace \
+  -scheme Stackers \
+  -configuration Release \
+  -archive
+
+# Or use EAS
+eas build --platform ios
+```
+
+### Step 5: Upload via Transporter
+
+1. Download Transporter from Mac App Store
+2. Upload your `.ipa` file
+3. Go to App Store Connect to manage the release
+
+### Using EAS Submit (Easiest)
+
+```bash
+# Build and submit in one command
+eas build --platform ios --auto-submit
+```
+
+You'll need to log in to your Apple Developer account during the process.
+
+---
+
+## Summary: Build Commands
+
+| Action | Command |
+|--------|---------|
+| Dev server | `npx expo start` |
+| Build Android Debug | `cd android && ./gradlew assembleDebug` |
+| Build Android Release | `cd android && ./gradlew assembleRelease` |
+| Install on phone (ADB) | `adb install -r stackers-release.apk` |
+| Build iOS (Mac) | `cd ios && pod install && xcodebuild` |
+| EAS Build (cloud) | `eas build --platform android` |

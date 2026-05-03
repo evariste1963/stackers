@@ -44,3 +44,8 @@ app-example
 
 # IDE
 .idea/
+
+# Build outputs
+*.apk
+stackers-debug.apk
+stackers-release.apk
