@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useRef, ReactNode } from 'react';
 import { getLatestPrice, saveSpotPrice, type GoldPriceData } from '@/services/priceService';
 import { getHistory, saveToHistory, migrateStaticData, getHistoryLength, type HistoryEntry } from '@/services/historyService';
 import { getApiKey, getUserSettings, migrateFromKVStore, type UserSettings } from '@/services/settingsService';
@@ -30,38 +30,9 @@ export function PriceProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(false);
   const [isSettingsLoading, setIsSettingsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  const loadCachedPrice = useCallback(async () => {
-    const cached = await getLatestPrice();
-    if (cached) {
-      setPriceData(cached);
-    }
-  }, []);
-
-  const loadHistory = useCallback(async () => {
-    await migrateFromKVStore();
-    
-    const historyLength = await getHistoryLength();
-    if (historyLength === 0) {
-      await migrateStaticData();
-    }
-    const fullHistory = await getHistory();
-    setHistory(fullHistory);
-  }, []);
-
-  const loadSettings = useCallback(async () => {
-    let s = await getUserSettings();
-    
-    if (!s.hasApiKey) {
-      const apiKey = await getApiKey();
-      if (apiKey) {
-        s.hasApiKey = true;
-      }
-    }
-    
-    setSettings(s);
-    setIsSettingsLoading(false);
-  }, []);
+  
+  const settingsRef = useRef(settings);
+  settingsRef.current = settings;
 
   const refreshPrice = useCallback(async () => {
     const apiKey = await getApiKey();
@@ -74,7 +45,8 @@ export function PriceProvider({ children }: { children: ReactNode }) {
     setError(null);
 
     try {
-      const result = await fetchGoldPrice(apiKey, settings.currency, settings.unit);
+      const currentSettings = settingsRef.current;
+      const result = await fetchGoldPrice(apiKey, currentSettings.currency, currentSettings.unit);
       
       const savedData = await saveSpotPrice(
         result.price,
@@ -84,8 +56,8 @@ export function PriceProvider({ children }: { children: ReactNode }) {
         result.low,
         result.change,
         result.changePercent,
-        settings.currency,
-        settings.unit
+        currentSettings.currency,
+        currentSettings.unit
       );
       
       await saveToHistory(result.price, result.change, result.changePercent);
@@ -99,13 +71,43 @@ export function PriceProvider({ children }: { children: ReactNode }) {
     } finally {
       setIsLoading(false);
     }
-  }, [settings.currency, settings.unit]);
+  }, []);
 
   useEffect(() => {
-    loadCachedPrice();
-    loadHistory();
-    loadSettings();
-  }, [loadCachedPrice, loadHistory, loadSettings]);
+    let mounted = true;
+    
+    async function init() {
+      const cached = await getLatestPrice();
+      if (mounted && cached) {
+        setPriceData(cached);
+      }
+      
+      await migrateFromKVStore();
+      
+      const historyLength = await getHistoryLength();
+      if (mounted && historyLength === 0) {
+        await migrateStaticData();
+      }
+      const fullHistory = await getHistory();
+      if (mounted) {
+        setHistory(fullHistory);
+      }
+      
+      const s = await getUserSettings();
+      if (mounted) {
+        const apiKey = await getApiKey();
+        if (!s.hasApiKey && apiKey) {
+          s.hasApiKey = true;
+        }
+        setSettings(s);
+        setIsSettingsLoading(false);
+      }
+    }
+    
+    init();
+    
+    return () => { mounted = false; };
+  }, []);
 
   return (
     <PriceContext.Provider value={{

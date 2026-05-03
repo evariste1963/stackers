@@ -4,11 +4,6 @@ import * as SecureStore from 'expo-secure-store';
 const PIN_KEY = 'user_pin';
 const SALT_KEY = 'user_pin_salt';
 
-function arrayBufferToHex(buffer: ArrayBuffer): string {
-  const byteArray = new Uint8Array(buffer);
-  return Array.from(byteArray, byte => byte.toString(16).padStart(2, '0')).join('');
-}
-
 async function hashPin(pin: string, salt: string): Promise<string> {
   const normalized = pin + salt;
   const digest = await Crypto.digestStringAsync(
@@ -20,8 +15,12 @@ async function hashPin(pin: string, salt: string): Promise<string> {
 }
 
 async function generateSalt(): Promise<string> {
-  const random = await Crypto.getRandomBytesAsync(16);
-  return arrayBufferToHex(random.buffer);
+  const uuid = await Crypto.digestStringAsync(
+    Crypto.CryptoDigestAlgorithm.SHA256,
+    Math.random().toString() + Date.now().toString(),
+    { encoding: Crypto.CryptoEncoding.HEX }
+  );
+  return uuid;
 }
 
 export async function setPin(pin: string): Promise<void> {
