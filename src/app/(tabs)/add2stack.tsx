@@ -5,7 +5,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useState, useCallback } from 'react';
 import * as ImagePicker from 'expo-image-picker';
 import { File, Directory, Paths } from 'expo-file-system';
-import { addItem } from '@/services/stackStorage';
+import { addItem, cleanOrphanedImages } from '@/services/stackStorage';
 import { getUserSettings } from '@/services/settingsService';
 import { getUnitAbbrev } from '@/utils/formatters';
 import GoldPriceBanner from '@/components/GoldPriceBanner';
@@ -95,6 +95,7 @@ export default function AddToStackScreen() {
         premium: '',
         imageUri: savedUri,
       });
+      await cleanOrphanedImages();
       setModalVisible(true);
     } catch (err) {
       Alert.alert('Error', 'Failed to save item. Please try again.');

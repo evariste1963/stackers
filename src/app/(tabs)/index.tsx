@@ -63,7 +63,7 @@ export default function HomeScreen() {
           <ChartArea history={history} />
         </View>
         <StackGrid price={priceData ?? undefined} />
-        <StackValueBlock value={totalStackValue || undefined} costValue={totalCostValue || undefined} settings={settings} />
+        <StackValueBlock value={totalStackValue || undefined} costValue={totalCostValue || undefined} settings={settings} onPress={() => router.push('/yourStack')} />
       </ScrollView >
     </View>
   );

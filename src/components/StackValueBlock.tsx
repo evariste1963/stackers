@@ -1,4 +1,4 @@
-import { Text, View } from 'react-native';
+import { Text, View, TouchableOpacity } from 'react-native';
 import { colors } from '@/styles/global';
 import { type UserSettings } from '@/services/settingsService';
 import { getCurrencySymbol } from '@/utils/formatters';
@@ -7,9 +7,10 @@ type StackValueBlockProps = {
   value: string | number | undefined;
   costValue?: string | number | undefined;
   settings: UserSettings;
+  onPress?: () => void;
 };
 
-export default function StackValueBlock({ value, costValue, settings }: StackValueBlockProps) {
+export default function StackValueBlock({ value, costValue, settings, onPress }: StackValueBlockProps) {
   const formatValue = (val: string | number | undefined) => {
     if (val === undefined || val === null || val === '') return '';
     const symbol = getCurrencySymbol(settings.currency);
@@ -38,7 +39,7 @@ export default function StackValueBlock({ value, costValue, settings }: StackVal
   };
 
   return (
-    <View style={styles.container}>
+    <TouchableOpacity style={styles.container} onPress={onPress} activeOpacity={0.7}>
       <Text style={styles.title}>Stack Value</Text>
       <View style={styles.row}>
         <View style={styles.columnLeft}>
@@ -60,7 +61,7 @@ export default function StackValueBlock({ value, costValue, settings }: StackVal
           </Text>
         </View>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 }
 

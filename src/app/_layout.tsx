@@ -5,10 +5,15 @@ import { View, ActivityIndicator } from "react-native";
 import { colors } from "@/styles/global";
 import { useEffect } from "react";
 import { useRouter } from "expo-router";
+import { cleanOrphanedImages } from "@/services/stackStorage";
 
 function AuthRouter() {
   const { isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
+
+  useEffect(() => {
+    cleanOrphanedImages();
+  }, []);
 
   useEffect(() => {
     if (!isLoading) {
