@@ -1,40 +1,5 @@
-import * as SQLite from 'expo-sqlite';
-import { getDb } from './stackStorage';
+import { getDb } from './db';
 import { priceData as staticPriceData } from '../../assets/priceData.js';
-
-let goldPriceDb: SQLite.SQLiteDatabase | null = null;
-let initPromise: Promise<SQLite.SQLiteDatabase> | null = null;
-
-async function initHistoryTables(): Promise<SQLite.SQLiteDatabase> {
-  if (goldPriceDb) return goldPriceDb;
-  
-  if (initPromise) return initPromise;
-  
-  initPromise = (async () => {
-    try {
-      const database = await getDb();
-      goldPriceDb = database;
-      
-      await database.execAsync(`
-        CREATE TABLE IF NOT EXISTS gold_price_history (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          date TEXT,
-          price REAL,
-          change REAL,
-          changePercent REAL
-        );
-      `);
-      
-      return database;
-    } catch (error) {
-      console.error('Error initializing history tables:', error);
-      initPromise = null;
-      throw error;
-    }
-  })();
-  
-  return initPromise;
-}
 
 export interface HistoryEntry {
   date: string;
@@ -43,12 +8,21 @@ export interface HistoryEntry {
   changePercent: number;
 }
 
+interface HistoryRow {
+  date: string;
+  price: number;
+  change: number;
+  changePercent: number;
+}
+
+interface CountRow {
+  count: number;
+}
+
 export async function getHistory(): Promise<HistoryEntry[]> {
   try {
-    const database = await initHistoryTables();
-    const rows = await database.getAllAsync(
-      'SELECT * FROM gold_price_history ORDER BY date ASC'
-    ) as any[];
+    const database = await getDb();
+    const rows = await database.getAllAsync<HistoryRow>('SELECT * FROM gold_price_history ORDER BY date ASC');
     
     return rows.map(row => ({
       date: row.date,
@@ -78,9 +52,9 @@ export async function saveToHistory(
   };
 
   try {
-    const database = await initHistoryTables();
+    const database = await getDb();
     
-    const existing = await database.getAllAsync(
+    const existing = await database.getAllAsync<{ id: number }>(
       'SELECT id FROM gold_price_history WHERE date = ?',
       [targetDate]
     );
@@ -107,8 +81,8 @@ export async function saveToHistory(
 
 export async function migrateStaticData(): Promise<void> {
   try {
-    const database = await initHistoryTables();
-    const rows = await database.getAllAsync('SELECT COUNT(*) as count FROM gold_price_history') as any[];
+    const database = await getDb();
+    const rows = await database.getAllAsync<CountRow>('SELECT COUNT(*) as count FROM gold_price_history');
     
     if (rows[0].count > 0) return;
     
@@ -135,8 +109,8 @@ export async function migrateStaticData(): Promise<void> {
 
 export async function getHistoryLength(): Promise<number> {
   try {
-    const database = await initHistoryTables();
-    const rows = await database.getAllAsync('SELECT COUNT(*) as count FROM gold_price_history') as any[];
+    const database = await getDb();
+    const rows = await database.getAllAsync<CountRow>('SELECT COUNT(*) as count FROM gold_price_history');
     return rows[0].count;
   } catch (error) {
     console.error('Error getting history length:', error);

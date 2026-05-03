@@ -7,6 +7,27 @@ import { colors } from "@/styles/global";
 import { useEffect } from "react";
 import { useRouter } from "expo-router";
 import { cleanOrphanedImages } from "@/services/stackStorage";
+import { initAllTables } from "@/services/db";
+import { useState } from "react";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
+
+function DbInitializer({ children }: { children: React.ReactNode }) {
+  const [dbReady, setDbReady] = useState(false);
+  
+  useEffect(() => {
+    initAllTables().then(() => setDbReady(true));
+  }, []);
+  
+  if (!dbReady) {
+    return (
+      <View style={{ flex: 1, backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" color={colors.gold} />
+      </View>
+    );
+  }
+  
+  return <>{children}</>;
+}
 
 function AuthRouter() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -47,12 +68,16 @@ function AuthRouter() {
 
 export default function RootLayout() {
   return (
-    <AuthProvider>
-      <StackProvider>
-        <PriceProvider>
-          <AuthRouter />
-        </PriceProvider>
-      </StackProvider>
-    </AuthProvider>
+    <ErrorBoundary>
+      <DbInitializer>
+        <AuthProvider>
+          <StackProvider>
+            <PriceProvider>
+              <AuthRouter />
+            </PriceProvider>
+          </StackProvider>
+        </AuthProvider>
+      </DbInitializer>
+    </ErrorBoundary>
   );
 }

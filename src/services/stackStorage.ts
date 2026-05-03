@@ -1,42 +1,8 @@
 import * as SQLite from 'expo-sqlite';
 import { File, Directory, Paths } from 'expo-file-system';
+import { getDb } from './db';
 
 const IMAGES_DIR = new Directory(Paths.document, 'images');
-
-let db: SQLite.SQLiteDatabase | null = null;
-let dbPromise: Promise<SQLite.SQLiteDatabase> | null = null;
-
-export async function getDb(): Promise<SQLite.SQLiteDatabase> {
-  if (db) return db;
-  
-  // Prevent multiple simultaneous open calls
-  if (dbPromise) return dbPromise;
-  
-  dbPromise = (async () => {
-    try {
-      const database = await SQLite.openDatabaseAsync('stackers.db');
-      await database.execAsync(`
-        CREATE TABLE IF NOT EXISTS stack_items (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          code TEXT NOT NULL,
-          weight TEXT NOT NULL,
-          purchasePrice TEXT NOT NULL,
-          premium TEXT NOT NULL DEFAULT '',
-          imageUri TEXT,
-          createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
-        );
-      `);
-      db = database;
-      return database;
-    } catch (error) {
-      console.error('Error opening database:', error);
-      dbPromise = null;
-      throw error;
-    }
-  })();
-  
-  return dbPromise;
-}
 
 export interface StackItem {
   id: number;
@@ -48,9 +14,19 @@ export interface StackItem {
   createdAt: string;
 }
 
+interface StackItemRow {
+  id: number;
+  code: string;
+  weight: string;
+  purchasePrice: string;
+  premium: string;
+  imageUri: string | null;
+  createdAt: string;
+}
+
 export async function getAllItems(): Promise<StackItem[]> {
   const database = await getDb();
-  const rows = await database.getAllAsync('SELECT * FROM stack_items ORDER BY createdAt DESC') as any[];
+  const rows = await database.getAllAsync<StackItemRow>('SELECT * FROM stack_items ORDER BY createdAt DESC');
   return rows.map(row => ({
     id: Number(row.id),
     code: row.code,
@@ -84,10 +60,10 @@ export async function deleteItems(ids: number[]): Promise<void> {
   const database = await getDb();
 
   const placeholders = ids.map(() => '?').join(',');
-  const rows = await database.getAllAsync(
+  const rows = await database.getAllAsync<{ id: number; imageUri: string | null }>(
     `SELECT id, imageUri FROM stack_items WHERE id IN (${placeholders})`,
     ids
-  ) as { id: number; imageUri: string | null }[];
+  );
 
   for (const row of rows) {
     if (row.imageUri) {
@@ -112,7 +88,7 @@ export async function cleanOrphanedImages(): Promise<number> {
     }
 
     const database = await getDb();
-    const rows = await database.getAllAsync('SELECT imageUri FROM stack_items') as { imageUri: string | null }[];
+    const rows = await database.getAllAsync<{ imageUri: string | null }>('SELECT imageUri FROM stack_items');
     const usedUris = new Set(rows.filter(r => r.imageUri).map(r => r.imageUri));
 
     const files = IMAGES_DIR.list();
