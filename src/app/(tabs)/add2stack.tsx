@@ -17,7 +17,7 @@ export default function AddToStackScreen() {
   const params = useLocalSearchParams<{ editId?: string }>();
   const editId = params.editId ? parseInt(params.editId, 10) : null;
   const isEditing = editId !== null;
-  
+
   const [code, setCode] = useState('');
   const [weight, setWeight] = useState('');
   const [purchasePrice, setPurchasePrice] = useState('');
@@ -27,6 +27,15 @@ export default function AddToStackScreen() {
   const [submitting, setSubmitting] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [weightUnit, setWeightUnit] = useState('toz');
+
+  const clearForm = () => {
+    setCode('');
+    setWeight('');
+    setPurchasePrice('');
+    setTotalAmount('');
+    setImageUri(null);
+    setOriginalImageUri(null);
+  };
 
   const computedCostPerUnit = (() => {
     if (!weight || !totalAmount) return '';
@@ -45,22 +54,9 @@ export default function AddToStackScreen() {
       getUserSettings().then(settings => {
         setWeightUnit(settings.unit || 'toz');
       });
-    }, [])
-  );
-
-  useFocusEffect(
-    useCallback(() => {
-      getUserSettings().then(settings => {
-        setWeightUnit(settings.unit || 'toz');
-      });
 
       // Always clear form on focus first
-      setCode('');
-      setWeight('');
-      setPurchasePrice('');
-      setTotalAmount('');
-      setImageUri(null);
-      setOriginalImageUri(null);
+      clearForm();
 
       // Then load item data if we're editing
       if (editId) {
@@ -101,7 +97,7 @@ export default function AddToStackScreen() {
     setSubmitting(true);
     try {
       let savedUri: string | null = imageUri;
-      
+
       if (imageUri && imageUri !== originalImageUri) {
         const imagesDir = new Directory(Paths.document, 'images');
         if (!imagesDir.exists) {
@@ -123,7 +119,11 @@ export default function AddToStackScreen() {
           imageUri: savedUri,
         });
         await cleanOrphanedImages();
-        router.push('/yourStack');
+        // Clear form and reset URL before navigating
+        clearForm();
+        // Clear the editId parameter from the current route
+        router.setParams({ editId: undefined });
+        router.replace('/yourStack');
       } else {
         await addItem({
           code,
@@ -157,12 +157,7 @@ export default function AddToStackScreen() {
   };
 
   const handleCancel = () => {
-    setCode('');
-    setWeight('');
-    setPurchasePrice('');
-    setTotalAmount('');
-    setImageUri(null);
-    setOriginalImageUri(null);
+    clearForm();
     // Reset the current route to remove editId from URL, then navigate to yourStack
     router.replace('/add2stack');
     setTimeout(() => {
@@ -170,7 +165,7 @@ export default function AddToStackScreen() {
     }, 100);
   };
 
-return (
+  return (
     <View style={[globalStyles.container, { paddingHorizontal: 0 }]}>
       <View style={globalStyles.header}>
         <Image source={require('../../../assets/images/stackers-logo.png')} style={globalStyles.logo} />
@@ -180,57 +175,57 @@ return (
         <GoldPriceBanner priceData={priceData} isLoading={isLoading} error={error} refreshPrice={refreshPrice} settings={settings} showRefresh={false} />
       </View>
       <KeyboardAvoidingView style={styles.keyboardView} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-      <ScrollView style={[styles.form, { paddingHorizontal: 20 }]} keyboardShouldPersistTaps="handled">
-        <TouchableOpacity style={styles.cameraBtn} onPress={openCamera}>
-          <View style={styles.cameraBtnContent}>
-            <Ionicons name="camera" size={20} color={colors.gold} style={{ marginRight: 8 }} />
-            <Text style={styles.cameraBtnText}>{imageUri ? 'Retake Photo' : 'Take Photo'}</Text>
+        <ScrollView style={[styles.form, { paddingHorizontal: 20 }]} keyboardShouldPersistTaps="handled">
+          <TouchableOpacity style={styles.cameraBtn} onPress={openCamera}>
+            <View style={styles.cameraBtnContent}>
+              <Ionicons name="camera" size={20} color={colors.gold} style={{ marginRight: 8 }} />
+              <Text style={styles.cameraBtnText}>{imageUri ? 'Retake Photo' : 'Take Photo'}</Text>
+            </View>
+          </TouchableOpacity>
+          {imageUri && (
+            <Image source={{ uri: imageUri }} style={styles.preview} />
+          )}
+          <View style={styles.row}>
+            <View style={styles.col}>
+              <Text style={styles.label}>Item</Text>
+              <TextInput style={styles.input} placeholder="Coin" placeholderTextColor="#666" value={code} onChangeText={setCode} />
+            </View>
+            <View style={styles.col}>
+              <Text style={[styles.label, { textAlign: 'right' }]}>Weight ({getUnitAbbrev(weightUnit)})</Text>
+              <TextInput
+                style={styles.input}
+                placeholder={`Weight (${getUnitAbbrev(weightUnit)})`}
+                placeholderTextColor="#666"
+                value={weight}
+                onChangeText={setWeight}
+              />
+            </View>
           </View>
-        </TouchableOpacity>
-        {imageUri && (
-          <Image source={{ uri: imageUri }} style={styles.preview} />
-        )}
-        <View style={styles.row}>
-          <View style={styles.col}>
-            <Text style={styles.label}>Item</Text>
-            <TextInput style={styles.input} placeholder="Coin" placeholderTextColor="#666" value={code} onChangeText={setCode} />
+          <View style={styles.row}>
+            <View style={styles.col}>
+              <Text style={styles.label}>Cost/{getUnitAbbrev(weightUnit)}</Text>
+              <TextInput
+                style={[styles.input, totalAmount ? styles.disabledInput : null]}
+                placeholder={`Cost/${getUnitAbbrev(weightUnit)}`}
+                placeholderTextColor="#666"
+                value={costPerUnit}
+                onChangeText={setPurchasePrice}
+                editable={!totalAmount}
+              />
+            </View>
+            <Text style={styles.orText}>OR</Text>
+            <View style={styles.col}>
+              <Text style={[styles.label, { textAlign: 'right' }]}>Total Amount</Text>
+              <TextInput style={styles.input} placeholder="Total" placeholderTextColor="#666" value={totalAmount} onChangeText={setTotalAmount} />
+            </View>
           </View>
-          <View style={styles.col}>
-            <Text style={[styles.label, { textAlign: 'right' }]}>Weight ({getUnitAbbrev(weightUnit)})</Text>
-            <TextInput 
-              style={styles.input} 
-              placeholder={`Weight (${getUnitAbbrev(weightUnit)})`} 
-              placeholderTextColor="#666" 
-              value={weight} 
-              onChangeText={setWeight}
-            />
-          </View>
-        </View>
-        <View style={styles.row}>
-          <View style={styles.col}>
-            <Text style={styles.label}>Cost/{getUnitAbbrev(weightUnit)}</Text>
-            <TextInput 
-              style={[styles.input, totalAmount ? styles.disabledInput : null]} 
-              placeholder={`Cost/${getUnitAbbrev(weightUnit)}`} 
-              placeholderTextColor="#666" 
-              value={costPerUnit} 
-              onChangeText={setPurchasePrice}
-              editable={!totalAmount}
-            />
-          </View>
-          <Text style={styles.orText}>OR</Text>
-          <View style={styles.col}>
-            <Text style={[styles.label, { textAlign: 'right' }]}>Total Amount</Text>
-            <TextInput style={styles.input} placeholder="Total" placeholderTextColor="#666" value={totalAmount} onChangeText={setTotalAmount} />
-          </View>
-        </View>
-        <TouchableOpacity style={styles.submitBtn} onPress={handleSubmit} disabled={submitting}>
-          <Text style={styles.submitBtnText}>{submitting ? (isEditing ? 'Updating...' : 'Saving...') : (isEditing ? 'Update' : 'Submit')}</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.cancelBtn} onPress={handleCancel}>
-          <Text style={styles.cancelBtnText}>Cancel</Text>
-        </TouchableOpacity>
-      </ScrollView>
+          <TouchableOpacity style={styles.submitBtn} onPress={handleSubmit} disabled={submitting}>
+            <Text style={styles.submitBtnText}>{submitting ? (isEditing ? 'Updating...' : 'Saving...') : (isEditing ? 'Update' : 'Submit')}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.cancelBtn} onPress={handleCancel}>
+            <Text style={styles.cancelBtnText}>Cancel</Text>
+          </TouchableOpacity>
+        </ScrollView>
       </KeyboardAvoidingView>
       <Modal
         visible={modalVisible}
@@ -324,7 +319,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.gold,
   },
-disabledInput: {
+  disabledInput: {
     opacity: 0.5,
   },
   buttonRow: {
@@ -332,7 +327,7 @@ disabledInput: {
     gap: 12,
     marginTop: 16,
   },
-submitBtn: {
+  submitBtn: {
     backgroundColor: colors.green,
     padding: 16,
     borderRadius: 8,
