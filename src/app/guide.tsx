@@ -89,6 +89,21 @@ export default function GuideScreen() {
       </View>
 
       <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Editing & Deleting Items</Text>
+        <Text style={styles.stepNumber}>1</Text>
+        <Text style={styles.text}>Navigate to the "Your Stack" tab.</Text>
+        
+        <Text style={styles.stepNumber}>2</Text>
+        <Text style={styles.text}>Tap anywhere on an item card to edit it.</Text>
+        
+        <Text style={styles.stepNumber}>3</Text>
+        <Text style={styles.text}>The Add to Stack screen will open with your item's details pre-filled. Tap "Update" to save your changes.</Text>
+        
+        <Text style={styles.stepNumber}>4</Text>
+        <Text style={styles.text}>To delete an item, tap the "X" button in the top-right corner of the item card.</Text>
+      </View>
+
+      <View style={styles.section}>
         <Text style={styles.sectionTitle}>Viewing Your Portfolio</Text>
         <Text style={styles.text}>The Home tab displays:</Text>
         <Text style={styles.listItem}>• Gold price banner with live price and 24h change</Text>

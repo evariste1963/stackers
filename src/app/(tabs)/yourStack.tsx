@@ -2,6 +2,7 @@ import { globalStyles } from "@/styles/global";
 import { Text, View, ScrollView, StyleSheet, Image } from 'react-native';
 import { useState, useCallback } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
+import { router } from 'expo-router';
 import { getLatestPrice } from '@/services/priceService';
 import { getUserSettings } from '@/services/settingsService';
 import { useStack } from '@/contexts/StackContext';
@@ -40,6 +41,10 @@ export default function YourStackScreen() {
     refresh();
   }, [refresh]);
 
+  const handleEdit = useCallback((itemId: number) => {
+    router.push({ pathname: '/add2stack', params: { editId: itemId.toString() } });
+  }, []);
+
   const rows = [];
   for (let i = 0; i < items.length; i += 2) {
     rows.push(items.slice(i, i + 2));
@@ -60,14 +65,15 @@ export default function YourStackScreen() {
             {rows.map((row, ri) => (
               <View key={`row-${ri}`} style={styles.row}>
                 {row.map(item => (
-                  <StackItemCard
-                     key={item.id}
-                     item={item}
-                     latestPrice={latestPrice}
-                     currency={currency}
-                     weightUnit={weightUnit}
-                     onDeleted={handleDeleted}
-                   />
+<StackItemCard
+                      key={item.id}
+                      item={item}
+                      latestPrice={latestPrice}
+                      currency={currency}
+                      weightUnit={weightUnit}
+                      onDeleted={handleDeleted}
+                      onPress={() => handleEdit(item.id)}
+                    />
                 ))}
               </View>
             ))}

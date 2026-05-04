@@ -38,6 +38,22 @@ export async function getAllItems(): Promise<StackItem[]> {
   }));
 }
 
+export async function getItemById(id: number): Promise<StackItem | null> {
+  const database = await getDb();
+  const rows = await database.getAllAsync<StackItemRow>('SELECT * FROM stack_items WHERE id = ?', [id]);
+  if (rows.length === 0) return null;
+  const row = rows[0];
+  return {
+    id: Number(row.id),
+    code: row.code,
+    weight: row.weight,
+    purchasePrice: row.purchasePrice,
+    premium: row.premium || '',
+    imageUri: row.imageUri,
+    createdAt: row.createdAt,
+  };
+}
+
 export async function addItem(item: Omit<StackItem, 'id' | 'createdAt'>): Promise<StackItem> {
   const database = await getDb();
   const result = await database.runAsync(
@@ -52,6 +68,25 @@ export async function addItem(item: Omit<StackItem, 'id' | 'createdAt'>): Promis
     premium: item.premium || '',
     imageUri: item.imageUri,
     createdAt: new Date().toISOString(),
+  };
+}
+
+export async function updateItem(id: number, item: Omit<StackItem, 'id' | 'createdAt'>): Promise<StackItem> {
+  const database = await getDb();
+  await database.runAsync(
+    'UPDATE stack_items SET code = ?, weight = ?, purchasePrice = ?, premium = ?, imageUri = ? WHERE id = ?',
+    [item.code, item.weight, item.purchasePrice, item.premium || '', item.imageUri || null, id]
+  );
+  const rows = await database.getAllAsync<StackItemRow>('SELECT * FROM stack_items WHERE id = ?', [id]);
+  const row = rows[0];
+  return {
+    id: Number(row.id),
+    code: row.code,
+    weight: row.weight,
+    purchasePrice: row.purchasePrice,
+    premium: row.premium || '',
+    imageUri: row.imageUri,
+    createdAt: row.createdAt,
   };
 }
 

@@ -1,11 +1,11 @@
 import { globalStyles, colors } from "@/styles/global";
-import { Text, View, TextInput, TouchableOpacity, Image, ScrollView, Modal, StyleSheet, Alert } from 'react-native';
-import { router } from 'expo-router';
+import { Text, View, TextInput, TouchableOpacity, Image, ScrollView, Modal, StyleSheet, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import * as ImagePicker from 'expo-image-picker';
 import { File, Directory, Paths } from 'expo-file-system';
-import { addItem, cleanOrphanedImages } from '@/services/stackStorage';
+import { addItem, cleanOrphanedImages, getItemById, updateItem } from '@/services/stackStorage';
 import { getUserSettings } from '@/services/settingsService';
 import { getUnitAbbrev } from '@/utils/formatters';
 import GoldPriceBanner from '@/components/GoldPriceBanner';
@@ -14,11 +14,16 @@ import { Ionicons } from '@expo/vector-icons';
 
 export default function AddToStackScreen() {
   const { priceData, isLoading, error, refreshPrice, settings } = usePrice();
+  const params = useLocalSearchParams<{ editId?: string }>();
+  const editId = params.editId ? parseInt(params.editId, 10) : null;
+  const isEditing = editId !== null;
+  
   const [code, setCode] = useState('');
   const [weight, setWeight] = useState('');
   const [purchasePrice, setPurchasePrice] = useState('');
   const [totalAmount, setTotalAmount] = useState('');
   const [imageUri, setImageUri] = useState<string | null>(null);
+  const [originalImageUri, setOriginalImageUri] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [weightUnit, setWeightUnit] = useState('toz');
@@ -45,12 +50,25 @@ export default function AddToStackScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      setCode('');
-      setWeight('');
-      setPurchasePrice('');
-      setTotalAmount('');
-      setImageUri(null);
-    }, [])
+      if (!isEditing) {
+        setCode('');
+        setWeight('');
+        setPurchasePrice('');
+        setTotalAmount('');
+        setImageUri(null);
+        setOriginalImageUri(null);
+      } else if (editId) {
+        getItemById(editId).then(item => {
+          if (item) {
+            setCode(item.code);
+            setWeight(item.weight);
+            setPurchasePrice(item.purchasePrice);
+            setImageUri(item.imageUri);
+            setOriginalImageUri(item.imageUri);
+          }
+        });
+      }
+    }, [isEditing, editId])
   );
 
   const openCamera = async () => {
@@ -76,8 +94,9 @@ export default function AddToStackScreen() {
     const finalCost = totalAmount ? computedCostPerUnit : purchasePrice;
     setSubmitting(true);
     try {
-      let savedUri: string | null = null;
-      if (imageUri) {
+      let savedUri: string | null = imageUri;
+      
+      if (imageUri && imageUri !== originalImageUri) {
         const imagesDir = new Directory(Paths.document, 'images');
         if (!imagesDir.exists) {
           imagesDir.create();
@@ -88,15 +107,28 @@ export default function AddToStackScreen() {
         sourceFile.copy(destFile);
         savedUri = destFile.uri;
       }
-      await addItem({
-        code,
-        weight,
-        purchasePrice: finalCost,
-        premium: '',
-        imageUri: savedUri,
-      });
-      await cleanOrphanedImages();
-      setModalVisible(true);
+
+      if (isEditing && editId) {
+        await updateItem(editId, {
+          code,
+          weight,
+          purchasePrice: finalCost,
+          premium: '',
+          imageUri: savedUri,
+        });
+        await cleanOrphanedImages();
+        router.push('/yourStack');
+      } else {
+        await addItem({
+          code,
+          weight,
+          purchasePrice: finalCost,
+          premium: '',
+          imageUri: savedUri,
+        });
+        await cleanOrphanedImages();
+        setModalVisible(true);
+      }
     } catch (err) {
       Alert.alert('Error', 'Failed to save item. Please try again.');
     } finally {
@@ -122,12 +154,13 @@ return (
     <View style={[globalStyles.container, { paddingHorizontal: 0 }]}>
       <View style={globalStyles.header}>
         <Image source={require('../../../assets/images/stackers-logo.png')} style={globalStyles.logo} />
-        <Text style={globalStyles.title}>Add to Stack</Text>
+        <Text style={globalStyles.title}>{isEditing ? 'Edit Item' : 'Add to Stack'}</Text>
       </View>
       <View style={styles.bannerContainer}>
         <GoldPriceBanner priceData={priceData} isLoading={isLoading} error={error} refreshPrice={refreshPrice} settings={settings} showRefresh={false} />
       </View>
-      <ScrollView style={[styles.form, { paddingHorizontal: 20 }]}>
+      <KeyboardAvoidingView style={styles.keyboardView} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+      <ScrollView style={[styles.form, { paddingHorizontal: 20 }]} keyboardShouldPersistTaps="handled">
         <TouchableOpacity style={styles.cameraBtn} onPress={openCamera}>
           <View style={styles.cameraBtnContent}>
             <Ionicons name="camera" size={20} color={colors.gold} style={{ marginRight: 8 }} />
@@ -172,12 +205,13 @@ return (
           </View>
         </View>
         <TouchableOpacity style={styles.submitBtn} onPress={handleSubmit} disabled={submitting}>
-          <Text style={styles.submitBtnText}>{submitting ? 'Saving...' : 'Submit'}</Text>
+          <Text style={styles.submitBtnText}>{submitting ? (isEditing ? 'Updating...' : 'Saving...') : (isEditing ? 'Update' : 'Submit')}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.cancelBtn} onPress={() => router.push('/')}>
           <Text style={styles.cancelBtnText}>Cancel</Text>
         </TouchableOpacity>
       </ScrollView>
+      </KeyboardAvoidingView>
       <Modal
         visible={modalVisible}
         transparent
@@ -204,7 +238,11 @@ return (
 }
 
 const styles = StyleSheet.create({
+  keyboardView: {
+    flex: 1,
+  },
   form: {
+    flex: 1,
     padding: 16,
   },
   bannerContainer: {

@@ -10,9 +10,10 @@ type StackItemCardProps = {
   currency: string;
   weightUnit?: string;
   onDeleted: () => void;
+  onPress?: () => void;
 };
 
-export default function StackItemCard({ item, latestPrice, currency, weightUnit = 'toz', onDeleted }: StackItemCardProps) {
+export default function StackItemCard({ item, latestPrice, currency, weightUnit = 'toz', onDeleted, onPress }: StackItemCardProps) {
   const handleDelete = () => {
     Alert.alert(
       'Delete Item',
@@ -48,7 +49,7 @@ export default function StackItemCard({ item, latestPrice, currency, weightUnit 
   const isPositive = (valueChange ?? 0) >= 0;
 
   return (
-    <View style={styles.card}>
+    <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.8} disabled={!onPress}>
       <TouchableOpacity style={styles.deleteBtn} onPress={handleDelete} activeOpacity={0.6}>
         <Text style={styles.deleteIcon}>✕</Text>
       </TouchableOpacity>
@@ -86,7 +87,7 @@ export default function StackItemCard({ item, latestPrice, currency, weightUnit 
           <Text style={[styles.detail, styles.noPrice]}>No price data</Text>
         )}
       </View>
-    </View>
+    </TouchableOpacity>
   );
 }
 
