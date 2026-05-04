@@ -589,9 +589,22 @@ You'll need to log in to your Apple Developer account during the process.
 
 | Action | Command |
 |--------|---------|
-| Dev server | `npx expo start` |
 | Build Android Debug | `cd android && ./gradlew assembleDebug` |
 | Build Android Release | `cd android && ./gradlew assembleRelease` |
-| Install on phone (ADB) | `adb install -r stackers-release.apk` |
+| Copy APK to project root | `cp android/app/build/outputs/apk/release/app-release.apk ../stackers-release.apk` |
+| Install on phone (ADB) | `adb install -r ../stackers-release.apk` |
 | Build iOS (Mac) | `cd ios && pod install && xcodebuild` |
 | EAS Build (cloud) | `eas build --platform android` |
+
+### Quick Build + Install on Phone
+
+```bash
+# Step 1: Build
+cd android && ./gradlew assembleRelease
+
+# Step 2: Copy APK (optional - for easy access)
+cp android/app/build/outputs/apk/release/app-release.apk ../stackers-release.apk
+
+# Step 3: Install on connected phone
+adb install -r android/app/build/outputs/apk/release/app-release.apk
+```

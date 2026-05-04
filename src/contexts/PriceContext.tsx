@@ -13,6 +13,7 @@ interface PriceContextType {
   error: string | null;
   refreshPrice: () => Promise<void>;
   apiKeyConfigured: boolean;
+  refreshSettings: () => Promise<void>;
 }
 
 const PriceContext = createContext<PriceContextType | undefined>(undefined);
@@ -73,10 +74,18 @@ export function PriceProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  const refreshSettings = useCallback(async () => {
+    const s = await getUserSettings();
+    setSettings(s);
+    setIsSettingsLoading(false);
+  }, []);
+
   useEffect(() => {
     let mounted = true;
-    
-    async function init() {
+
+    const init = async () => {
+      const apiKey = await getApiKey();
+
       const cached = await getLatestPrice();
       if (mounted && cached) {
         setPriceData(cached);
@@ -119,6 +128,7 @@ export function PriceProvider({ children }: { children: ReactNode }) {
       error,
       refreshPrice,
       apiKeyConfigured: settings.hasApiKey,
+      refreshSettings,
     }}>
       {children}
     </PriceContext.Provider>

@@ -60,6 +60,7 @@ function AuthRouter() {
   return (
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name='(tabs)' />
+      <Stack.Screen name='guide' />
       <Stack.Screen name='lock' />
       <Stack.Screen name='pin-management' />
     </Stack>

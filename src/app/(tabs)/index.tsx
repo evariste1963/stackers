@@ -12,11 +12,14 @@ import { useStack } from '@/contexts/StackContext';
 import { colors } from '@/styles/global';
 
 export default function HomeScreen() {
-  const { priceData, history, isLoading, error, refreshPrice, settings, apiKeyConfigured, isSettingsLoading } = usePrice();
+  const { priceData, history, isLoading, error, refreshPrice, settings, apiKeyConfigured, isSettingsLoading, refreshSettings } = usePrice();
   const { items, refresh } = useStack();
 
   useFocusEffect(() => {
     refresh();
+    if (!apiKeyConfigured) {
+      refreshSettings();
+    }
   });
 
   const totalStackValue = items.reduce((sum, item) => {

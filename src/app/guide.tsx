@@ -3,9 +3,11 @@ import { Text, View, ScrollView, StyleSheet, TouchableOpacity } from 'react-nati
 import { Link, useRouter } from 'expo-router';
 import { useState, useEffect } from 'react';
 import { getUserSettings } from '@/services/settingsService';
+import { usePrice } from '@/contexts/PriceContext';
 
 export default function GuideScreen() {
   const router = useRouter();
+  const { settings, isSettingsLoading } = usePrice();
   const [hasApiKey, setHasApiKey] = useState(false);
 
   useEffect(() => {
@@ -14,24 +16,35 @@ export default function GuideScreen() {
     });
   }, []);
 
+  const handleContinue = () => {
+    if (!isSettingsLoading && settings.hasApiKey) {
+      router.replace('/');
+    }
+  };
+
   return (
     <ScrollView style={globalStyles.container} contentContainerStyle={{ paddingBottom: 100 }}>
-      <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-        <Text style={styles.backText}>Back</Text>
-      </TouchableOpacity>
+      {!hasApiKey && (
+        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+          <Text style={styles.backText}>Back</Text>
+        </TouchableOpacity>
+      )}
 
       <View style={styles.header}>
         <Text style={styles.title}>How to Use Stackers</Text>
       </View>
 
-      <Link href="/api-settings" asChild>
-        <TouchableOpacity 
-          style={hasApiKey ? styles.apiButtonDisabled : styles.apiButton} 
-          disabled={hasApiKey}
-        >
-          <Text style={globalStyles.buttonText}>{hasApiKey ? 'API Key Set' : 'Set Up API Key'}</Text>
+      {!hasApiKey ? (
+        <Link href="/api-settings" asChild>
+          <TouchableOpacity style={styles.apiButton}>
+            <Text style={globalStyles.buttonText}>Set Up API Key</Text>
+          </TouchableOpacity>
+        </Link>
+      ) : (
+        <TouchableOpacity style={styles.apiButton} onPress={handleContinue}>
+          <Text style={globalStyles.buttonText}>Continue to App</Text>
         </TouchableOpacity>
-      </Link>
+      )}
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Getting Started</Text>
@@ -209,13 +222,5 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginBottom: 12,
     alignItems: 'center',
-  },
-  apiButtonDisabled: {
-    backgroundColor: colors.themeGrey,
-    padding: 16,
-    borderRadius: 8,
-    marginBottom: 12,
-    alignItems: 'center',
-    opacity: 0.6,
   },
 });

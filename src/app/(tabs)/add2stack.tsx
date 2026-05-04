@@ -2,7 +2,7 @@ import { globalStyles, colors } from "@/styles/global";
 import { Text, View, TextInput, TouchableOpacity, Image, ScrollView, Modal, StyleSheet, Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import * as ImagePicker from 'expo-image-picker';
 import { File, Directory, Paths } from 'expo-file-system';
 import { addItem, cleanOrphanedImages, getItemById, updateItem } from '@/services/stackStorage';
@@ -50,14 +50,20 @@ export default function AddToStackScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      if (!isEditing) {
-        setCode('');
-        setWeight('');
-        setPurchasePrice('');
-        setTotalAmount('');
-        setImageUri(null);
-        setOriginalImageUri(null);
-      } else if (editId) {
+      getUserSettings().then(settings => {
+        setWeightUnit(settings.unit || 'toz');
+      });
+
+      // Always clear form on focus first
+      setCode('');
+      setWeight('');
+      setPurchasePrice('');
+      setTotalAmount('');
+      setImageUri(null);
+      setOriginalImageUri(null);
+
+      // Then load item data if we're editing
+      if (editId) {
         getItemById(editId).then(item => {
           if (item) {
             setCode(item.code);
@@ -68,7 +74,7 @@ export default function AddToStackScreen() {
           }
         });
       }
-    }, [isEditing, editId])
+    }, [editId])
   );
 
   const openCamera = async () => {
@@ -150,6 +156,20 @@ export default function AddToStackScreen() {
     router.push('/yourStack');
   };
 
+  const handleCancel = () => {
+    setCode('');
+    setWeight('');
+    setPurchasePrice('');
+    setTotalAmount('');
+    setImageUri(null);
+    setOriginalImageUri(null);
+    // Reset the current route to remove editId from URL, then navigate to yourStack
+    router.replace('/add2stack');
+    setTimeout(() => {
+      router.push('/yourStack');
+    }, 100);
+  };
+
 return (
     <View style={[globalStyles.container, { paddingHorizontal: 0 }]}>
       <View style={globalStyles.header}>
@@ -207,7 +227,7 @@ return (
         <TouchableOpacity style={styles.submitBtn} onPress={handleSubmit} disabled={submitting}>
           <Text style={styles.submitBtnText}>{submitting ? (isEditing ? 'Updating...' : 'Saving...') : (isEditing ? 'Update' : 'Submit')}</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.cancelBtn} onPress={() => router.push('/')}>
+        <TouchableOpacity style={styles.cancelBtn} onPress={handleCancel}>
           <Text style={styles.cancelBtnText}>Cancel</Text>
         </TouchableOpacity>
       </ScrollView>
