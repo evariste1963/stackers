@@ -1,8 +1,10 @@
-import { globalStyles } from "@/styles/global";
+import { globalStyles, colors } from "@/styles/global";
 import { Text, View, ScrollView, StyleSheet, Image } from 'react-native';
+import { router } from 'expo-router';
 import { useState, useCallback } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
-import { router } from 'expo-router';
+import { GestureDetector } from 'react-native-gesture-handler';
+import { useSwipeNavigation } from '@/hooks/useSwipeNavigation';
 import { getLatestPrice } from '@/services/priceService';
 import { getUserSettings } from '@/services/settingsService';
 import { useStack } from '@/contexts/StackContext';
@@ -11,6 +13,7 @@ import EmptyStackState from '@/components/EmptyStackState';
 
 export default function YourStackScreen() {
   const { items, refresh } = useStack();
+  const { swipeGesture } = useSwipeNavigation('yourStack');
   const [latestPrice, setLatestPrice] = useState<number | null>(null);
   const [currency, setCurrency] = useState('GBP');
   const [weightUnit, setWeightUnit] = useState('toz');
@@ -50,22 +53,23 @@ export default function YourStackScreen() {
     rows.push(items.slice(i, i + 2));
   }
 
-  return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Image source={require('../../../assets/images/stackers-logo.png')} style={globalStyles.logo} />
-        <Text style={globalStyles.title}>Your Stack</Text>
-      </View>
+return (
+    <GestureDetector gesture={swipeGesture}>
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <Image source={require('../../../assets/images/stackers-logo.png')} style={globalStyles.logo} />
+          <Text style={globalStyles.title}>Your Stack</Text>
+        </View>
 
-      <ScrollView style={styles.gridContainer} contentContainerStyle={styles.scrollContent}>
-        {items.length === 0 ? (
-          <EmptyStackState />
-        ) : (
-          <View style={styles.grid}>
-            {rows.map((row, ri) => (
-              <View key={`row-${ri}`} style={styles.row}>
-                {row.map(item => (
-<StackItemCard
+        <ScrollView style={styles.gridContainer} contentContainerStyle={styles.scrollContent}>
+          {items.length === 0 ? (
+            <EmptyStackState />
+          ) : (
+            <View style={styles.grid}>
+              {rows.map((row, ri) => (
+                <View key={`row-${ri}`} style={styles.row}>
+                  {row.map(item => (
+                    <StackItemCard
                       key={item.id}
                       item={item}
                       latestPrice={latestPrice}
@@ -74,13 +78,14 @@ export default function YourStackScreen() {
                       onDeleted={handleDeleted}
                       onPress={() => handleEdit(item.id)}
                     />
-                ))}
-              </View>
-            ))}
-          </View>
-        )}
-      </ScrollView>
-    </View>
+                  ))}
+                </View>
+              ))}
+            </View>
+          )}
+        </ScrollView>
+      </View>
+    </GestureDetector>
   );
 }
 

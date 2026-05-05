@@ -1,19 +1,21 @@
-import { globalStyles } from '@/styles/global';
 import { Text, Image, ScrollView, View } from 'react-native';
+import { GestureDetector } from 'react-native-gesture-handler';
 import { router } from 'expo-router';
 import { useEffect } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
+import { useSwipeNavigation } from '@/hooks/useSwipeNavigation';
+import { colors, globalStyles } from '@/styles/global';
 import StackGrid from '@/components/StackGrid';
 import ChartArea from '@/components/ChartArea';
 import GoldPriceBanner from '@/components/GoldPriceBanner';
 import StackValueBlock from '@/components/StackValueBlock';
 import { usePrice } from '@/contexts/PriceContext';
 import { useStack } from '@/contexts/StackContext';
-import { colors } from '@/styles/global';
 
 export default function HomeScreen() {
   const { priceData, history, isLoading, error, refreshPrice, settings, apiKeyConfigured, isSettingsLoading, refreshSettings } = usePrice();
   const { items, refresh } = useStack();
+  const { swipeGesture } = useSwipeNavigation('');
 
   useFocusEffect(() => {
     refresh();
@@ -53,21 +55,23 @@ export default function HomeScreen() {
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.background }}>
-      <View style={[globalStyles.header, { paddingHorizontal: 20, paddingTop: 60 }]}>
-        <View style={globalStyles.logoContainer}>
-          <Image source={require('../../../assets/images/stackers-logo.png')} style={globalStyles.logo} />
-          <Text style={globalStyles.title}>Stackers</Text>
+    <GestureDetector gesture={swipeGesture}>
+      <View style={{ flex: 1, backgroundColor: colors.background }}>
+        <View style={[globalStyles.header, { paddingHorizontal: 20, paddingTop: 60 }]}>
+          <View style={globalStyles.logoContainer}>
+            <Image source={require('../../../assets/images/stackers-logo.png')} style={globalStyles.logo} />
+            <Text style={globalStyles.title}>Stackers</Text>
+          </View>
         </View>
+        <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 20 }}>
+          <GoldPriceBanner priceData={priceData} isLoading={isLoading} error={error} refreshPrice={refreshPrice} settings={settings} />
+          <View style={{ height: 160, width: '100%', marginTop: 0, backgroundColor: colors.background, alignItems: 'center' }}>
+            <ChartArea history={history} />
+          </View>
+          <StackGrid price={priceData ?? undefined} />
+          <StackValueBlock value={totalStackValue || undefined} costValue={totalCostValue || undefined} settings={settings} onPress={() => router.push('/yourStack')} />
+        </ScrollView >
       </View>
-      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 20 }}>
-        <GoldPriceBanner priceData={priceData} isLoading={isLoading} error={error} refreshPrice={refreshPrice} settings={settings} />
-        <View style={{ height: 160, width: '100%', marginTop: 0, backgroundColor: colors.background, alignItems: 'center' }}>
-          <ChartArea history={history} />
-        </View>
-        <StackGrid price={priceData ?? undefined} />
-        <StackValueBlock value={totalStackValue || undefined} costValue={totalCostValue || undefined} settings={settings} onPress={() => router.push('/yourStack')} />
-      </ScrollView >
-    </View>
+    </GestureDetector>
   );
 }

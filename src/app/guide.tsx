@@ -126,6 +126,14 @@ export default function GuideScreen() {
       </View>
 
       <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Swipe Between Tabs</Text>
+        <Text style={styles.text}>You can swipe left or right on any tab screen to navigate between tabs:</Text>
+        <Text style={styles.listItem}>• Swipe left = go to next tab</Text>
+        <Text style={styles.listItem}>• Swipe right = go to previous tab</Text>
+        <Text style={styles.note}>Tip: Swipe quickly or with enough distance for best results.</Text>
+      </View>
+
+      <View style={styles.section}>
         <Text style={styles.sectionTitle}>Managing Settings</Text>
         <Text style={styles.text}>From the Account tab, you can:</Text>
         <Text style={styles.listItem}>• Access API Settings to change currency, weight unit, or update your API key</Text>

@@ -3,6 +3,8 @@ import { Text, View, TextInput, TouchableOpacity, Image, ScrollView, Modal, Styl
 import { router, useLocalSearchParams } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { useState, useCallback, useRef } from 'react';
+import { GestureDetector } from 'react-native-gesture-handler';
+import { useSwipeNavigation } from '@/hooks/useSwipeNavigation';
 import * as ImagePicker from 'expo-image-picker';
 import { File, Directory, Paths } from 'expo-file-system';
 import { addItem, cleanOrphanedImages, getItemById, updateItem } from '@/services/stackStorage';
@@ -14,6 +16,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 export default function AddToStackScreen() {
   const { priceData, isLoading, error, refreshPrice, settings } = usePrice();
+  const { swipeGesture } = useSwipeNavigation('add2stack');
   const params = useLocalSearchParams<{ editId?: string }>();
   const editId = params.editId ? parseInt(params.editId, 10) : null;
   const isEditing = editId !== null;
@@ -166,17 +169,18 @@ export default function AddToStackScreen() {
   };
 
   return (
-    <View style={[globalStyles.container, { paddingHorizontal: 0 }]}>
-      <View style={globalStyles.header}>
-        <Image source={require('../../../assets/images/stackers-logo.png')} style={globalStyles.logo} />
-        <Text style={globalStyles.title}>{isEditing ? 'Edit Item' : 'Add to Stack'}</Text>
-      </View>
-      <View style={styles.bannerContainer}>
-        <GoldPriceBanner priceData={priceData} isLoading={isLoading} error={error} refreshPrice={refreshPrice} settings={settings} showRefresh={false} />
-      </View>
-      <KeyboardAvoidingView style={styles.keyboardView} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-        <ScrollView style={[styles.form, { paddingHorizontal: 20 }]} keyboardShouldPersistTaps="handled">
-          <TouchableOpacity style={styles.cameraBtn} onPress={openCamera}>
+    <GestureDetector gesture={swipeGesture}>
+      <View style={[globalStyles.container, { paddingHorizontal: 0 }]}>
+        <View style={globalStyles.header}>
+          <Image source={require('../../../assets/images/stackers-logo.png')} style={globalStyles.logo} />
+          <Text style={globalStyles.title}>{isEditing ? 'Edit Item' : 'Add to Stack'}</Text>
+        </View>
+        <View style={styles.bannerContainer}>
+          <GoldPriceBanner priceData={priceData} isLoading={isLoading} error={error} refreshPrice={refreshPrice} settings={settings} showRefresh={false} />
+        </View>
+        <KeyboardAvoidingView style={styles.keyboardView} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+          <ScrollView style={[styles.form, { paddingHorizontal: 20 }]} keyboardShouldPersistTaps="handled">
+            <TouchableOpacity style={styles.cameraBtn} onPress={openCamera}>
             <View style={styles.cameraBtnContent}>
               <Ionicons name="camera" size={20} color={colors.gold} style={{ marginRight: 8 }} />
               <Text style={styles.cameraBtnText}>{imageUri ? 'Retake Photo' : 'Take Photo'}</Text>
@@ -249,7 +253,8 @@ export default function AddToStackScreen() {
         </View>
       </Modal>
     </View>
-  );
+  </GestureDetector>
+);
 }
 
 const styles = StyleSheet.create({

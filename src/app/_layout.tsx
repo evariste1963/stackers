@@ -1,4 +1,6 @@
 import { Stack } from "expo-router";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { StyleSheet } from "react-native";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { StackProvider } from "@/contexts/StackContext";
 import { PriceProvider } from "@/contexts/PriceContext";
@@ -69,16 +71,24 @@ function AuthRouter() {
 
 export default function RootLayout() {
   return (
-    <ErrorBoundary>
-      <DbInitializer>
-        <AuthProvider>
-          <StackProvider>
-            <PriceProvider>
-              <AuthRouter />
-            </PriceProvider>
-          </StackProvider>
-        </AuthProvider>
-      </DbInitializer>
-    </ErrorBoundary>
+    <GestureHandlerRootView style={styles.container}>
+      <ErrorBoundary>
+        <DbInitializer>
+          <AuthProvider>
+            <StackProvider>
+              <PriceProvider>
+                <AuthRouter />
+              </PriceProvider>
+            </StackProvider>
+          </AuthProvider>
+        </DbInitializer>
+      </ErrorBoundary>
+    </GestureHandlerRootView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+});
