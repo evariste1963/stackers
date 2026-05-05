@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect, useCallback, useRef, ReactNode } from 'react';
 import { getLatestPrice, saveSpotPrice, type GoldPriceData } from '@/services/priceService';
 import { getHistory, saveToHistory, migrateStaticData, getHistoryLength, type HistoryEntry } from '@/services/historyService';
-import { getApiKey, getUserSettings, migrateFromKVStore, updateManualPrice as saveManualPriceToSettings, type UserSettings } from '@/services/settingsService';
+import { getApiKey, getUserSettings, migrateFromKVStore, updateManualPrice as saveManualPriceToSettings, updateManualHighLow as saveManualHighLow, type UserSettings } from '@/services/settingsService';
 import { fetchGoldPrice } from '@/services/goldPriceApi';
 
 interface PriceContextType {
@@ -12,10 +12,12 @@ interface PriceContextType {
   isSettingsLoading: boolean;
   error: string | null;
   refreshPrice: () => Promise<void>;
+  refreshPriceFromDb: () => Promise<void>;
   apiKeyConfigured: boolean;
   refreshSettings: () => Promise<void>;
   runWithoutApiKey: boolean;
   updateManualPrice: (price: number) => Promise<void>;
+  updateManualHighLow: (high: number, low: number) => Promise<void>;
 }
 
 const PriceContext = createContext<PriceContextType | undefined>(undefined);
@@ -69,6 +71,9 @@ export function PriceProvider({ children }: { children: ReactNode }) {
       await saveToHistory(result.price, result.change, result.changePercent);
       setPriceData(savedData);
       
+      await saveManualHighLow(result.high, result.low);
+      setSettings(prev => ({ ...prev, manualHighPrice: result.high, manualLowPrice: result.low }));
+      
       const fullHistory = await getHistory();
       setHistory(fullHistory);
     } catch (err) {
@@ -85,23 +90,54 @@ export function PriceProvider({ children }: { children: ReactNode }) {
     setIsSettingsLoading(false);
   }, []);
 
-  const updateManualPrice = useCallback(async (price: number) => {
+  const refreshPriceFromDb = useCallback(async () => {
+    const cached = await getLatestPrice();
+    if (cached) {
+      setPriceData(cached);
+    }
+  }, []);
+
+const updateManualPrice = useCallback(async (price: number) => {
     await saveManualPriceToSettings(price);
     
-    const now = new Date().toISOString();
+    const currentSettings = settingsRef.current;
+    const previousPrice = currentSettings.previousManualPrice ?? currentSettings.manualPrice;
+    const change = previousPrice !== null && previousPrice !== undefined && previousPrice > 0 ? price - previousPrice : 0;
+    const changePercent = previousPrice !== null && previousPrice !== undefined && previousPrice > 0 ? (change / previousPrice) * 100 : 0;
+    
+    let newHigh = currentSettings.manualHighPrice ?? price;
+    let newLow = currentSettings.manualLowPrice ?? price;
+    
+    if (price > newHigh) {
+      newHigh = price;
+    }
+    if (price < newLow || newLow === null || newLow === undefined) {
+      newLow = price;
+    }
+    
+    if (newHigh !== currentSettings.manualHighPrice || newLow !== currentSettings.manualLowPrice) {
+      await saveManualHighLow(newHigh, newLow);
+      setSettings(prev => ({ ...prev, manualHighPrice: newHigh, manualLowPrice: newLow }));
+    }
+    
     const savedData = await saveSpotPrice(
       price,
       price,
       price,
-      price,
-      price,
-      0,
-      0,
-      settingsRef.current.currency,
-      settingsRef.current.unit
+      newHigh,
+      newLow,
+      change,
+      changePercent,
+      currentSettings.currency,
+      currentSettings.unit
     );
     setPriceData(savedData);
-    setSettings(prev => ({ ...prev, manualPrice: price }));
+    setSettings(prev => ({ ...prev, manualPrice: price, previousManualPrice: previousPrice }));
+  }, []);
+
+  const updateManualHighLow = useCallback(async (high: number, low: number) => {
+    await saveManualHighLow(high, low);
+    setSettings(prev => ({ ...prev, manualHighPrice: high, manualLowPrice: low }));
   }, []);
 
   useEffect(() => {
@@ -138,8 +174,8 @@ export function PriceProvider({ children }: { children: ReactNode }) {
             s.manualPrice,
             s.manualPrice,
             s.manualPrice,
-            s.manualPrice,
-            s.manualPrice,
+            s.manualHighPrice ?? s.manualPrice,
+            s.manualLowPrice ?? s.manualPrice,
             0,
             0,
             s.currency,
@@ -167,10 +203,12 @@ export function PriceProvider({ children }: { children: ReactNode }) {
       isSettingsLoading,
       error,
       refreshPrice,
+      refreshPriceFromDb,
       apiKeyConfigured: settings.hasApiKey,
       refreshSettings,
       runWithoutApiKey,
       updateManualPrice,
+      updateManualHighLow,
     }}>
       {children}
     </PriceContext.Provider>

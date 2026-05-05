@@ -57,13 +57,27 @@ export default function GuideScreen() {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Getting Started</Text>
         <Text style={styles.stepNumber}>1</Text>
-        <Text style={styles.text}>On first launch, the app will prompt you to set up an API key. This is required to fetch live gold prices.</Text>
+        <Text style={styles.text}>On first launch, the app will prompt you to set up an API key or use manual prices.</Text>
         
         <Text style={styles.stepNumber}>2</Text>
-        <Text style={styles.text}>Get a free API key from <Text style={styles.link}>metals.dev</Text></Text>
+        <Text style={styles.text}>Option A: Get a free API key from <Text style={styles.link}>metals.dev</Text> for live gold prices.</Text>
         
         <Text style={styles.stepNumber}>3</Text>
-        <Text style={styles.text}>Enter your API key in the settings page and choose your preferred currency (GBP, USD, or EUR) and weight unit (troy ounces, grams, or kg).</Text>
+        <Text style={styles.text}>Option B: Toggle "Run without API-Key" to enter gold prices manually instead.</Text>
+        
+        <Text style={styles.stepNumber}>4</Text>
+        <Text style={styles.text}>Choose your preferred currency (GBP, USD, or EUR) and weight unit (troy ounces, grams, or kg).</Text>
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Using Manual Prices</Text>
+        <Text style={styles.text}>If you choose to run without an API key:</Text>
+        <Text style={styles.listItem}>• Enter your gold price in the API Settings screen</Text>
+        <Text style={styles.listItem}>• Tap "Submit Price" to save</Text>
+        <Text style={styles.listItem}>• On the home screen, tap "Update Price" to enter a new price</Text>
+        <Text style={styles.listItem}>• The app automatically tracks day high and low prices - high updates when you enter a higher price, low updates when you enter a lower price</Text>
+        <Text style={styles.listItem}>• Change and change % are calculated based on the previous vs new price</Text>
+        <Text style={styles.note}>Tip: If you switch between API and manual modes, the high/low prices sync automatically.</Text>
       </View>
 
       <View style={styles.section}>
@@ -127,7 +141,9 @@ export default function GuideScreen() {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Viewing Your Portfolio</Text>
         <Text style={styles.text}>The Home tab displays:</Text>
-        <Text style={styles.listItem}>• Gold price banner with live price and 24h change</Text>
+        <Text style={styles.listItem}>• Gold price banner with price and 24h change</Text>
+        <Text style={styles.listItem}>• In API mode: Live price from the API</Text>
+        <Text style={styles.listItem}>• In manual mode: Your entered price with calculated change</Text>
         <Text style={styles.listItem}>• Price history chart</Text>
         <Text style={styles.listItem}>• Grid showing all your items with current values</Text>
         <Text style={styles.listItem}>• Total stack value and total cost</Text>

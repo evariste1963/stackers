@@ -94,6 +94,45 @@ export async function initAllTables(): Promise<void> {
       } catch {}
     }
   }
+  
+  {
+    let hasColumn = false;
+    try {
+      await database.getFirstAsync('SELECT manualHighPrice FROM user_settings WHERE id = 1');
+      hasColumn = true;
+    } catch {}
+    if (!hasColumn) {
+      try {
+        await database.execAsync('ALTER TABLE user_settings ADD COLUMN manualHighPrice REAL');
+      } catch {}
+    }
+  }
+  
+  {
+    let hasColumn = false;
+    try {
+      await database.getFirstAsync('SELECT manualLowPrice FROM user_settings WHERE id = 1');
+      hasColumn = true;
+    } catch {}
+    if (!hasColumn) {
+      try {
+        await database.execAsync('ALTER TABLE user_settings ADD COLUMN manualLowPrice REAL');
+      } catch {}
+    }
+  }
+  
+  {
+    let hasColumn = false;
+    try {
+      await database.getFirstAsync('SELECT previousManualPrice FROM user_settings WHERE id = 1');
+      hasColumn = true;
+    } catch {}
+    if (!hasColumn) {
+      try {
+        await database.execAsync('ALTER TABLE user_settings ADD COLUMN previousManualPrice REAL');
+      } catch {}
+    }
+  }
 }
 
 export type { SQLiteDatabase } from 'expo-sqlite';

@@ -1,4 +1,4 @@
-import { Text, View, TouchableOpacity, ActivityIndicator, TextInput } from 'react-native';
+import { Text, View, TouchableOpacity, TextInput, Modal, Alert, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
 import { colors } from '@/styles/global';
 import { type GoldPriceData } from '@/services/priceService';
 import { type UserSettings } from '@/services/settingsService';
@@ -17,6 +17,7 @@ type GoldPriceBannerProps = {
 };
 
 export default function GoldPriceBanner({ priceData, isLoading, error, refreshPrice, settings, showRefresh = true, runWithoutApiKey = false, onManualPriceChange }: GoldPriceBannerProps) {
+  const [modalVisible, setModalVisible] = useState(false);
   const [manualPriceInput, setManualPriceInput] = useState(priceData?.price?.toString() || '');
 
   const formatPrice = (price: number | undefined) => {
@@ -44,14 +45,27 @@ export default function GoldPriceBanner({ priceData, isLoading, error, refreshPr
     return colors.changeGreen;
   };
 
-  const changeColor = getChangeColor(priceData?.change);
+const changeColor = getChangeColor(priceData?.change);
 
   const handleManualPriceChange = (text: string) => {
     setManualPriceInput(text);
-    const price = parseFloat(text);
-    if (!isNaN(price) && onManualPriceChange) {
+  };
+
+  const handleUpdatePrice = () => {
+    const price = parseFloat(manualPriceInput);
+    if (isNaN(price) || price <= 0) {
+      Alert.alert('Invalid Price', 'Please enter a valid gold price.');
+      return;
+    }
+    if (onManualPriceChange) {
       onManualPriceChange(price);
     }
+    setModalVisible(false);
+  };
+
+  const openModal = () => {
+    setManualPriceInput(priceData?.price?.toString() || '');
+    setModalVisible(true);
   };
 
   return (
@@ -80,14 +94,10 @@ export default function GoldPriceBanner({ priceData, isLoading, error, refreshPr
         {showRefresh && (
           <View style={styles.right}>
             {runWithoutApiKey ? (
-              <TextInput
-                style={styles.manualInput}
-                value={manualPriceInput}
-                onChangeText={handleManualPriceChange}
-                keyboardType="numeric"
-                placeholder="Enter price"
-                placeholderTextColor={colors.grey}
-              />
+              <TouchableOpacity style={styles.button} onPress={openModal}>
+                <Text style={styles.buttonText}>Update</Text>
+                <Text style={styles.buttonText}>Price</Text>
+              </TouchableOpacity>
             ) : (
               <TouchableOpacity
                 style={[styles.button, isLoading && styles.buttonLoading, isLoading && styles.buttonDisabled]}
@@ -104,6 +114,37 @@ export default function GoldPriceBanner({ priceData, isLoading, error, refreshPr
           </View>
         )}
       </View>
+
+      <Modal
+        visible={modalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Update Gold Price</Text>
+            <Text style={styles.modalLabel}>Enter new gold price ({settings.currency}/{settings.unit})</Text>
+            <TextInput
+              style={styles.modalInput}
+              value={manualPriceInput}
+              onChangeText={handleManualPriceChange}
+              keyboardType="numeric"
+              placeholder="Enter gold price"
+              placeholderTextColor="#666"
+              autoFocus
+            />
+            <View style={styles.modalButtons}>
+              <TouchableOpacity style={styles.modalCancelBtn} onPress={() => setModalVisible(false)}>
+                <Text style={styles.modalCancelText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.modalSaveBtn} onPress={handleUpdatePrice}>
+                <Text style={styles.modalSaveText}>Save Price</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
     </View>
   );
 }
@@ -163,9 +204,10 @@ const styles = {
   } as const,
   button: {
     backgroundColor: colors.themeBlue,
-    paddingHorizontal: 14,
-    paddingVertical: 16,
-    borderRadius: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 12,
+    alignItems: 'center',
   } as const,
   buttonLoading: {
     backgroundColor: 'transparent',
@@ -175,7 +217,7 @@ const styles = {
   } as const,
   buttonText: {
     color: colors.gold,
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: '600' as const,
   } as const,
   right: {
@@ -191,5 +233,69 @@ const styles = {
     fontWeight: '600' as const,
     minWidth: 100,
     textAlign: 'center' as const,
+  } as const,
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+  } as const,
+  modalContent: {
+    backgroundColor: colors.themeGrey,
+    borderRadius: 16,
+    padding: 24,
+    width: '85%',
+    maxWidth: 340,
+  } as const,
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: colors.gold,
+    marginBottom: 16,
+    textAlign: 'center',
+  } as const,
+  modalLabel: {
+    fontSize: 14,
+    color: colors.grey,
+    marginBottom: 8,
+  } as const,
+  modalInput: {
+    backgroundColor: colors.background,
+    borderRadius: 8,
+    padding: 14,
+    fontSize: 18,
+    color: colors.white,
+    borderWidth: 1,
+    borderColor: '#444',
+    marginBottom: 20,
+  } as const,
+  modalButtons: {
+    flexDirection: 'row',
+    gap: 12,
+  } as const,
+  modalCancelBtn: {
+    flex: 1,
+    padding: 14,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#444',
+    alignItems: 'center',
+  } as const,
+  modalCancelText: {
+    color: colors.grey,
+    fontSize: 16,
+    fontWeight: '600',
+  } as const,
+  modalSaveBtn: {
+    flex: 1,
+    padding: 14,
+    borderRadius: 8,
+    backgroundColor: colors.gold,
+    alignItems: 'center',
+  } as const,
+  modalSaveText: {
+    color: colors.white,
+    fontSize: 16,
+    fontWeight: '600',
   } as const,
 };

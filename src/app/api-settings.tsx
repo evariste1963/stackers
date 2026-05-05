@@ -2,15 +2,17 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'expo-router';
 import { globalStyles, colors } from '@/styles/global';
 import { Text, View, TextInput, TouchableOpacity, ScrollView, Alert, Linking, Image, Switch } from 'react-native';
-import { getUserSettings, updateApiKey, removeApiKey, updatePreference, updateManualPrice, type UserSettings } from '@/services/settingsService';
+import { getUserSettings, updateApiKey, removeApiKey, updatePreference, updateManualPrice as clearManualPrice, type UserSettings } from '@/services/settingsService';
 import { getAllItems } from '@/services/stackStorage';
 import { saveSpotPrice } from '@/services/priceService';
 import { AVAILABLE_CURRENCIES, AVAILABLE_UNITS, METALS_DEV_URL } from '@/config';
 import { useAuth } from '@/contexts/AuthContext';
+import { usePrice } from '@/contexts/PriceContext';
 
 export default function ApiSettingsScreen() {
   const router = useRouter();
   const { isAuthenticated, hasPinSet } = useAuth();
+  const { updateManualPrice } = usePrice();
   const [settings, setSettings] = useState<UserSettings>({
     currency: 'GBP',
     unit: 'toz',
@@ -106,7 +108,7 @@ async function loadSettings() {
           onPress: async () => {
             try {
               await removeApiKey();
-              await updateManualPrice(null);
+              await clearManualPrice(null);
               setSettings({ currency: 'GBP', unit: 'toz', hasApiKey: false, manualPrice: null, createdAt: '', updatedAt: '' });
               setRunWithoutApiKey(false);
               setManualPriceInput('');
@@ -145,7 +147,7 @@ async function loadSettings() {
     }
     setRunWithoutApiKey(value);
     if (!value) {
-      await updateManualPrice(null);
+      await clearManualPrice(null);
       await saveSpotPrice(0, 0, 0, 0, 0, 0, 0, settings.currency, settings.unit);
       setSettings(prev => ({ ...prev, manualPrice: null }));
       setManualPriceInput('');
@@ -163,7 +165,6 @@ async function loadSettings() {
       return;
     }
     await updateManualPrice(price);
-    await saveSpotPrice(price, price, price, price, price, 0, 0, settings.currency, settings.unit);
     setSettings(prev => ({ ...prev, manualPrice: price }));
     setRunWithoutApiKey(true);
   }

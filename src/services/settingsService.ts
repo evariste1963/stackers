@@ -8,6 +8,9 @@ export interface UserSettings {
   unit: string;
   hasApiKey: boolean;
   manualPrice?: number | null;
+  manualHighPrice?: number | null;
+  manualLowPrice?: number | null;
+  previousManualPrice?: number | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -26,6 +29,9 @@ interface SettingsRow {
   unit: string;
   hasApiKey: number;
   manualPrice: number | null;
+  manualHighPrice: number | null;
+  manualLowPrice: number | null;
+  previousManualPrice: number | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -42,6 +48,9 @@ export async function getUserSettings(): Promise<UserSettings> {
         unit: row.unit,
         hasApiKey: Boolean(row.hasApiKey),
         manualPrice: row.manualPrice,
+        manualHighPrice: row.manualHighPrice,
+        manualLowPrice: row.manualLowPrice,
+        previousManualPrice: row.previousManualPrice,
         createdAt: row.createdAt,
         updatedAt: row.updatedAt,
       };
@@ -58,14 +67,16 @@ export async function saveUserSettings(settings: UserSettings): Promise<void> {
     const database = await getDb();
     await database.runAsync(`
       INSERT OR REPLACE INTO user_settings 
-      (id, currency, unit, hasApiKey, manualPrice, createdAt, updatedAt)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
+      (id, currency, unit, hasApiKey, manualPrice, manualHighPrice, manualLowPrice, createdAt, updatedAt)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `, [
       1,
       settings.currency,
       settings.unit,
       settings.hasApiKey ? 1 : 0,
       settings.manualPrice ?? null,
+      settings.manualHighPrice ?? null,
+      settings.manualLowPrice ?? null,
       settings.createdAt || new Date().toISOString(),
       settings.updatedAt || new Date().toISOString(),
     ]);
@@ -142,12 +153,28 @@ export async function updatePreference(key: 'currency' | 'unit', value: string):
 export async function updateManualPrice(price: number | null): Promise<void> {
   try {
     const database = await getDb();
+    const rows = await database.getAllAsync<{ manualPrice: number | null }>('SELECT manualPrice FROM user_settings WHERE id = 1');
+    const previousPrice = rows.length > 0 ? rows[0].manualPrice : null;
+    
     await database.runAsync(
-      'UPDATE user_settings SET manualPrice = ?, updatedAt = ? WHERE id = 1',
-      [price, new Date().toISOString()]
+'UPDATE user_settings SET manualPrice = ?, previousManualPrice = ?, updatedAt = ? WHERE id = 1',
+      [price, previousPrice, new Date().toISOString()]
     );
   } catch (error) {
     console.error('Error updating manual price:', error);
+    throw error;
+  }
+}
+
+export async function updateManualHighLow(high: number, low: number): Promise<void> {
+  try {
+    const database = await getDb();
+    await database.runAsync(
+      'UPDATE user_settings SET manualHighPrice = ?, manualLowPrice = ?, updatedAt = ? WHERE id = 1',
+      [high, low, new Date().toISOString()]
+    );
+  } catch (error) {
+    console.error('Error updating manual high/low price:', error);
     throw error;
   }
 }

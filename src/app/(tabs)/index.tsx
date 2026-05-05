@@ -13,13 +13,13 @@ import { usePrice } from '@/contexts/PriceContext';
 import { useStack } from '@/contexts/StackContext';
 
 export default function HomeScreen() {
-  const { priceData, history, isLoading, error, refreshPrice, settings, apiKeyConfigured, isSettingsLoading, refreshSettings, runWithoutApiKey, updateManualPrice } = usePrice();
+  const { priceData, history, isLoading, error, refreshPrice, settings, apiKeyConfigured, isSettingsLoading, refreshSettings, refreshPriceFromDb, runWithoutApiKey, updateManualPrice } = usePrice();
   const { items, refresh } = useStack();
   const { swipeGesture } = useSwipeNavigation('');
 
   useFocusEffect(() => {
-    refresh();
     refreshSettings();
+    refreshPriceFromDb();
   });
 
   const totalStackValue = items.reduce((sum, item) => {
