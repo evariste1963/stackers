@@ -82,10 +82,10 @@ const changeColor = getChangeColor(priceData?.change);
             {priceData?.change !== undefined && priceData?.change !== null && (
               <View style={styles.changeBlockWrapper}>
                 <Text style={[styles.changeValue, { color: changeColor }]}>
-                  {formatChange(priceData.change)}
+                  {formatChange(priceData?.change)}
                 </Text>
                 <Text style={[styles.changePercent, { color: changeColor }]}>
-                  {formatChangePercent(priceData.changePercent)}
+                  {formatChangePercent(priceData?.changePercent)}
                 </Text>
               </View>
             )}
