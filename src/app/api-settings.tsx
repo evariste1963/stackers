@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'expo-router';
 import { globalStyles, colors } from '@/styles/global';
-import { Text, View, TextInput, TouchableOpacity, ScrollView, Alert, Linking, Image } from 'react-native';
-import { getUserSettings, updateApiKey, removeApiKey, updatePreference, type UserSettings } from '@/services/settingsService';
+import { Text, View, TextInput, TouchableOpacity, ScrollView, Alert, Linking, Image, Switch } from 'react-native';
+import { getUserSettings, updateApiKey, removeApiKey, updatePreference, updateManualPrice, type UserSettings } from '@/services/settingsService';
 import { getAllItems } from '@/services/stackStorage';
+import { saveSpotPrice } from '@/services/priceService';
 import { AVAILABLE_CURRENCIES, AVAILABLE_UNITS, METALS_DEV_URL } from '@/config';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -14,10 +15,13 @@ export default function ApiSettingsScreen() {
     currency: 'GBP',
     unit: 'toz',
     hasApiKey: false,
+    manualPrice: null,
     createdAt: '',
     updatedAt: '',
   });
   const [apiKeyInput, setApiKeyInput] = useState('');
+  const [manualPriceInput, setManualPriceInput] = useState('');
+  const [runWithoutApiKey, setRunWithoutApiKey] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [hasStackItems, setHasStackItems] = useState(false);
@@ -36,10 +40,15 @@ export default function ApiSettingsScreen() {
     }
   }
 
-  async function loadSettings() {
+async function loadSettings() {
     try {
       const s = await getUserSettings();
       setSettings(s);
+      const hasManual = s.manualPrice !== null && s.manualPrice !== undefined && s.manualPrice > 0;
+      setRunWithoutApiKey(hasManual);
+      if (s.manualPrice) {
+        setManualPriceInput(s.manualPrice.toString());
+      }
     } catch (error) {
       console.error('Error loading settings:', error);
     } finally {
@@ -69,10 +78,12 @@ export default function ApiSettingsScreen() {
   }
 
   function handleGoBack() {
-    if (settings.hasApiKey) {
-      router.replace('/account');
+    if (runWithoutApiKey) {
+      router.replace('/guide');
+    } else if (settings.hasApiKey) {
+      router.replace('/guide');
     } else {
-      router.back();
+      router.replace('/guide');
     }
   }
 
@@ -81,9 +92,12 @@ export default function ApiSettingsScreen() {
       Alert.alert('Authentication Required', 'Please log in with your PIN to remove the API key.');
       return;
     }
+    const message = runWithoutApiKey 
+      ? 'Your manual price will be kept. You can still use the app with manual prices.'
+      : 'You can add a manual price to continue using the app without an API key.';
     Alert.alert(
       'Remove API Key',
-      'Are you sure? Without an API key, you will not be able to see live gold prices.',
+      message,
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -92,7 +106,10 @@ export default function ApiSettingsScreen() {
           onPress: async () => {
             try {
               await removeApiKey();
-              setSettings({ currency: 'GBP', unit: 'toz', hasApiKey: false, createdAt: '', updatedAt: '' });
+              await updateManualPrice(null);
+              setSettings({ currency: 'GBP', unit: 'toz', hasApiKey: false, manualPrice: null, createdAt: '', updatedAt: '' });
+              setRunWithoutApiKey(false);
+              setManualPriceInput('');
               Alert.alert('Success', 'API key removed. You can add a new key from Account > API Settings.');
             } catch (error) {
               Alert.alert('Error', 'Failed to remove API key');
@@ -119,6 +136,36 @@ export default function ApiSettingsScreen() {
     } catch (error) {
       Alert.alert('Error', 'Failed to update unit');
     }
+  }
+
+  async function handleRunWithoutApiKeyToggle(value: boolean) {
+    if (value && (!settings.manualPrice || settings.manualPrice <= 0)) {
+      Alert.alert('Enter Price First', 'Please enter a gold price and tap Submit Price first.');
+      return;
+    }
+    setRunWithoutApiKey(value);
+    if (!value) {
+      await updateManualPrice(null);
+      await saveSpotPrice(0, 0, 0, 0, 0, 0, 0, settings.currency, settings.unit);
+      setSettings(prev => ({ ...prev, manualPrice: null }));
+      setManualPriceInput('');
+    }
+  }
+
+  async function handleManualPriceChange(text: string) {
+    setManualPriceInput(text);
+  }
+
+  async function handleManualPriceSubmit() {
+    const price = parseFloat(manualPriceInput);
+    if (isNaN(price) || price <= 0) {
+      Alert.alert('Invalid Price', 'Please enter a valid gold price.');
+      return;
+    }
+    await updateManualPrice(price);
+    await saveSpotPrice(price, price, price, price, price, 0, 0, settings.currency, settings.unit);
+    setSettings(prev => ({ ...prev, manualPrice: price }));
+    setRunWithoutApiKey(true);
   }
 
   function openMetalsDev() {
@@ -159,27 +206,66 @@ export default function ApiSettingsScreen() {
         ) : (
           <View>
             <Text style={apiStyles.notConfiguredText}>API key not configured</Text>
-            <TouchableOpacity style={apiStyles.linkButton} onPress={openMetalsDev}>
-              <Text style={apiStyles.linkButtonText}>Get free API key at metals.dev ↗</Text>
-            </TouchableOpacity>
-            <TextInput
-              style={apiStyles.input}
-              placeholder="Enter your API key"
-              placeholderTextColor="#666"
-              value={apiKeyInput}
-              onChangeText={setApiKeyInput}
-              autoCapitalize="none"
-              autoCorrect={false}
-            />
-            <TouchableOpacity
-              style={[apiStyles.saveButton, isSaving && apiStyles.buttonDisabled]}
-              onPress={handleSaveApiKey}
-              disabled={isSaving}
-            >
-              <Text style={apiStyles.saveButtonText}>
-                {isSaving ? 'Saving...' : 'Save API Key'}
+            
+            <View style={apiStyles.runWithoutApiKeyContainer}>
+              <View style={apiStyles.runWithoutApiKeyRow}>
+                <Text style={apiStyles.runWithoutApiKeyLabel}>Run without API-Key</Text>
+                <Switch
+                  value={runWithoutApiKey}
+                  onValueChange={handleRunWithoutApiKeyToggle}
+                  trackColor={{ false: colors.themeGrey, true: colors.gold }}
+                  thumbColor={runWithoutApiKey ? colors.white : colors.white}
+                />
+              </View>
+              <Text style={apiStyles.runWithoutApiKeyDescription}>
+                Enter gold price manually instead of fetching live data
               </Text>
-            </TouchableOpacity>
+            </View>
+
+            <View style={apiStyles.manualPriceContainer}>
+              <Text style={apiStyles.label}>Manual Gold Price ({settings.currency}/{settings.unit})</Text>
+              <TextInput
+                style={apiStyles.input}
+                placeholder="Enter gold price"
+                placeholderTextColor="#666"
+                value={manualPriceInput}
+                onChangeText={setManualPriceInput}
+                keyboardType="numeric"
+              />
+              <TouchableOpacity
+                style={[apiStyles.saveButton, !manualPriceInput && apiStyles.buttonDisabled]}
+                onPress={handleManualPriceSubmit}
+                disabled={!manualPriceInput}
+              >
+                <Text style={apiStyles.saveButtonText}>Submit Price</Text>
+              </TouchableOpacity>
+            </View>
+
+            {!runWithoutApiKey && (
+              <>
+                <TouchableOpacity style={apiStyles.linkButton} onPress={openMetalsDev}>
+                  <Text style={apiStyles.linkButtonText}>Get free API key at metals.dev ↗</Text>
+                </TouchableOpacity>
+                <TextInput
+                  style={apiStyles.input}
+                  placeholder="Enter your API key"
+                  placeholderTextColor="#666"
+                  value={apiKeyInput}
+                  onChangeText={setApiKeyInput}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                />
+                <TouchableOpacity
+                  style={[apiStyles.saveButton, isSaving && apiStyles.buttonDisabled]}
+                  onPress={handleSaveApiKey}
+                  disabled={isSaving}
+                >
+                  <Text style={apiStyles.saveButtonText}>
+                    {isSaving ? 'Saving...' : 'Save API Key'}
+                  </Text>
+                </TouchableOpacity>
+              </>
+            )}
           </View>
         )}
       </View>
@@ -255,6 +341,12 @@ export default function ApiSettingsScreen() {
         </View>
       </View>
 
+      {runWithoutApiKey && (
+        <TouchableOpacity style={apiStyles.continueButton} onPress={handleGoBack}>
+          <Text style={apiStyles.continueButtonText}>Continue</Text>
+        </TouchableOpacity>
+      )}
+
       {settings.hasApiKey && (
         <TouchableOpacity style={apiStyles.returnButton} onPress={handleGoBack}>
           <Text style={apiStyles.returnButtonText}>Return</Text>
@@ -269,6 +361,18 @@ export default function ApiSettingsScreen() {
 const apiStyles = {
   header: {
     marginBottom: 10,
+  } as const,
+  continueButton: {
+    backgroundColor: colors.gold,
+    borderRadius: 12,
+    padding: 16,
+    alignItems: 'center',
+    marginBottom: 20,
+  } as const,
+  continueButtonText: {
+    color: colors.white,
+    fontSize: 16,
+    fontWeight: '600',
   } as const,
   returnButton: {
     backgroundColor: colors.themeGrey,
@@ -407,5 +511,31 @@ const apiStyles = {
     padding: 10,
     backgroundColor: colors.orange + '20',
     borderRadius: 8,
+  } as const,
+  runWithoutApiKeyContainer: {
+    backgroundColor: colors.themeGrey,
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: colors.gold,
+  } as const,
+  runWithoutApiKeyRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  } as const,
+  runWithoutApiKeyLabel: {
+    fontSize: 14,
+    color: colors.gold,
+    fontWeight: '600',
+  } as const,
+  runWithoutApiKeyDescription: {
+    fontSize: 12,
+    color: colors.grey,
+    marginTop: 4,
+  } as const,
+  manualPriceContainer: {
+    marginTop: 8,
   } as const,
 };

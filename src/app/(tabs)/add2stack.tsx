@@ -15,7 +15,7 @@ import { usePrice } from '@/contexts/PriceContext';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function AddToStackScreen() {
-  const { priceData, isLoading, error, refreshPrice, settings } = usePrice();
+  const { priceData, isLoading, error, refreshPrice, settings, runWithoutApiKey, updateManualPrice } = usePrice();
   const { swipeGesture } = useSwipeNavigation('add2stack');
   const params = useLocalSearchParams<{ editId?: string }>();
   const editId = params.editId ? parseInt(params.editId, 10) : null;
@@ -176,7 +176,7 @@ export default function AddToStackScreen() {
           <Text style={globalStyles.title}>{isEditing ? 'Edit Item' : 'Add to Stack'}</Text>
         </View>
         <View style={styles.bannerContainer}>
-          <GoldPriceBanner priceData={priceData} isLoading={isLoading} error={error} refreshPrice={refreshPrice} settings={settings} showRefresh={false} />
+          <GoldPriceBanner priceData={priceData} isLoading={isLoading} error={error} refreshPrice={refreshPrice} settings={settings} showRefresh={false} runWithoutApiKey={runWithoutApiKey} onManualPriceChange={updateManualPrice} />
         </View>
         <KeyboardAvoidingView style={styles.keyboardView} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
           <ScrollView style={[styles.form, { paddingHorizontal: 20 }]} keyboardShouldPersistTaps="handled">

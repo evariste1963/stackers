@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect, useCallback, useRef, ReactNode } from 'react';
 import { getLatestPrice, saveSpotPrice, type GoldPriceData } from '@/services/priceService';
 import { getHistory, saveToHistory, migrateStaticData, getHistoryLength, type HistoryEntry } from '@/services/historyService';
-import { getApiKey, getUserSettings, migrateFromKVStore, type UserSettings } from '@/services/settingsService';
+import { getApiKey, getUserSettings, migrateFromKVStore, updateManualPrice as saveManualPriceToSettings, type UserSettings } from '@/services/settingsService';
 import { fetchGoldPrice } from '@/services/goldPriceApi';
 
 interface PriceContextType {
@@ -14,6 +14,8 @@ interface PriceContextType {
   refreshPrice: () => Promise<void>;
   apiKeyConfigured: boolean;
   refreshSettings: () => Promise<void>;
+  runWithoutApiKey: boolean;
+  updateManualPrice: (price: number) => Promise<void>;
 }
 
 const PriceContext = createContext<PriceContextType | undefined>(undefined);
@@ -25,12 +27,15 @@ export function PriceProvider({ children }: { children: ReactNode }) {
     currency: 'GBP',
     unit: 'toz',
     hasApiKey: false,
+    manualPrice: null,
     createdAt: '',
     updatedAt: '',
   });
   const [isLoading, setIsLoading] = useState(false);
   const [isSettingsLoading, setIsSettingsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const runWithoutApiKey = !settings.hasApiKey && settings.manualPrice !== null && settings.manualPrice !== undefined && settings.manualPrice > 0;
   
   const settingsRef = useRef(settings);
   settingsRef.current = settings;
@@ -80,6 +85,25 @@ export function PriceProvider({ children }: { children: ReactNode }) {
     setIsSettingsLoading(false);
   }, []);
 
+  const updateManualPrice = useCallback(async (price: number) => {
+    await saveManualPriceToSettings(price);
+    
+    const now = new Date().toISOString();
+    const savedData = await saveSpotPrice(
+      price,
+      price,
+      price,
+      price,
+      price,
+      0,
+      0,
+      settingsRef.current.currency,
+      settingsRef.current.unit
+    );
+    setPriceData(savedData);
+    setSettings(prev => ({ ...prev, manualPrice: price }));
+  }, []);
+
   useEffect(() => {
     let mounted = true;
 
@@ -108,6 +132,22 @@ export function PriceProvider({ children }: { children: ReactNode }) {
         if (!s.hasApiKey && apiKey) {
           s.hasApiKey = true;
         }
+        
+        if (s.manualPrice !== null && s.manualPrice !== undefined && !apiKey) {
+          const savedData = await saveSpotPrice(
+            s.manualPrice,
+            s.manualPrice,
+            s.manualPrice,
+            s.manualPrice,
+            s.manualPrice,
+            0,
+            0,
+            s.currency,
+            s.unit
+          );
+          setPriceData(savedData);
+        }
+        
         setSettings(s);
         setIsSettingsLoading(false);
       }
@@ -129,6 +169,8 @@ export function PriceProvider({ children }: { children: ReactNode }) {
       refreshPrice,
       apiKeyConfigured: settings.hasApiKey,
       refreshSettings,
+      runWithoutApiKey,
+      updateManualPrice,
     }}>
       {children}
     </PriceContext.Provider>

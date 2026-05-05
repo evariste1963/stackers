@@ -7,6 +7,7 @@ export interface UserSettings {
   currency: string;
   unit: string;
   hasApiKey: boolean;
+  manualPrice?: number | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -15,6 +16,7 @@ export const DEFAULT_USER_SETTINGS: UserSettings = {
   currency: 'GBP',
   unit: 'toz',
   hasApiKey: false,
+  manualPrice: null,
   createdAt: '',
   updatedAt: '',
 };
@@ -23,6 +25,7 @@ interface SettingsRow {
   currency: string;
   unit: string;
   hasApiKey: number;
+  manualPrice: number | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -38,6 +41,7 @@ export async function getUserSettings(): Promise<UserSettings> {
         currency: row.currency,
         unit: row.unit,
         hasApiKey: Boolean(row.hasApiKey),
+        manualPrice: row.manualPrice,
         createdAt: row.createdAt,
         updatedAt: row.updatedAt,
       };
@@ -54,13 +58,14 @@ export async function saveUserSettings(settings: UserSettings): Promise<void> {
     const database = await getDb();
     await database.runAsync(`
       INSERT OR REPLACE INTO user_settings 
-      (id, currency, unit, hasApiKey, createdAt, updatedAt)
-      VALUES (?, ?, ?, ?, ?, ?)
+      (id, currency, unit, hasApiKey, manualPrice, createdAt, updatedAt)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
     `, [
       1,
       settings.currency,
       settings.unit,
       settings.hasApiKey ? 1 : 0,
+      settings.manualPrice ?? null,
       settings.createdAt || new Date().toISOString(),
       settings.updatedAt || new Date().toISOString(),
     ]);
@@ -130,6 +135,19 @@ export async function updatePreference(key: 'currency' | 'unit', value: string):
     );
   } catch (error) {
     console.error('Error updating preference:', error);
+    throw error;
+  }
+}
+
+export async function updateManualPrice(price: number | null): Promise<void> {
+  try {
+    const database = await getDb();
+    await database.runAsync(
+      'UPDATE user_settings SET manualPrice = ?, updatedAt = ? WHERE id = 1',
+      [price, new Date().toISOString()]
+    );
+  } catch (error) {
+    console.error('Error updating manual price:', error);
     throw error;
   }
 }

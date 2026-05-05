@@ -1,8 +1,9 @@
-import { Text, View, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { Text, View, TouchableOpacity, ActivityIndicator, TextInput } from 'react-native';
 import { colors } from '@/styles/global';
 import { type GoldPriceData } from '@/services/priceService';
 import { type UserSettings } from '@/services/settingsService';
 import { getCurrencySymbol, formatDate } from '@/utils/formatters';
+import { useState } from 'react';
 
 type GoldPriceBannerProps = {
   priceData: GoldPriceData | null;
@@ -11,9 +12,12 @@ type GoldPriceBannerProps = {
   refreshPrice: () => Promise<void>;
   settings: UserSettings;
   showRefresh?: boolean;
+  runWithoutApiKey?: boolean;
+  onManualPriceChange?: (price: number) => void;
 };
 
-export default function GoldPriceBanner({ priceData, isLoading, error, refreshPrice, settings, showRefresh = true }: GoldPriceBannerProps) {
+export default function GoldPriceBanner({ priceData, isLoading, error, refreshPrice, settings, showRefresh = true, runWithoutApiKey = false, onManualPriceChange }: GoldPriceBannerProps) {
+  const [manualPriceInput, setManualPriceInput] = useState(priceData?.price?.toString() || '');
 
   const formatPrice = (price: number | undefined) => {
     if (!price) return showRefresh ? 'Tap refresh to fetch' : 'No price data';
@@ -42,6 +46,14 @@ export default function GoldPriceBanner({ priceData, isLoading, error, refreshPr
 
   const changeColor = getChangeColor(priceData?.change);
 
+  const handleManualPriceChange = (text: string) => {
+    setManualPriceInput(text);
+    const price = parseFloat(text);
+    if (!isNaN(price) && onManualPriceChange) {
+      onManualPriceChange(price);
+    }
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.content}>
@@ -66,17 +78,30 @@ export default function GoldPriceBanner({ priceData, isLoading, error, refreshPr
           {error && <Text style={styles.error}>{error}</Text>}
         </View>
         {showRefresh && (
-          <TouchableOpacity
-            style={[styles.button, isLoading && styles.buttonLoading, isLoading && styles.buttonDisabled]}
-            onPress={refreshPrice}
-            disabled={isLoading}
-          >
-            {isLoading ? (
-              <ActivityIndicator size="large" color={colors.white} />
+          <View style={styles.right}>
+            {runWithoutApiKey ? (
+              <TextInput
+                style={styles.manualInput}
+                value={manualPriceInput}
+                onChangeText={handleManualPriceChange}
+                keyboardType="numeric"
+                placeholder="Enter price"
+                placeholderTextColor={colors.grey}
+              />
             ) : (
-              <Text style={styles.buttonText}>↻ Refresh</Text>
+              <TouchableOpacity
+                style={[styles.button, isLoading && styles.buttonLoading, isLoading && styles.buttonDisabled]}
+                onPress={refreshPrice}
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <ActivityIndicator size="large" color={colors.white} />
+                ) : (
+                  <Text style={styles.buttonText}>↻ Refresh</Text>
+                )}
+              </TouchableOpacity>
             )}
-          </TouchableOpacity>
+          </View>
         )}
       </View>
     </View>
@@ -152,5 +177,19 @@ const styles = {
     color: colors.gold,
     fontSize: 14,
     fontWeight: '600' as const,
+  } as const,
+  right: {
+    flex: 0,
+  } as const,
+  manualInput: {
+    backgroundColor: colors.themeBlue,
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    fontSize: 14,
+    color: colors.gold,
+    fontWeight: '600' as const,
+    minWidth: 100,
+    textAlign: 'center' as const,
   } as const,
 };

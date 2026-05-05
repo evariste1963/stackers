@@ -7,24 +7,30 @@ import { usePrice } from '@/contexts/PriceContext';
 
 export default function GuideScreen() {
   const router = useRouter();
-  const { settings, isSettingsLoading } = usePrice();
+  const { isSettingsLoading, refreshSettings } = usePrice();
   const [hasApiKey, setHasApiKey] = useState(false);
+  const [runWithoutApiKey, setRunWithoutApiKey] = useState(false);
 
   useEffect(() => {
-    getUserSettings().then(settings => {
-      setHasApiKey(settings.hasApiKey);
+    getUserSettings().then(s => {
+      setHasApiKey(s.hasApiKey);
+      const hasManual = s.manualPrice !== null && s.manualPrice !== undefined && !isNaN(s.manualPrice);
+      setRunWithoutApiKey(hasManual);
     });
   }, []);
 
   const handleContinue = () => {
-    if (!isSettingsLoading && settings.hasApiKey) {
+    if (!isSettingsLoading && (hasApiKey || runWithoutApiKey)) {
       router.replace('/');
     }
   };
 
+  const showSetupApiKey = !hasApiKey && !runWithoutApiKey;
+  const showContinue = hasApiKey || runWithoutApiKey;
+
   return (
     <ScrollView style={globalStyles.container} contentContainerStyle={{ paddingBottom: 100 }}>
-      {!hasApiKey && (
+      {showSetupApiKey && (
         <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
           <Text style={styles.backText}>Back</Text>
         </TouchableOpacity>
@@ -34,13 +40,15 @@ export default function GuideScreen() {
         <Text style={styles.title}>How to Use Stackers</Text>
       </View>
 
-      {!hasApiKey ? (
+      {showSetupApiKey && (
         <Link href="/api-settings" asChild>
           <TouchableOpacity style={styles.apiButton}>
             <Text style={globalStyles.buttonText}>Set Up API Key</Text>
           </TouchableOpacity>
         </Link>
-      ) : (
+      )}
+
+      {showContinue && (
         <TouchableOpacity style={styles.apiButton} onPress={handleContinue}>
           <Text style={globalStyles.buttonText}>Continue to App</Text>
         </TouchableOpacity>

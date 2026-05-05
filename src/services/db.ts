@@ -65,18 +65,34 @@ export async function initAllTables(): Promise<void> {
       currency TEXT DEFAULT 'GBP',
       unit TEXT DEFAULT 'toz',
       hasApiKey INTEGER DEFAULT 0,
+      manualPrice REAL,
       createdAt TEXT,
       updatedAt TEXT
     );
   `);
   
-  const existingSettings = await database.getFirstAsync('SELECT id FROM user_settings WHERE id = 1');
-  if (!existingSettings) {
-    const now = new Date().toISOString();
-    await database.runAsync(
-      'INSERT INTO user_settings (id, currency, unit, hasApiKey, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?)',
-      [1, 'GBP', 'toz', 0, now, now]
-    );
+  {
+    const existingSettings = await database.getFirstAsync('SELECT id FROM user_settings WHERE id = 1');
+    if (!existingSettings) {
+      const now = new Date().toISOString();
+      await database.runAsync(
+        'INSERT INTO user_settings (id, currency, unit, hasApiKey, manualPrice, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?)',
+        [1, 'GBP', 'toz', 0, null, now, now]
+      );
+    }
+  }
+  
+  {
+    let hasColumn = false;
+    try {
+      await database.getFirstAsync('SELECT manualPrice FROM user_settings WHERE id = 1');
+      hasColumn = true;
+    } catch {}
+    if (!hasColumn) {
+      try {
+        await database.execAsync('ALTER TABLE user_settings ADD COLUMN manualPrice REAL');
+      } catch {}
+    }
   }
 }
 

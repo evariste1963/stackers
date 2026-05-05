@@ -139,7 +139,7 @@ const styles = {
     fontWeight: '600',
   } as const,
   changePercent: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '500',
   } as const,
 };

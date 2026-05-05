@@ -13,15 +13,13 @@ import { usePrice } from '@/contexts/PriceContext';
 import { useStack } from '@/contexts/StackContext';
 
 export default function HomeScreen() {
-  const { priceData, history, isLoading, error, refreshPrice, settings, apiKeyConfigured, isSettingsLoading, refreshSettings } = usePrice();
+  const { priceData, history, isLoading, error, refreshPrice, settings, apiKeyConfigured, isSettingsLoading, refreshSettings, runWithoutApiKey, updateManualPrice } = usePrice();
   const { items, refresh } = useStack();
   const { swipeGesture } = useSwipeNavigation('');
 
   useFocusEffect(() => {
     refresh();
-    if (!apiKeyConfigured) {
-      refreshSettings();
-    }
+    refreshSettings();
   });
 
   const totalStackValue = items.reduce((sum, item) => {
@@ -37,10 +35,12 @@ export default function HomeScreen() {
   }, 0);
 
   useEffect(() => {
-    if (!isSettingsLoading && !apiKeyConfigured) {
-      router.replace('/guide');
+    if (!isSettingsLoading) {
+      if (!apiKeyConfigured && !runWithoutApiKey) {
+        router.replace('/guide');
+      }
     }
-  }, [isSettingsLoading, apiKeyConfigured, router]);
+  }, [isSettingsLoading, apiKeyConfigured, runWithoutApiKey, router]);
 
   if (isSettingsLoading) {
     return (
@@ -50,7 +50,7 @@ export default function HomeScreen() {
     );
   }
 
-  if (!apiKeyConfigured) {
+  if (!apiKeyConfigured && !runWithoutApiKey) {
     return null;
   }
 
@@ -64,7 +64,15 @@ export default function HomeScreen() {
           </View>
         </View>
         <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 20 }}>
-          <GoldPriceBanner priceData={priceData} isLoading={isLoading} error={error} refreshPrice={refreshPrice} settings={settings} />
+          <GoldPriceBanner 
+            priceData={priceData} 
+            isLoading={isLoading} 
+            error={error} 
+            refreshPrice={refreshPrice} 
+            settings={settings} 
+            runWithoutApiKey={runWithoutApiKey}
+            onManualPriceChange={updateManualPrice}
+          />
           <View style={{ height: 160, width: '100%', marginTop: 0, backgroundColor: colors.background, alignItems: 'center' }}>
             <ChartArea history={history} />
           </View>
