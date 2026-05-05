@@ -1,4 +1,4 @@
-import { Text, View, TouchableOpacity, TextInput, Modal, Alert, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
+import { Text, View, TouchableOpacity, TextInput, Modal, Alert, ActivityIndicator } from 'react-native';
 import { colors } from '@/styles/global';
 import { type GoldPriceData } from '@/services/priceService';
 import { type UserSettings } from '@/services/settingsService';
@@ -13,10 +13,11 @@ type GoldPriceBannerProps = {
   settings: UserSettings;
   showRefresh?: boolean;
   runWithoutApiKey?: boolean;
-  onManualPriceChange?: (price: number) => void;
+  onManualPriceChange?: (price: number) => Promise<void>;
+  onPriceUpdateStart?: () => void;
 };
 
-export default function GoldPriceBanner({ priceData, isLoading, error, refreshPrice, settings, showRefresh = true, runWithoutApiKey = false, onManualPriceChange }: GoldPriceBannerProps) {
+export default function GoldPriceBanner({ priceData, isLoading, error, refreshPrice, settings, showRefresh = true, runWithoutApiKey = false, onManualPriceChange, onPriceUpdateStart }: GoldPriceBannerProps) {
   const [modalVisible, setModalVisible] = useState(false);
   const [manualPriceInput, setManualPriceInput] = useState(priceData?.price?.toString() || '');
 
@@ -57,10 +58,13 @@ const changeColor = getChangeColor(priceData?.change);
       Alert.alert('Invalid Price', 'Please enter a valid gold price.');
       return;
     }
-    if (onManualPriceChange) {
-      onManualPriceChange(price);
-    }
+    const priceToSave = price;
     setModalVisible(false);
+    setTimeout(() => {
+      if (onManualPriceChange) {
+        onManualPriceChange(priceToSave);
+      }
+    }, 500);
   };
 
   const openModal = () => {
@@ -118,10 +122,9 @@ const changeColor = getChangeColor(priceData?.change);
       <Modal
         visible={modalVisible}
         transparent
-        animationType="fade"
         onRequestClose={() => setModalVisible(false)}
       >
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.modalOverlay}>
+        <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Update Gold Price</Text>
             <Text style={styles.modalLabel}>Enter new gold price ({settings.currency}/{settings.unit})</Text>
@@ -132,7 +135,6 @@ const changeColor = getChangeColor(priceData?.change);
               keyboardType="numeric"
               placeholder="Enter gold price"
               placeholderTextColor="#666"
-              autoFocus
             />
             <View style={styles.modalButtons}>
               <TouchableOpacity style={styles.modalCancelBtn} onPress={() => setModalVisible(false)}>
@@ -143,7 +145,7 @@ const changeColor = getChangeColor(priceData?.change);
               </TouchableOpacity>
             </View>
           </View>
-        </KeyboardAvoidingView>
+        </View>
       </Modal>
     </View>
   );

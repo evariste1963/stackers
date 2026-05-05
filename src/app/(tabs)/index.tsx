@@ -2,7 +2,6 @@ import { Text, Image, ScrollView, View } from 'react-native';
 import { GestureDetector } from 'react-native-gesture-handler';
 import { router } from 'expo-router';
 import { useEffect } from 'react';
-import { useFocusEffect } from '@react-navigation/native';
 import { useSwipeNavigation } from '@/hooks/useSwipeNavigation';
 import { colors, globalStyles } from '@/styles/global';
 import StackGrid from '@/components/StackGrid';
@@ -17,10 +16,10 @@ export default function HomeScreen() {
   const { items, refresh } = useStack();
   const { swipeGesture } = useSwipeNavigation('');
 
-  useFocusEffect(() => {
+  useEffect(() => {
     refreshSettings();
     refreshPriceFromDb();
-  });
+  }, []);
 
   const totalStackValue = items.reduce((sum, item) => {
     const weight = parseFloat(item.weight) || 0;
@@ -72,6 +71,7 @@ export default function HomeScreen() {
             settings={settings} 
             runWithoutApiKey={runWithoutApiKey}
             onManualPriceChange={updateManualPrice}
+            onPriceUpdateStart={() => { skipRefreshRef.current = true; }}
           />
           <View style={{ height: 160, width: '100%', marginTop: 0, backgroundColor: colors.background, alignItems: 'center' }}>
             <ChartArea history={history} />
