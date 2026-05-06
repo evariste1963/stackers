@@ -95,6 +95,12 @@ export default function GuideScreen() {
         <Text style={styles.text}>The app will now require your PIN every time you open it.</Text>
         
         <Text style={styles.note}>Note: You can change or remove your PIN anytime from the Account tab.</Text>
+        
+        <Link href="/security-statement" asChild>
+          <TouchableOpacity style={styles.linkButton}>
+            <Text style={styles.linkButtonText}>View Security Statement →</Text>
+          </TouchableOpacity>
+        </Link>
       </View>
 
       <View style={styles.section}>
@@ -254,5 +260,14 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginBottom: 12,
     alignItems: 'center',
+  },
+  linkButton: {
+    marginTop: 16,
+    paddingVertical: 8,
+  },
+  linkButtonText: {
+    fontSize: 14,
+    color: colors.gold,
+    textDecorationLine: 'underline',
   },
 });
