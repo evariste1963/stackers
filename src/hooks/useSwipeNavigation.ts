@@ -14,6 +14,7 @@ interface TabConfig {
 
 const tabs: TabConfig[] = [
   { name: '', title: 'Home', icon: 'home' },
+  { name: 'portfolio', title: 'Portfolio', icon: 'briefcase' },
   { name: 'yourStack', title: 'Your Stack', icon: 'prism' },
   { name: 'add2stack', title: 'Add-2-stack', icon: 'add-circle' },
   { name: 'account', title: 'Account', icon: 'person-sharp' },

@@ -1,16 +1,18 @@
 import { View, useWindowDimensions, ScrollView, Text } from 'react-native';
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { VictoryChart, VictoryLine, VictoryAxis } from 'victory-native';
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useIsFocused } from 'expo-router';
 import { getHistory, type HistoryEntry, migrateStaticData, getHistoryLength } from '@/services/historyService';
 import { colors } from '../styles/global';
 
 type ChartAreaProps = {
   history?: HistoryEntry[];
+  unit?: string;
+  metal?: 'gold' | 'silver';
 };
 
-export default function ChartArea({ history: propHistory }: ChartAreaProps) {
+export default function ChartArea({ history: propHistory, unit = 'toz', metal = 'gold' }: ChartAreaProps) {
   const isFocused = useIsFocused();
   const { width: screenWidth } = useWindowDimensions();
   const [data, setData] = useState<HistoryEntry[]>([]);
@@ -24,11 +26,11 @@ export default function ChartArea({ history: propHistory }: ChartAreaProps) {
     } else {
       async function loadData() {
         try {
-          const historyLength = await getHistoryLength();
+          const historyLength = await getHistoryLength(metal);
           if (historyLength === 0) {
-            await migrateStaticData();
+            await migrateStaticData(metal);
           }
-          const history = await getHistory();
+          const history = await getHistory(metal);
           setData(history);
         } catch (error) {
           console.error('Error loading chart data:', error);
@@ -38,7 +40,7 @@ export default function ChartArea({ history: propHistory }: ChartAreaProps) {
       }
       loadData();
     }
-  }, [propHistory]);
+  }, [propHistory, metal]);
 
   useEffect(() => {
     if (!isLoading && scrollViewRef.current && hasTwelveMonths) {
@@ -75,9 +77,14 @@ export default function ChartArea({ history: propHistory }: ChartAreaProps) {
     );
   }
 
+  const getPriceForUnit = (entry: HistoryEntry, unit: string) => {
+    if (unit === 'toz') return entry.toz || entry.gms || entry.price;
+    return entry.gms || entry.price; // gram
+  };
+
   const chartData = data.map((entry) => ({
     x: new Date(entry.date).getTime(),
-    y: entry.price,
+    y: getPriceForUnit(entry, unit),
     date: entry.date,
   }));
 
@@ -121,7 +128,7 @@ export default function ChartArea({ history: propHistory }: ChartAreaProps) {
     
     while (start.getTime() <= maxDate) {
       ticks.push(start.getTime());
-      start.setMonth(start.getMonth() + 1);
+      start.setMonth(start.getMonth() + 2);
     }
     
     return ticks;
@@ -132,8 +139,10 @@ export default function ChartArea({ history: propHistory }: ChartAreaProps) {
   const allPrices = chartData.map(d => d.y);
   const maxPrice = Math.max(...allPrices);
   const minPrice = Math.min(...allPrices);
-  const roundedMax = Math.ceil(maxPrice / 100) * 100 + 50;
-  const roundedMin = Math.floor(minPrice / 100) * 100 - 50;
+  const padding = (maxPrice - minPrice) * 0.1;
+  const yMin = minPrice - padding;
+  const yMax = maxPrice + padding;
+  const yTicks = [yMax, (yMax + yMin) / 2, yMin];
 
   const totalRange = allMaxDate - allMinDate;
   const visibleRange = hasTwelveMonths ? (allMaxDate - twelveMonthsAgoTime) : totalRange;
@@ -145,11 +154,10 @@ export default function ChartArea({ history: propHistory }: ChartAreaProps) {
     chartWidth = screenWidth - 30;
   }
 
-  const yTicks = [roundedMax, (roundedMax + roundedMin) / 2, roundedMin];
-
   return (
-    <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}>
-      <View style={{ width: 40, height: 150, justifyContent: 'space-between', paddingTop: 10, paddingBottom: 20 }}>
+    <View style={{ flex: 1 }}>
+      <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}>
+      <View style={{ width: 50, height: 150, justifyContent: 'space-between', paddingTop: 10, paddingBottom: 20 }}>
         {yTicks.map((tick, i) => (
           <Text key={i} style={{ fontSize: 10, color: colors.chartAxis, textAlign: 'right' }}>
             {Math.round(tick)}
@@ -167,13 +175,13 @@ export default function ChartArea({ history: propHistory }: ChartAreaProps) {
           height={150}
           padding={{ top: 10, bottom: 20, left: 0, right: 15 }}
           domainPadding={{ x: 0 }}
-          domain={{ x: [minDate, maxDate], y: [roundedMin, roundedMax] }}
+          domain={{ x: [minDate, maxDate], y: [yMin, yMax] }}
         >
           <VictoryAxis
             tickValues={tickValues}
             tickFormat={(t) => {
               const d = new Date(t);
-              return `${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getFullYear()).slice(-2)}`;
+              return `${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getFullYear()).slice(-2)}`;
             }}
             style={{
               axis: { stroke: 'transparent' },
@@ -199,6 +207,7 @@ export default function ChartArea({ history: propHistory }: ChartAreaProps) {
           />
         </VictoryChart>
       </ScrollView>
+    </View>
     </View>
   );
 }

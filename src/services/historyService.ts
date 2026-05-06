@@ -1,11 +1,19 @@
 import { getDb } from './db';
-import { priceData as staticPriceData } from '../../assets/priceData.js';
+import { goldData } from '../../assets/goldData.js';
+import { silverData } from '../../assets/silverData.js';
+
+const staticDataMap = {
+  gold: goldData,
+  silver: silverData,
+};
 
 export type MetalType = 'gold' | 'silver';
 
 export interface HistoryEntry {
   date: string;
   price: number;
+  gms: number;
+  toz: number;
   change: number;
   changePercent: number;
 }
@@ -13,6 +21,8 @@ export interface HistoryEntry {
 interface HistoryRow {
   date: string;
   price: number;
+  gms: number;
+  toz: number;
   change: number;
   changePercent: number;
 }
@@ -33,7 +43,9 @@ export async function getHistory(metal: MetalType = 'gold'): Promise<HistoryEntr
     
     return rows.map(row => ({
       date: row.date,
-      price: row.price,
+      price: row.gms || row.price,
+      gms: row.gms || row.price,
+      toz: row.toz || row.gms || row.price,
       change: row.change,
       changePercent: row.changePercent,
     }));
@@ -98,9 +110,12 @@ export async function migrateStaticData(metal: MetalType = 'gold'): Promise<void
     
     if (rows[0].count > 0) return;
     
-    const staticEntries: HistoryEntry[] = Object.entries(staticPriceData).map(([date, price]) => ({
+    const priceData = staticDataMap[metal];
+    const staticEntries: HistoryEntry[] = Object.entries(priceData).map(([date, data]) => ({
       date,
-      price: typeof price === 'number' ? price : parseFloat(price as string),
+      price: typeof data === 'object' ? data.gms : parseFloat(data as string),
+      gms: typeof data === 'object' ? data.gms : parseFloat(data as string),
+      toz: typeof data === 'object' ? data.toz : parseFloat(data as string),
       change: 0,
       changePercent: 0,
     }));
@@ -108,9 +123,9 @@ export async function migrateStaticData(metal: MetalType = 'gold'): Promise<void
     if (staticEntries.length > 0) {
       for (const entry of staticEntries) {
         await database.runAsync(`
-          INSERT INTO ${tableName} (date, price, change, changePercent)
-          VALUES (?, ?, ?, ?)
-        `, [entry.date, entry.price, entry.change, entry.changePercent]);
+          INSERT INTO ${tableName} (date, price, gms, toz, change, changePercent)
+          VALUES (?, ?, ?, ?, ?, ?)
+        `, [entry.date, entry.price, entry.gms, entry.toz, entry.change, entry.changePercent]);
       }
       console.log('Migrated', staticEntries.length, 'static price entries to SQLite for', metal);
     }

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'expo-router';
 import { globalStyles, colors } from '@/styles/global';
-import { Text, View, TextInput, TouchableOpacity, ScrollView, Alert, Linking, Image, Switch } from 'react-native';
+import { Text, View, TextInput, TouchableOpacity, ScrollView, Alert, Linking, Image, Switch, KeyboardAvoidingView, Platform } from 'react-native';
 import { getUserSettings, updateApiKey, removeApiKey, updatePreference, updateManualPrice as clearManualPrice, updateManualSilverPrice as clearManualSilverPrice, type UserSettings } from '@/services/settingsService';
 import { getAllItems } from '@/services/stackStorage';
 import { saveSpotPrice } from '@/services/priceService';
@@ -27,7 +27,6 @@ export default function ApiSettingsScreen() {
   const [manualPriceInput, setManualPriceInput] = useState('');
   const [manualSilverPriceInput, setManualSilverPriceInput] = useState('');
   const [offGridMode, setOffGridMode] = useState(false);
-  const [silverOffGridMode, setSilverOffGridMode] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [hasStackItems, setHasStackItems] = useState(false);
@@ -51,12 +50,11 @@ async function loadSettings() {
       const s = await getUserSettings();
       setSettings(s);
       const hasManual = s.manualPrice !== null && s.manualPrice !== undefined && s.manualPrice > 0;
-      setOffGridMode(hasManual);
+      const hasSilverManual = s.manualSilverPrice !== null && s.manualSilverPrice !== undefined && s.manualSilverPrice > 0;
+      setOffGridMode(hasManual && hasSilverManual);
       if (s.manualPrice) {
         setManualPriceInput(s.manualPrice.toString());
       }
-      const hasSilverManual = s.manualSilverPrice !== null && s.manualSilverPrice !== undefined && s.manualSilverPrice > 0;
-      setSilverOffGridMode(hasSilverManual);
       if (s.manualSilverPrice) {
         setManualSilverPriceInput(s.manualSilverPrice.toString());
       }
@@ -104,8 +102,8 @@ async function loadSettings() {
       return;
     }
     const message = offGridMode 
-      ? 'Your manual price will be kept. You can still use the app with manual prices.'
-      : 'You can add a manual price to continue using the app without an API key.';
+      ? 'Your manual gold and silver prices will be kept. You can still use the app with manual prices.'
+      : 'You can add manual gold and silver prices to continue using the app without an API key.';
     Alert.alert(
       'Remove API Key',
       message,
@@ -118,9 +116,13 @@ async function loadSettings() {
             try {
               await removeApiKey();
               await clearManualPrice(null);
-              setSettings({ currency: 'GBP', unit: 'toz', hasApiKey: false, manualPrice: null, createdAt: '', updatedAt: '' });
+              await clearManualSilverPrice(null);
+              await saveSpotPrice(0, 0, 0, 0, 0, 0, 0, settings.currency, settings.unit);
+              await saveSilverSpotPrice(0, 0, 0, 0, 0, 0, 0, settings.currency, settings.unit);
+              setSettings({ currency: 'GBP', unit: 'toz', hasApiKey: false, manualPrice: null, manualSilverPrice: null, createdAt: '', updatedAt: '' });
               setOffGridMode(false);
               setManualPriceInput('');
+              setManualSilverPriceInput('');
               Alert.alert('Success', 'API key removed. You can add a new key from Account > Settings.');
             } catch (error) {
               Alert.alert('Error', 'Failed to remove API key');
@@ -158,19 +160,7 @@ async function loadSettings() {
     }
   }
 
-  async function handleSilverOffGridModeToggle(value: boolean) {
-    if (value && (!settings.manualSilverPrice || settings.manualSilverPrice <= 0)) {
-      Alert.alert('Enter Price First', 'Please enter a silver price and tap Submit Price first.');
-      return;
-    }
-    setSilverOffGridMode(value);
-    if (!value) {
-      await clearManualSilverPrice(null);
-      await saveSilverSpotPrice(0, 0, 0, 0, 0, 0, 0, settings.currency, settings.unit);
-      setSettings(prev => ({ ...prev, manualSilverPrice: null }));
-      setManualSilverPriceInput('');
-    }
-  }
+  
 
   function handleManualSilverPriceChange(text: string) {
     setManualSilverPriceInput(text);
@@ -184,36 +174,46 @@ async function loadSettings() {
     }
     await updateManualSilverPrice(price);
     setSettings(prev => ({ ...prev, manualSilverPrice: price }));
-    setSilverOffGridMode(true);
+    if (settings.manualPrice && settings.manualPrice > 0) {
+      setOffGridMode(true);
+    }
   }
 
   async function handleOffGridModeToggle(value: boolean) {
-    if (value && (!settings.manualPrice || settings.manualPrice <= 0)) {
-      Alert.alert('Enter Price First', 'Please enter a gold price and tap Submit Price first.');
+    if (value && (!settings.manualPrice || settings.manualPrice <= 0 || !settings.manualSilverPrice || settings.manualSilverPrice <= 0)) {
+      Alert.alert('Enter Prices First', 'Please enter both gold and silver prices and tap Submit Price for each before enabling off-grid mode.');
       return;
     }
     setOffGridMode(value);
     if (!value) {
       await clearManualPrice(null);
+      await clearManualSilverPrice(null);
       await saveSpotPrice(0, 0, 0, 0, 0, 0, 0, settings.currency, settings.unit);
-      setSettings(prev => ({ ...prev, manualPrice: null }));
+      await saveSilverSpotPrice(0, 0, 0, 0, 0, 0, 0, settings.currency, settings.unit);
+      setSettings(prev => ({ ...prev, manualPrice: null, manualSilverPrice: null }));
       setManualPriceInput('');
+      setManualSilverPriceInput('');
     }
-  }
-
-  function handleManualPriceChange(text: string) {
-    setManualPriceInput(text);
   }
 
   async function handleManualPriceSubmit() {
-    const price = parseFloat(manualPriceInput);
-    if (isNaN(price) || price <= 0) {
+    const goldPrice = parseFloat(manualPriceInput);
+    const silverPrice = parseFloat(manualSilverPriceInput);
+    
+    if (isNaN(goldPrice) || goldPrice <= 0) {
       Alert.alert('Invalid Price', 'Please enter a valid gold price.');
       return;
     }
-    await updateManualPrice(price);
-    setSettings(prev => ({ ...prev, manualPrice: price }));
+    if (isNaN(silverPrice) || silverPrice <= 0) {
+      Alert.alert('Invalid Price', 'Please enter a valid silver price.');
+      return;
+    }
+    
+    await updateManualPrice(goldPrice);
+    await updateManualSilverPrice(silverPrice);
+    setSettings(prev => ({ ...prev, manualPrice: goldPrice, manualSilverPrice: silverPrice }));
     setOffGridMode(true);
+    Alert.alert('Success', 'Both gold and silver prices have been saved.');
   }
 
   function openMetalsDev() {
@@ -229,9 +229,65 @@ async function loadSettings() {
   }
 
 return (
-    <ScrollView style={globalStyles.container}>
+    <KeyboardAvoidingView 
+      style={{ flex: 1 }} 
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
+      <ScrollView style={globalStyles.container} keyboardShouldPersistTaps="handled">
       <View style={apiStyles.header}>
         <Text style={apiStyles.title}>Settings</Text>
+      </View>
+
+      <View style={apiStyles.section}>
+        <Text style={apiStyles.sectionTitle}>Currency</Text>
+        {hasStackItems && (
+          <Text style={apiStyles.notConfiguredText}>Cannot change - items in stack</Text>
+        )}
+        <View style={apiStyles.optionsRow}>
+          {AVAILABLE_CURRENCIES.map((curr) => (
+            <TouchableOpacity
+              key={curr.code}
+              style={[
+                apiStyles.optionButton,
+                settings.currency === curr.code && apiStyles.optionButtonActive,
+                hasStackItems && apiStyles.optionButtonDisabled
+              ]}
+              onPress={() => !hasStackItems && handleCurrencyChange(curr.code)}
+              disabled={hasStackItems}
+            >
+              <Text style={[
+                apiStyles.optionButtonText,
+                settings.currency === curr.code && apiStyles.optionButtonTextActive
+              ]}>{curr.code} ({curr.symbol})</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </View>
+
+      <View style={apiStyles.section}>
+        <Text style={apiStyles.sectionTitle}>Weight Unit</Text>
+        {hasStackItems && (
+          <Text style={apiStyles.notConfiguredText}>Cannot change - items in stack</Text>
+        )}
+        <View style={apiStyles.optionsRow}>
+          {AVAILABLE_UNITS.map((u) => (
+            <TouchableOpacity
+              key={u.code}
+              style={[
+                apiStyles.optionButton,
+                settings.unit === u.code && apiStyles.optionButtonActive,
+                hasStackItems && apiStyles.optionButtonDisabled
+              ]}
+              onPress={() => !hasStackItems && handleUnitChange(u.code)}
+              disabled={hasStackItems}
+            >
+              <Text style={[
+                apiStyles.optionButtonText,
+                settings.unit === u.code && apiStyles.optionButtonTextActive
+              ]}>{u.name} ({u.abbrev})</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
       </View>
 
       <View style={apiStyles.section}>
@@ -285,18 +341,6 @@ return (
           <View>
             <Text style={apiStyles.notConfiguredText}>API key not configured</Text>
             
-            <View style={apiStyles.offGridModeContainer}>
-              <View style={apiStyles.offGridModeRow}>
-                <Text style={apiStyles.offGridModeLabel}>Gold Off Grid</Text>
-                <Switch
-                  value={offGridMode}
-                  onValueChange={handleOffGridModeToggle}
-                  trackColor={{ false: colors.themeGrey, true: colors.gold }}
-                  thumbColor={colors.white}
-                />
-              </View>
-            </View>
-
             <View style={apiStyles.manualPriceContainer}>
               <Text style={apiStyles.label}>Manual Gold Price ({settings.currency}/{settings.unit})</Text>
               <TextInput
@@ -307,25 +351,6 @@ return (
                 onChangeText={setManualPriceInput}
                 keyboardType="numeric"
               />
-              <TouchableOpacity
-                style={[apiStyles.saveButton, !manualPriceInput && apiStyles.buttonDisabled]}
-                onPress={handleManualPriceSubmit}
-                disabled={!manualPriceInput}
-              >
-                <Text style={apiStyles.saveButtonText}>Submit Price</Text>
-              </TouchableOpacity>
-            </View>
-
-            <View style={apiStyles.offGridModeContainer}>
-              <View style={apiStyles.offGridModeRow}>
-                <Text style={apiStyles.offGridModeLabel}>Silver Off Grid</Text>
-                <Switch
-                  value={silverOffGridMode}
-                  onValueChange={handleSilverOffGridModeToggle}
-                  trackColor={{ false: colors.themeGrey, true: colors.silver }}
-                  thumbColor={colors.white}
-                />
-              </View>
             </View>
 
             <View style={apiStyles.manualPriceContainer}>
@@ -338,16 +363,29 @@ return (
                 onChangeText={setManualSilverPriceInput}
                 keyboardType="numeric"
               />
-              <TouchableOpacity
-                style={[apiStyles.saveButtonSilver, !manualSilverPriceInput && apiStyles.buttonDisabled]}
-                onPress={handleManualSilverPriceSubmit}
-                disabled={!manualSilverPriceInput}
-              >
-                <Text style={apiStyles.saveButtonText}>Submit Price</Text>
-              </TouchableOpacity>
             </View>
 
-            {!offGridMode && !silverOffGridMode && (
+            <TouchableOpacity
+              style={[apiStyles.saveButton, (!manualPriceInput || !manualSilverPriceInput) && apiStyles.buttonDisabled]}
+              onPress={handleManualPriceSubmit}
+              disabled={!manualPriceInput || !manualSilverPriceInput}
+            >
+              <Text style={apiStyles.saveButtonText}>Submit Prices</Text>
+            </TouchableOpacity>
+
+            <View style={[apiStyles.offGridModeContainer, { marginTop: 24 }]}>
+              <View style={apiStyles.offGridModeRow}>
+                <Text style={apiStyles.offGridModeLabel}>Off Grid Mode</Text>
+                <Switch
+                  value={offGridMode}
+                  onValueChange={handleOffGridModeToggle}
+                  trackColor={{ false: colors.themeGrey, true: colors.gold }}
+                  thumbColor={colors.white}
+                />
+              </View>
+            </View>
+
+            {!offGridMode && (
               <>
                 <TouchableOpacity style={apiStyles.linkButton} onPress={openMetalsDev}>
                   <Text style={apiStyles.linkButtonText}>Get free API key at metals.dev ↗</Text>
@@ -376,7 +414,7 @@ return (
         )}
       </View>
 
-      {(offGridMode || silverOffGridMode) && (
+      {offGridMode && (
         <TouchableOpacity style={apiStyles.continueButton} onPress={handleGoBack}>
           <Text style={apiStyles.continueButtonText}>Continue</Text>
         </TouchableOpacity>
@@ -390,6 +428,7 @@ return (
 
       <View style={{ height: 120 }} />
     </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -492,10 +531,12 @@ const apiStyles = {
     alignItems: 'center' as const,
   } as const,
   saveButtonSilver: {
-    backgroundColor: colors.silver,
+    backgroundColor: colors.themeGrey,
     borderRadius: 8,
     padding: 14,
     alignItems: 'center' as const,
+    borderWidth: 1,
+    borderColor: colors.silver,
   } as const,
   buttonDisabled: {
     opacity: 0.7,

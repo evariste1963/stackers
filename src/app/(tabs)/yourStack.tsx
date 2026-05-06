@@ -24,12 +24,12 @@ export default function YourStackScreen() {
   const loadPriceAndSettings = useCallback(async () => {
     const goldPriceData = await getLatestPrice();
     if (goldPriceData) {
-      setLatestGoldPrice(goldPriceData.price);
+      setLatestGoldPrice(goldPriceData.bid);
       setCurrency(goldPriceData.currency);
     }
     const silverPriceData = await getLatestSilverPrice();
     if (silverPriceData) {
-      setLatestSilverPrice(silverPriceData.price);
+      setLatestSilverPrice(silverPriceData.bid);
     }
     const settings = await getUserSettings();
     if (settings.currency) {

@@ -55,6 +55,8 @@ export async function initAllTables(): Promise<void> {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       date TEXT,
       price REAL,
+      gms REAL,
+      toz REAL,
       change REAL,
       changePercent REAL
     );
@@ -82,6 +84,8 @@ export async function initAllTables(): Promise<void> {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       date TEXT,
       price REAL,
+      gms REAL,
+      toz REAL,
       change REAL,
       changePercent REAL
     );

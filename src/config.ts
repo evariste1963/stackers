@@ -24,7 +24,6 @@ export const AVAILABLE_CURRENCIES: CurrencyOption[] = [
 export const AVAILABLE_UNITS: UnitOption[] = [
   { code: 'toz', name: 'Troy Ounce', abbrev: 'oz' },
   { code: 'gram', name: 'Gram', abbrev: 'g' },
-  { code: 'kg', name: 'Kilogram', abbrev: 'kg' },
 ];
 
 export const METALS_DEV_URL = 'https://metals.dev/pricing';

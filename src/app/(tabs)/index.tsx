@@ -53,7 +53,7 @@ export default function HomeScreen() {
   
   const totalStackValue = filteredItems.reduce((sum, item) => {
     const weight = parseFloat(item.weight) || 0;
-    const price = priceData?.price || 0;
+    const price = priceData?.bid || 0;
     return sum + (weight * price);
   }, 0);
 
@@ -124,7 +124,7 @@ export default function HomeScreen() {
             onManualPriceChange={updateManualPriceFn}
           />
           <View style={{ height: 160, width: '100%', marginTop: 0, backgroundColor: colors.background, alignItems: 'center' }}>
-            <ChartArea history={history} />
+            <ChartArea history={history} unit={settings.unit} metal={selectedMetal} />
           </View>
           <StackGrid price={priceData ?? undefined} />
           <StackValueBlock value={totalStackValue || undefined} costValue={totalCostValue || undefined} settings={settings} onPress={() => router.push('/yourStack')} />

@@ -66,15 +66,15 @@ export default function GuideScreen() {
         <Text style={styles.text}>Option B: Toggle "Off Grid mode" to enter gold prices manually instead.</Text>
         
         <Text style={styles.stepNumber}>4</Text>
-        <Text style={styles.text}>Choose your preferred currency (GBP, USD, or EUR) and weight unit (troy ounces, grams, or kg).</Text>
+        <Text style={styles.text}>Choose your preferred currency (GBP, USD, or EUR) and weight unit (troy ounces or grams).</Text>
       </View>
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Using Manual Prices</Text>
         <Text style={styles.text}>If you choose Off Grid mode:</Text>
-        <Text style={styles.listItem}>• Enter your gold price in the Settings screen</Text>
-        <Text style={styles.listItem}>• Tap "Submit Price" to save</Text>
-        <Text style={styles.listItem}>• On the home screen, tap "Update Price" to enter a new price</Text>
+        <Text style={styles.listItem}>• Enter both gold and silver prices in the Settings screen</Text>
+        <Text style={styles.listItem}>• Tap "Submit Prices" to save both</Text>
+        <Text style={styles.listItem}>• On the home screen, tap "Update Price" to enter new prices</Text>
         <Text style={styles.listItem}>• The app automatically tracks day high and low prices - high updates when you enter a higher price, low updates when you enter a lower price</Text>
         <Text style={styles.listItem}>• Change and change % are calculated based on the previous vs new price</Text>
         <Text style={styles.note}>Tip: If you switch between API and manual modes, the high/low prices sync automatically.</Text>
@@ -173,8 +173,8 @@ export default function GuideScreen() {
         <Text style={styles.note}>Note: To remove the API key, you must be logged in with your PIN if one is set.</Text>
         
         <Text style={styles.note}>
-          Important: Once you add items to your stack, the currency and unit preferences become locked. 
-          This prevents mismatched calculations when you have existing items. To change currency or unit, 
+          Important: Once you add items to your stack, the currency and unit selectors become disabled 
+          to prevent mismatched calculations. A message will show explaining this. To change currency or unit, 
           you must first remove all items from your stack (Your Stack tab, tap each item and delete).
         </Text>
       </View>
