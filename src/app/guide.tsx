@@ -9,24 +9,24 @@ export default function GuideScreen() {
   const router = useRouter();
   const { isSettingsLoading, refreshSettings } = usePrice();
   const [hasApiKey, setHasApiKey] = useState(false);
-  const [runWithoutApiKey, setRunWithoutApiKey] = useState(false);
+  const [offGridMode, setOffGridMode] = useState(false);
 
   useEffect(() => {
     getUserSettings().then(s => {
       setHasApiKey(s.hasApiKey);
       const hasManual = s.manualPrice !== null && s.manualPrice !== undefined && !isNaN(s.manualPrice);
-      setRunWithoutApiKey(hasManual);
+      setOffGridMode(hasManual);
     });
   }, []);
 
   const handleContinue = () => {
-    if (!isSettingsLoading && (hasApiKey || runWithoutApiKey)) {
+    if (!isSettingsLoading && (hasApiKey || offGridMode)) {
       router.replace('/');
     }
   };
 
-  const showSetupApiKey = !hasApiKey && !runWithoutApiKey;
-  const showContinue = hasApiKey || runWithoutApiKey;
+  const showSetupApiKey = !hasApiKey && !offGridMode;
+  const showContinue = hasApiKey || offGridMode;
 
   return (
     <ScrollView style={globalStyles.container} contentContainerStyle={{ paddingBottom: 100 }}>
@@ -43,7 +43,7 @@ export default function GuideScreen() {
       {showSetupApiKey && (
         <Link href="/api-settings" asChild>
           <TouchableOpacity style={styles.apiButton}>
-            <Text style={globalStyles.buttonText}>Set Up API Key</Text>
+            <Text style={globalStyles.buttonText}>Set up Options</Text>
           </TouchableOpacity>
         </Link>
       )}
@@ -63,7 +63,7 @@ export default function GuideScreen() {
         <Text style={styles.text}>Option A: Get a free API key from <Text style={styles.link}>metals.dev</Text> for live gold prices.</Text>
         
         <Text style={styles.stepNumber}>3</Text>
-        <Text style={styles.text}>Option B: Toggle "Run without API-Key" to enter gold prices manually instead.</Text>
+        <Text style={styles.text}>Option B: Toggle "Off Grid mode" to enter gold prices manually instead.</Text>
         
         <Text style={styles.stepNumber}>4</Text>
         <Text style={styles.text}>Choose your preferred currency (GBP, USD, or EUR) and weight unit (troy ounces, grams, or kg).</Text>
@@ -71,7 +71,7 @@ export default function GuideScreen() {
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Using Manual Prices</Text>
-        <Text style={styles.text}>If you choose to run without an API key:</Text>
+        <Text style={styles.text}>If you choose Off Grid mode:</Text>
         <Text style={styles.listItem}>• Enter your gold price in the API Settings screen</Text>
         <Text style={styles.listItem}>• Tap "Submit Price" to save</Text>
         <Text style={styles.listItem}>• On the home screen, tap "Update Price" to enter a new price</Text>

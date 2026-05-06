@@ -12,12 +12,12 @@ type GoldPriceBannerProps = {
   refreshPrice: () => Promise<void>;
   settings: UserSettings;
   showRefresh?: boolean;
-  runWithoutApiKey?: boolean;
+  offGridMode?: boolean;
   onManualPriceChange?: (price: number) => Promise<void>;
   onPriceUpdateStart?: () => void;
 };
 
-export default function GoldPriceBanner({ priceData, isLoading, error, refreshPrice, settings, showRefresh = true, runWithoutApiKey = false, onManualPriceChange, onPriceUpdateStart }: GoldPriceBannerProps) {
+export default function GoldPriceBanner({ priceData, isLoading, error, refreshPrice, settings, showRefresh = true, offGridMode = false, onManualPriceChange, onPriceUpdateStart }: GoldPriceBannerProps) {
   const [modalVisible, setModalVisible] = useState(false);
   const [manualPriceInput, setManualPriceInput] = useState(priceData?.price?.toString() || '');
 
@@ -97,7 +97,7 @@ const changeColor = getChangeColor(priceData?.change);
         </View>
         {showRefresh && (
           <View style={styles.right}>
-            {runWithoutApiKey ? (
+            {offGridMode ? (
               <TouchableOpacity style={styles.button} onPress={openModal}>
                 <Text style={styles.buttonText}>Update</Text>
                 <Text style={styles.buttonText}>Price</Text>

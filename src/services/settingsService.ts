@@ -127,10 +127,13 @@ export async function removeApiKey(): Promise<void> {
     await SecureStore.deleteItemAsync('gold_api_key');
     
     const database = await getDb();
-    await database.runAsync(
-      'UPDATE user_settings SET hasApiKey = 0, updatedAt = ? WHERE id = 1',
-      [new Date().toISOString()]
-    );
+    const existing = await database.getFirstAsync<{ id: number }>('SELECT id FROM user_settings WHERE id = 1');
+    if (existing) {
+      await database.runAsync(
+        'UPDATE user_settings SET hasApiKey = 0, updatedAt = ? WHERE id = 1',
+        [new Date().toISOString()]
+      );
+    }
   } catch (error) {
     console.error('Error removing API key:', error);
     throw error;

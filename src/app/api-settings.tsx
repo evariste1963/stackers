@@ -23,7 +23,7 @@ export default function ApiSettingsScreen() {
   });
   const [apiKeyInput, setApiKeyInput] = useState('');
   const [manualPriceInput, setManualPriceInput] = useState('');
-  const [runWithoutApiKey, setRunWithoutApiKey] = useState(false);
+  const [offGridMode, setOffGridMode] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [hasStackItems, setHasStackItems] = useState(false);
@@ -47,7 +47,7 @@ async function loadSettings() {
       const s = await getUserSettings();
       setSettings(s);
       const hasManual = s.manualPrice !== null && s.manualPrice !== undefined && s.manualPrice > 0;
-      setRunWithoutApiKey(hasManual);
+      setOffGridMode(hasManual);
       if (s.manualPrice) {
         setManualPriceInput(s.manualPrice.toString());
       }
@@ -80,7 +80,7 @@ async function loadSettings() {
   }
 
   function handleGoBack() {
-    if (runWithoutApiKey) {
+    if (offGridMode) {
       router.replace('/guide');
     } else if (settings.hasApiKey) {
       router.replace('/guide');
@@ -94,7 +94,7 @@ async function loadSettings() {
       Alert.alert('Authentication Required', 'Please log in with your PIN to remove the API key.');
       return;
     }
-    const message = runWithoutApiKey 
+    const message = offGridMode 
       ? 'Your manual price will be kept. You can still use the app with manual prices.'
       : 'You can add a manual price to continue using the app without an API key.';
     Alert.alert(
@@ -110,7 +110,7 @@ async function loadSettings() {
               await removeApiKey();
               await clearManualPrice(null);
               setSettings({ currency: 'GBP', unit: 'toz', hasApiKey: false, manualPrice: null, createdAt: '', updatedAt: '' });
-              setRunWithoutApiKey(false);
+              setOffGridMode(false);
               setManualPriceInput('');
               Alert.alert('Success', 'API key removed. You can add a new key from Account > API Settings.');
             } catch (error) {
@@ -140,12 +140,12 @@ async function loadSettings() {
     }
   }
 
-  async function handleRunWithoutApiKeyToggle(value: boolean) {
+  async function handleOffGridModeToggle(value: boolean) {
     if (value && (!settings.manualPrice || settings.manualPrice <= 0)) {
       Alert.alert('Enter Price First', 'Please enter a gold price and tap Submit Price first.');
       return;
     }
-    setRunWithoutApiKey(value);
+    setOffGridMode(value);
     if (!value) {
       await clearManualPrice(null);
       await saveSpotPrice(0, 0, 0, 0, 0, 0, 0, settings.currency, settings.unit);
@@ -154,7 +154,7 @@ async function loadSettings() {
     }
   }
 
-  async function handleManualPriceChange(text: string) {
+  function handleManualPriceChange(text: string) {
     setManualPriceInput(text);
   }
 
@@ -166,7 +166,7 @@ async function loadSettings() {
     }
     await updateManualPrice(price);
     setSettings(prev => ({ ...prev, manualPrice: price }));
-    setRunWithoutApiKey(true);
+    setOffGridMode(true);
   }
 
   function openMetalsDev() {
@@ -208,17 +208,17 @@ async function loadSettings() {
           <View>
             <Text style={apiStyles.notConfiguredText}>API key not configured</Text>
             
-            <View style={apiStyles.runWithoutApiKeyContainer}>
-              <View style={apiStyles.runWithoutApiKeyRow}>
-                <Text style={apiStyles.runWithoutApiKeyLabel}>Run without API-Key</Text>
+            <View style={apiStyles.offGridModeContainer}>
+              <View style={apiStyles.offGridModeRow}>
+                <Text style={apiStyles.offGridModeLabel}>Off Grid mode</Text>
                 <Switch
-                  value={runWithoutApiKey}
-                  onValueChange={handleRunWithoutApiKeyToggle}
+                  value={offGridMode}
+                  onValueChange={handleOffGridModeToggle}
                   trackColor={{ false: colors.themeGrey, true: colors.gold }}
-                  thumbColor={runWithoutApiKey ? colors.white : colors.white}
+                  thumbColor={offGridMode ? colors.white : colors.white}
                 />
               </View>
-              <Text style={apiStyles.runWithoutApiKeyDescription}>
+              <Text style={apiStyles.offGridModeDescription}>
                 Enter gold price manually instead of fetching live data
               </Text>
             </View>
@@ -242,7 +242,7 @@ async function loadSettings() {
               </TouchableOpacity>
             </View>
 
-            {!runWithoutApiKey && (
+            {!offGridMode && (
               <>
                 <TouchableOpacity style={apiStyles.linkButton} onPress={openMetalsDev}>
                   <Text style={apiStyles.linkButtonText}>Get free API key at metals.dev ↗</Text>
@@ -342,7 +342,7 @@ async function loadSettings() {
         </View>
       </View>
 
-      {runWithoutApiKey && (
+      {offGridMode && (
         <TouchableOpacity style={apiStyles.continueButton} onPress={handleGoBack}>
           <Text style={apiStyles.continueButtonText}>Continue</Text>
         </TouchableOpacity>
@@ -354,7 +354,7 @@ async function loadSettings() {
         </TouchableOpacity>
       )}
 
-      <View style={{ height: 40 }} />
+      <View style={{ height: 120 }} />
     </ScrollView>
   );
 }
@@ -513,7 +513,7 @@ const apiStyles = {
     backgroundColor: colors.orange + '20',
     borderRadius: 8,
   } as const,
-  runWithoutApiKeyContainer: {
+  offGridModeContainer: {
     backgroundColor: colors.themeGrey,
     borderRadius: 8,
     padding: 12,
@@ -521,17 +521,17 @@ const apiStyles = {
     borderWidth: 1,
     borderColor: colors.gold,
   } as const,
-  runWithoutApiKeyRow: {
+  offGridModeRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   } as const,
-  runWithoutApiKeyLabel: {
+  offGridModeLabel: {
     fontSize: 14,
     color: colors.gold,
     fontWeight: '600',
   } as const,
-  runWithoutApiKeyDescription: {
+  offGridModeDescription: {
     fontSize: 12,
     color: colors.grey,
     marginTop: 4,

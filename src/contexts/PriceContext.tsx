@@ -15,7 +15,7 @@ interface PriceContextType {
   refreshPriceFromDb: () => Promise<void>;
   apiKeyConfigured: boolean;
   refreshSettings: () => Promise<void>;
-  runWithoutApiKey: boolean;
+  offGridMode: boolean;
   updateManualPrice: (price: number) => Promise<void>;
   updateManualHighLow: (high: number, low: number) => Promise<void>;
 }
@@ -37,7 +37,7 @@ export function PriceProvider({ children }: { children: ReactNode }) {
   const [isSettingsLoading, setIsSettingsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const runWithoutApiKey = !settings.hasApiKey && settings.manualPrice !== null && settings.manualPrice !== undefined && settings.manualPrice > 0;
+  const offGridMode = !settings.hasApiKey && settings.manualPrice !== null && settings.manualPrice !== undefined && settings.manualPrice > 0;
   
   const settingsRef = useRef(settings);
   settingsRef.current = settings;
@@ -206,7 +206,7 @@ const updateManualPrice = useCallback(async (price: number) => {
       refreshPriceFromDb,
       apiKeyConfigured: settings.hasApiKey,
       refreshSettings,
-      runWithoutApiKey,
+      offGridMode,
       updateManualPrice,
       updateManualHighLow,
     }}>

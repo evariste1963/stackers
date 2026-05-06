@@ -15,7 +15,7 @@ import { usePrice } from '@/contexts/PriceContext';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function AddToStackScreen() {
-  const { priceData, isLoading, error, refreshPrice, settings, runWithoutApiKey, updateManualPrice } = usePrice();
+  const { priceData, isLoading, error, refreshPrice, settings, offGridMode, updateManualPrice } = usePrice();
   const { swipeGesture } = useSwipeNavigation('add2stack');
   const params = useLocalSearchParams<{ editId?: string }>();
   const editId = params.editId ? parseInt(params.editId, 10) : null;
@@ -176,7 +176,7 @@ export default function AddToStackScreen() {
           <Text style={globalStyles.title}>{isEditing ? 'Edit Item' : 'Add to Stack'}</Text>
         </View>
         <View style={styles.bannerContainer}>
-          <GoldPriceBanner priceData={priceData} isLoading={isLoading} error={error} refreshPrice={refreshPrice} settings={settings} showRefresh={false} runWithoutApiKey={runWithoutApiKey} onManualPriceChange={updateManualPrice} />
+          <GoldPriceBanner priceData={priceData} isLoading={isLoading} error={error} refreshPrice={refreshPrice} settings={settings} showRefresh={false} offGridMode={offGridMode} onManualPriceChange={updateManualPrice} />
         </View>
         <KeyboardAvoidingView style={styles.keyboardView} behavior="padding" keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}>
           <ScrollView style={styles.form} contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40 }} keyboardShouldPersistTaps="handled">

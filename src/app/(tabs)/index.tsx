@@ -12,7 +12,7 @@ import { usePrice } from '@/contexts/PriceContext';
 import { useStack } from '@/contexts/StackContext';
 
 export default function HomeScreen() {
-  const { priceData, history, isLoading, error, refreshPrice, settings, apiKeyConfigured, isSettingsLoading, refreshSettings, refreshPriceFromDb, runWithoutApiKey, updateManualPrice } = usePrice();
+  const { priceData, history, isLoading, error, refreshPrice, settings, apiKeyConfigured, isSettingsLoading, refreshSettings, refreshPriceFromDb, offGridMode, updateManualPrice } = usePrice();
   const { items, refresh } = useStack();
   const { swipeGesture } = useSwipeNavigation('');
 
@@ -35,11 +35,11 @@ export default function HomeScreen() {
 
   useEffect(() => {
     if (!isSettingsLoading) {
-      if (!apiKeyConfigured && !runWithoutApiKey) {
+if (!apiKeyConfigured && !offGridMode) {
         router.replace('/guide');
       }
     }
-  }, [isSettingsLoading, apiKeyConfigured, runWithoutApiKey, router]);
+  }, [isSettingsLoading, apiKeyConfigured, offGridMode, router]);
 
   if (isSettingsLoading) {
     return (
@@ -49,7 +49,7 @@ export default function HomeScreen() {
     );
   }
 
-  if (!apiKeyConfigured && !runWithoutApiKey) {
+  if (!apiKeyConfigured && !offGridMode) {
     return null;
   }
 
@@ -69,7 +69,7 @@ export default function HomeScreen() {
             error={error} 
             refreshPrice={refreshPrice} 
             settings={settings} 
-            runWithoutApiKey={runWithoutApiKey}
+            offGridMode={offGridMode}
             onManualPriceChange={updateManualPrice}
             onPriceUpdateStart={() => { skipRefreshRef.current = true; }}
           />
