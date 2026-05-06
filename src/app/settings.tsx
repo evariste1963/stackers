@@ -228,10 +228,40 @@ async function loadSettings() {
     );
   }
 
-  return (
+return (
     <ScrollView style={globalStyles.container}>
       <View style={apiStyles.header}>
         <Text style={apiStyles.title}>Settings</Text>
+      </View>
+
+      <View style={apiStyles.section}>
+        <Text style={apiStyles.sectionTitle}>Default Metal</Text>
+        <View style={apiStyles.optionsRow}>
+          <TouchableOpacity
+            style={[
+              apiStyles.optionButton,
+              settings.defaultMetal === 'gold' && apiStyles.optionButtonActive
+            ]}
+            onPress={() => handleDefaultMetalChange('gold')}
+          >
+            <Text style={[
+              apiStyles.optionButtonText,
+              settings.defaultMetal === 'gold' && apiStyles.optionButtonTextActive
+            ]}>Gold</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              apiStyles.optionButton,
+              settings.defaultMetal === 'silver' && apiStyles.optionButtonActive
+            ]}
+            onPress={() => handleDefaultMetalChange('silver')}
+          >
+            <Text style={[
+              apiStyles.optionButtonText,
+              settings.defaultMetal === 'silver' && apiStyles.optionButtonTextActive
+            ]}>Silver</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       <View style={apiStyles.section}>
@@ -257,17 +287,14 @@ async function loadSettings() {
             
             <View style={apiStyles.offGridModeContainer}>
               <View style={apiStyles.offGridModeRow}>
-                <Text style={apiStyles.offGridModeLabel}>Off Grid mode</Text>
+                <Text style={apiStyles.offGridModeLabel}>Gold Off Grid</Text>
                 <Switch
                   value={offGridMode}
                   onValueChange={handleOffGridModeToggle}
                   trackColor={{ false: colors.themeGrey, true: colors.gold }}
-                  thumbColor={offGridMode ? colors.white : colors.white}
+                  thumbColor={colors.white}
                 />
               </View>
-              <Text style={apiStyles.offGridModeDescription}>
-                Enter gold price manually instead of fetching live data
-              </Text>
             </View>
 
             <View style={apiStyles.manualPriceContainer}>
@@ -289,7 +316,38 @@ async function loadSettings() {
               </TouchableOpacity>
             </View>
 
-            {!offGridMode && (
+            <View style={apiStyles.offGridModeContainer}>
+              <View style={apiStyles.offGridModeRow}>
+                <Text style={apiStyles.offGridModeLabel}>Silver Off Grid</Text>
+                <Switch
+                  value={silverOffGridMode}
+                  onValueChange={handleSilverOffGridModeToggle}
+                  trackColor={{ false: colors.themeGrey, true: colors.silver }}
+                  thumbColor={colors.white}
+                />
+              </View>
+            </View>
+
+            <View style={apiStyles.manualPriceContainer}>
+              <Text style={apiStyles.label}>Manual Silver Price ({settings.currency}/{settings.unit})</Text>
+              <TextInput
+                style={apiStyles.input}
+                placeholder="Enter silver price"
+                placeholderTextColor="#666"
+                value={manualSilverPriceInput}
+                onChangeText={setManualSilverPriceInput}
+                keyboardType="numeric"
+              />
+              <TouchableOpacity
+                style={[apiStyles.saveButtonSilver, !manualSilverPriceInput && apiStyles.buttonDisabled]}
+                onPress={handleManualSilverPriceSubmit}
+                disabled={!manualSilverPriceInput}
+              >
+                <Text style={apiStyles.saveButtonText}>Submit Price</Text>
+              </TouchableOpacity>
+            </View>
+
+            {!offGridMode && !silverOffGridMode && (
               <>
                 <TouchableOpacity style={apiStyles.linkButton} onPress={openMetalsDev}>
                   <Text style={apiStyles.linkButtonText}>Get free API key at metals.dev ↗</Text>
@@ -313,13 +371,12 @@ async function loadSettings() {
                   </Text>
                 </TouchableOpacity>
               </>
-)}
-            );
-          })}
-        </View>
+            )}
+          </View>
+        )}
+      </View>
 
-      <>
-      {offGridMode && (
+      {(offGridMode || silverOffGridMode) && (
         <TouchableOpacity style={apiStyles.continueButton} onPress={handleGoBack}>
           <Text style={apiStyles.continueButtonText}>Continue</Text>
         </TouchableOpacity>
@@ -332,7 +389,6 @@ async function loadSettings() {
       )}
 
       <View style={{ height: 120 }} />
-      </>
     </ScrollView>
   );
 }
@@ -431,6 +487,12 @@ const apiStyles = {
   } as const,
   saveButton: {
     backgroundColor: colors.gold,
+    borderRadius: 8,
+    padding: 14,
+    alignItems: 'center' as const,
+  } as const,
+  saveButtonSilver: {
+    backgroundColor: colors.silver,
     borderRadius: 8,
     padding: 14,
     alignItems: 'center' as const,

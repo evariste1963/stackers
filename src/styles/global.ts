@@ -4,6 +4,7 @@ export const colors = {
   background: "#000000",
   themeGrey: "#1a1a1a",
   gold: "#D4AF37",
+  silver: "#C0C0C0",
   darkGold: "#B8860B",
   themeBlue: "#13336f",
   chartAxis: "#D4AF37",
