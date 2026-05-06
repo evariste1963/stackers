@@ -131,6 +131,9 @@ const updateManualPrice = useCallback(async (price: number) => {
       currentSettings.currency,
       currentSettings.unit
     );
+    await saveToHistory(price, change, changePercent);
+    const fullHistory = await getHistory();
+    setHistory(fullHistory);
     setPriceData(savedData);
     setSettings(prev => ({ ...prev, manualPrice: price, previousManualPrice: previousPrice }));
   }, []);

@@ -54,17 +54,19 @@ export async function saveToHistory(
   try {
     const database = await getDb();
     
-    const existing = await database.getAllAsync<{ id: number }>(
-      'SELECT id FROM gold_price_history WHERE date = ?',
+    const existing = await database.getAllAsync<HistoryRow>(
+      'SELECT * FROM gold_price_history WHERE date = ?',
       [targetDate]
     );
     
     if (existing.length > 0) {
-      await database.runAsync(`
-        UPDATE gold_price_history 
-        SET price = ?, change = ?, changePercent = ?
-        WHERE date = ?
-      `, [price, change, changePercent, targetDate]);
+      if (price > existing[0].price) {
+        await database.runAsync(`
+          UPDATE gold_price_history 
+          SET price = ?, change = ?, changePercent = ?
+          WHERE date = ?
+        `, [price, change, changePercent, targetDate]);
+      }
     } else {
       await database.runAsync(`
         INSERT INTO gold_price_history (date, price, change, changePercent)
