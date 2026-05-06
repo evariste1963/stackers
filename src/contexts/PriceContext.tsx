@@ -1,34 +1,44 @@
 import { createContext, useContext, useState, useEffect, useCallback, useRef, ReactNode } from 'react';
 import { getLatestPrice, saveSpotPrice, type GoldPriceData } from '@/services/priceService';
+import { getLatestSilverPrice, saveSilverSpotPrice, type SilverPriceData } from '@/services/silverPriceService';
 import { getHistory, saveToHistory, migrateStaticData, getHistoryLength, type HistoryEntry } from '@/services/historyService';
-import { getApiKey, getUserSettings, migrateFromKVStore, updateManualPrice as saveManualPriceToSettings, updateManualHighLow as saveManualHighLow, type UserSettings } from '@/services/settingsService';
-import { fetchGoldPrice } from '@/services/goldPriceApi';
+import { getApiKey, getUserSettings, migrateFromKVStore, updateManualPrice as saveManualPriceToSettings, updateManualHighLow as saveManualHighLow, updateManualSilverPrice as saveManualSilverPrice, updateManualSilverHighLow as saveManualSilverHighLow, type UserSettings } from '@/services/settingsService';
+import { fetchGoldPrice, fetchSilverPrice, type MetalType } from '@/services/metalPriceApi';
 
 interface PriceContextType {
-  priceData: GoldPriceData | null;
-  history: HistoryEntry[];
+  goldPriceData: GoldPriceData | null;
+  silverPriceData: SilverPriceData | null;
+  goldHistory: HistoryEntry[];
+  silverHistory: HistoryEntry[];
   settings: UserSettings;
   isLoading: boolean;
   isSettingsLoading: boolean;
   error: string | null;
-  refreshPrice: () => Promise<void>;
-  refreshPriceFromDb: () => Promise<void>;
+  refreshGoldPrice: () => Promise<void>;
+  refreshSilverPrice: () => Promise<void>;
+  refreshPricesFromDb: () => Promise<void>;
   apiKeyConfigured: boolean;
   refreshSettings: () => Promise<void>;
   offGridMode: boolean;
+  silverOffGridMode: boolean;
   updateManualPrice: (price: number) => Promise<void>;
+  updateManualSilverPrice: (price: number) => Promise<void>;
   updateManualHighLow: (high: number, low: number) => Promise<void>;
+  updateManualSilverHighLow: (high: number, low: number) => Promise<void>;
 }
 
 const PriceContext = createContext<PriceContextType | undefined>(undefined);
 
 export function PriceProvider({ children }: { children: ReactNode }) {
-  const [priceData, setPriceData] = useState<GoldPriceData | null>(null);
-  const [history, setHistory] = useState<HistoryEntry[]>([]);
+  const [goldPriceData, setGoldPriceData] = useState<GoldPriceData | null>(null);
+  const [silverPriceData, setSilverPriceData] = useState<SilverPriceData | null>(null);
+  const [goldHistory, setGoldHistory] = useState<HistoryEntry[]>([]);
+  const [silverHistory, setSilverHistory] = useState<HistoryEntry[]>([]);
   const [settings, setSettings] = useState<UserSettings>({
     currency: 'GBP',
     unit: 'toz',
     hasApiKey: false,
+    defaultMetal: 'gold',
     manualPrice: null,
     createdAt: '',
     updatedAt: '',
@@ -38,11 +48,12 @@ export function PriceProvider({ children }: { children: ReactNode }) {
   const [error, setError] = useState<string | null>(null);
 
   const offGridMode = !settings.hasApiKey && settings.manualPrice !== null && settings.manualPrice !== undefined && settings.manualPrice > 0;
+  const silverOffGridMode = !settings.hasApiKey && settings.manualSilverPrice !== null && settings.manualSilverPrice !== undefined && settings.manualSilverPrice > 0;
   
   const settingsRef = useRef(settings);
   settingsRef.current = settings;
 
-  const refreshPrice = useCallback(async () => {
+  const refreshGoldPrice = useCallback(async () => {
     const apiKey = await getApiKey();
     if (!apiKey) {
       setError('API key not configured');
@@ -68,16 +79,58 @@ export function PriceProvider({ children }: { children: ReactNode }) {
         currentSettings.unit
       );
       
-      await saveToHistory(result.price, result.change, result.changePercent);
-      setPriceData(savedData);
+      await saveToHistory(result.price, result.change, result.changePercent, 'gold');
+      setGoldPriceData(savedData);
       
       await saveManualHighLow(result.high, result.low);
       setSettings(prev => ({ ...prev, manualHighPrice: result.high, manualLowPrice: result.low }));
       
-      const fullHistory = await getHistory();
-      setHistory(fullHistory);
+      const fullHistory = await getHistory('gold');
+      setGoldHistory(fullHistory);
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to fetch price';
+      const message = err instanceof Error ? err.message : 'Failed to fetch gold price';
+      setError(message);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  const refreshSilverPrice = useCallback(async () => {
+    const apiKey = await getApiKey();
+    if (!apiKey) {
+      setError('API key not configured');
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const currentSettings = settingsRef.current;
+      const result = await fetchSilverPrice(apiKey, currentSettings.currency, currentSettings.unit);
+      
+      const savedData = await saveSilverSpotPrice(
+        result.price,
+        result.ask,
+        result.bid,
+        result.high,
+        result.low,
+        result.change,
+        result.changePercent,
+        currentSettings.currency,
+        currentSettings.unit
+      );
+      
+      await saveToHistory(result.price, result.change, result.changePercent, 'silver');
+      setSilverPriceData(savedData);
+      
+      await saveManualSilverHighLow(result.high, result.low);
+      setSettings(prev => ({ ...prev, manualSilverHighPrice: result.high, manualSilverLowPrice: result.low }));
+      
+      const fullHistory = await getHistory('silver');
+      setSilverHistory(fullHistory);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to fetch silver price';
       setError(message);
     } finally {
       setIsLoading(false);
@@ -90,14 +143,18 @@ export function PriceProvider({ children }: { children: ReactNode }) {
     setIsSettingsLoading(false);
   }, []);
 
-  const refreshPriceFromDb = useCallback(async () => {
-    const cached = await getLatestPrice();
-    if (cached) {
-      setPriceData(cached);
+  const refreshPricesFromDb = useCallback(async () => {
+    const cachedGold = await getLatestPrice();
+    if (cachedGold) {
+      setGoldPriceData(cachedGold);
+    }
+    const cachedSilver = await getLatestSilverPrice();
+    if (cachedSilver) {
+      setSilverPriceData(cachedSilver);
     }
   }, []);
 
-const updateManualPrice = useCallback(async (price: number) => {
+  const updateManualPrice = useCallback(async (price: number) => {
     await saveManualPriceToSettings(price);
     
     const currentSettings = settingsRef.current;
@@ -131,16 +188,62 @@ const updateManualPrice = useCallback(async (price: number) => {
       currentSettings.currency,
       currentSettings.unit
     );
-    await saveToHistory(price, change, changePercent);
-    const fullHistory = await getHistory();
-    setHistory(fullHistory);
-    setPriceData(savedData);
+    await saveToHistory(price, change, changePercent, 'gold');
+    const fullHistory = await getHistory('gold');
+    setGoldHistory(fullHistory);
+    setGoldPriceData(savedData);
     setSettings(prev => ({ ...prev, manualPrice: price, previousManualPrice: previousPrice }));
+  }, []);
+
+  const updateManualSilverPrice = useCallback(async (price: number) => {
+    await saveManualSilverPrice(price);
+    
+    const currentSettings = settingsRef.current;
+    const previousPrice = currentSettings.manualSilverPrice;
+    const change = previousPrice !== null && previousPrice !== undefined && previousPrice > 0 ? price - previousPrice : 0;
+    const changePercent = previousPrice !== null && previousPrice !== undefined && previousPrice > 0 ? (change / previousPrice) * 100 : 0;
+    
+    let newHigh = currentSettings.manualSilverHighPrice ?? price;
+    let newLow = currentSettings.manualSilverLowPrice ?? price;
+    
+    if (price > newHigh) {
+      newHigh = price;
+    }
+    if (price < newLow || newLow === null || newLow === undefined) {
+      newLow = price;
+    }
+    
+    if (newHigh !== currentSettings.manualSilverHighPrice || newLow !== currentSettings.manualSilverLowPrice) {
+      await saveManualSilverHighLow(newHigh, newLow);
+      setSettings(prev => ({ ...prev, manualSilverHighPrice: newHigh, manualSilverLowPrice: newLow }));
+    }
+    
+    const savedData = await saveSilverSpotPrice(
+      price,
+      price,
+      price,
+      newHigh,
+      newLow,
+      change,
+      changePercent,
+      currentSettings.currency,
+      currentSettings.unit
+    );
+    await saveToHistory(price, change, changePercent, 'silver');
+    const fullHistory = await getHistory('silver');
+    setSilverHistory(fullHistory);
+    setSilverPriceData(savedData);
+    setSettings(prev => ({ ...prev, manualSilverPrice: price }));
   }, []);
 
   const updateManualHighLow = useCallback(async (high: number, low: number) => {
     await saveManualHighLow(high, low);
     setSettings(prev => ({ ...prev, manualHighPrice: high, manualLowPrice: low }));
+  }, []);
+
+  const updateManualSilverHighLow = useCallback(async (high: number, low: number) => {
+    await saveManualSilverHighLow(high, low);
+    setSettings(prev => ({ ...prev, manualSilverHighPrice: high, manualSilverLowPrice: low }));
   }, []);
 
   useEffect(() => {
@@ -149,20 +252,34 @@ const updateManualPrice = useCallback(async (price: number) => {
     const init = async () => {
       const apiKey = await getApiKey();
 
-      const cached = await getLatestPrice();
-      if (mounted && cached) {
-        setPriceData(cached);
+      const cachedGold = await getLatestPrice();
+      if (mounted && cachedGold) {
+        setGoldPriceData(cachedGold);
+      }
+      
+      const cachedSilver = await getLatestSilverPrice();
+      if (mounted && cachedSilver) {
+        setSilverPriceData(cachedSilver);
       }
       
       await migrateFromKVStore();
       
-      const historyLength = await getHistoryLength();
-      if (mounted && historyLength === 0) {
-        await migrateStaticData();
+      const goldHistoryLength = await getHistoryLength('gold');
+      if (mounted && goldHistoryLength === 0) {
+        await migrateStaticData('gold');
       }
-      const fullHistory = await getHistory();
+      const goldHistoryData = await getHistory('gold');
       if (mounted) {
-        setHistory(fullHistory);
+        setGoldHistory(goldHistoryData);
+      }
+      
+      const silverHistoryLength = await getHistoryLength('silver');
+      if (mounted && silverHistoryLength === 0) {
+        await migrateStaticData('silver');
+      }
+      const silverHistoryData = await getHistory('silver');
+      if (mounted) {
+        setSilverHistory(silverHistoryData);
       }
       
       const s = await getUserSettings();
@@ -184,7 +301,22 @@ const updateManualPrice = useCallback(async (price: number) => {
             s.currency,
             s.unit
           );
-          setPriceData(savedData);
+          setGoldPriceData(savedData);
+        }
+        
+        if (s.manualSilverPrice !== null && s.manualSilverPrice !== undefined && !apiKey) {
+          const savedData = await saveSilverSpotPrice(
+            s.manualSilverPrice,
+            s.manualSilverPrice,
+            s.manualSilverPrice,
+            s.manualSilverHighPrice ?? s.manualSilverPrice,
+            s.manualSilverLowPrice ?? s.manualSilverPrice,
+            0,
+            0,
+            s.currency,
+            s.unit
+          );
+          setSilverPriceData(savedData);
         }
         
         setSettings(s);
@@ -199,19 +331,25 @@ const updateManualPrice = useCallback(async (price: number) => {
 
   return (
     <PriceContext.Provider value={{
-      priceData,
-      history,
+      goldPriceData,
+      silverPriceData,
+      goldHistory,
+      silverHistory,
       settings,
       isLoading,
       isSettingsLoading,
       error,
-      refreshPrice,
-      refreshPriceFromDb,
+      refreshGoldPrice,
+      refreshSilverPrice,
+      refreshPricesFromDb,
       apiKeyConfigured: settings.hasApiKey,
       refreshSettings,
       offGridMode,
+      silverOffGridMode,
       updateManualPrice,
+      updateManualSilverPrice,
       updateManualHighLow,
+      updateManualSilverHighLow,
     }}>
       {children}
     </PriceContext.Provider>

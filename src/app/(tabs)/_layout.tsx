@@ -4,6 +4,7 @@ import { Tabs } from 'expo-router';
 
 const tabs = [
   { name: 'index', title: 'Home', icon: 'home' },
+  { name: 'portfolio', title: 'Portfolio', icon: 'wallet' },
   { name: 'yourStack', title: 'Your Stack', icon: 'prism' },
   { name: 'add2stack', title: 'Add-2-stack', icon: 'add-circle' },
   { name: 'account', title: 'Account', icon: 'person-sharp' },

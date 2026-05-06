@@ -2,9 +2,10 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'expo-router';
 import { globalStyles, colors } from '@/styles/global';
 import { Text, View, TextInput, TouchableOpacity, ScrollView, Alert, Linking, Image, Switch } from 'react-native';
-import { getUserSettings, updateApiKey, removeApiKey, updatePreference, updateManualPrice as clearManualPrice, type UserSettings } from '@/services/settingsService';
+import { getUserSettings, updateApiKey, removeApiKey, updatePreference, updateManualPrice as clearManualPrice, updateManualSilverPrice as clearManualSilverPrice, type UserSettings } from '@/services/settingsService';
 import { getAllItems } from '@/services/stackStorage';
 import { saveSpotPrice } from '@/services/priceService';
+import { saveSilverSpotPrice } from '@/services/silverPriceService';
 import { AVAILABLE_CURRENCIES, AVAILABLE_UNITS, METALS_DEV_URL } from '@/config';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePrice } from '@/contexts/PriceContext';
@@ -12,18 +13,21 @@ import { usePrice } from '@/contexts/PriceContext';
 export default function ApiSettingsScreen() {
   const router = useRouter();
   const { isAuthenticated, hasPinSet } = useAuth();
-  const { updateManualPrice } = usePrice();
+  const { updateManualPrice, updateManualSilverPrice } = usePrice();
   const [settings, setSettings] = useState<UserSettings>({
     currency: 'GBP',
     unit: 'toz',
     hasApiKey: false,
+    defaultMetal: 'gold',
     manualPrice: null,
     createdAt: '',
     updatedAt: '',
   });
   const [apiKeyInput, setApiKeyInput] = useState('');
   const [manualPriceInput, setManualPriceInput] = useState('');
+  const [manualSilverPriceInput, setManualSilverPriceInput] = useState('');
   const [offGridMode, setOffGridMode] = useState(false);
+  const [silverOffGridMode, setSilverOffGridMode] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [hasStackItems, setHasStackItems] = useState(false);
@@ -50,6 +54,11 @@ async function loadSettings() {
       setOffGridMode(hasManual);
       if (s.manualPrice) {
         setManualPriceInput(s.manualPrice.toString());
+      }
+      const hasSilverManual = s.manualSilverPrice !== null && s.manualSilverPrice !== undefined && s.manualSilverPrice > 0;
+      setSilverOffGridMode(hasSilverManual);
+      if (s.manualSilverPrice) {
+        setManualSilverPriceInput(s.manualSilverPrice.toString());
       }
     } catch (error) {
       console.error('Error loading settings:', error);
@@ -138,6 +147,44 @@ async function loadSettings() {
     } catch (error) {
       Alert.alert('Error', 'Failed to update unit');
     }
+  }
+
+  async function handleDefaultMetalChange(metal: string) {
+    try {
+      await updatePreference('defaultMetal', metal);
+      setSettings(prev => ({ ...prev, defaultMetal: metal as 'gold' | 'silver' }));
+    } catch (error) {
+      Alert.alert('Error', 'Failed to update default metal');
+    }
+  }
+
+  async function handleSilverOffGridModeToggle(value: boolean) {
+    if (value && (!settings.manualSilverPrice || settings.manualSilverPrice <= 0)) {
+      Alert.alert('Enter Price First', 'Please enter a silver price and tap Submit Price first.');
+      return;
+    }
+    setSilverOffGridMode(value);
+    if (!value) {
+      await clearManualSilverPrice(null);
+      await saveSilverSpotPrice(0, 0, 0, 0, 0, 0, 0, settings.currency, settings.unit);
+      setSettings(prev => ({ ...prev, manualSilverPrice: null }));
+      setManualSilverPriceInput('');
+    }
+  }
+
+  function handleManualSilverPriceChange(text: string) {
+    setManualSilverPriceInput(text);
+  }
+
+  async function handleManualSilverPriceSubmit() {
+    const price = parseFloat(manualSilverPriceInput);
+    if (isNaN(price) || price <= 0) {
+      Alert.alert('Invalid Price', 'Please enter a valid silver price.');
+      return;
+    }
+    await updateManualSilverPrice(price);
+    setSettings(prev => ({ ...prev, manualSilverPrice: price }));
+    setSilverOffGridMode(true);
   }
 
   async function handleOffGridModeToggle(value: boolean) {
@@ -266,82 +313,12 @@ async function loadSettings() {
                   </Text>
                 </TouchableOpacity>
               </>
-            )}
-          </View>
-        )}
-      </View>
-
-      <View style={apiStyles.section}>
-        <Text style={apiStyles.sectionTitle}>Preferences</Text>
-
-        {/* Currency and unit cannot be changed while stack has items - see guide.tsx for details */}
-        {hasStackItems && (
-          <Text style={apiStyles.lockedNote}>
-            Currency and unit are locked because you have items in your stack. Remove all items to change preferences.
-          </Text>
-        )}
-
-        <Text style={apiStyles.label}>Currency</Text>
-        <View style={apiStyles.optionsRow}>
-          {AVAILABLE_CURRENCIES.map((curr) => {
-            const isActive = settings.currency === curr.code;
-            const isDisabled = hasStackItems && !isActive;
-            return (
-              <TouchableOpacity
-                key={curr.code}
-                style={[
-                  apiStyles.optionButton,
-                  isActive && apiStyles.optionButtonActive,
-                  isDisabled && apiStyles.optionButtonDisabled,
-                ]}
-                onPress={() => !isDisabled && handleCurrencyChange(curr.code)}
-                disabled={isDisabled}
-              >
-                <Text
-                  style={[
-                    apiStyles.optionButtonText,
-                    isActive && apiStyles.optionButtonTextActive,
-                    isDisabled && apiStyles.optionButtonTextDisabled,
-                  ]}
-                >
-                  {curr.code} ({curr.symbol})
-                </Text>
-              </TouchableOpacity>
+)}
             );
           })}
         </View>
 
-        <Text style={apiStyles.label}>Unit</Text>
-        <View style={apiStyles.optionsRow}>
-          {AVAILABLE_UNITS.map((u) => {
-            const isActive = settings.unit === u.code;
-            const isDisabled = hasStackItems && !isActive;
-            return (
-              <TouchableOpacity
-                key={u.code}
-                style={[
-                  apiStyles.optionButton,
-                  isActive && apiStyles.optionButtonActive,
-                  isDisabled && apiStyles.optionButtonDisabled,
-                ]}
-                onPress={() => !isDisabled && handleUnitChange(u.code)}
-                disabled={isDisabled}
-              >
-                <Text
-                  style={[
-                    apiStyles.optionButtonText,
-                    isActive && apiStyles.optionButtonTextActive,
-                    isDisabled && apiStyles.optionButtonTextDisabled,
-                  ]}
-                >
-                  {u.name} ({u.abbrev})
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-      </View>
-
+      <>
       {offGridMode && (
         <TouchableOpacity style={apiStyles.continueButton} onPress={handleGoBack}>
           <Text style={apiStyles.continueButtonText}>Continue</Text>
@@ -355,6 +332,7 @@ async function loadSettings() {
       )}
 
       <View style={{ height: 120 }} />
+      </>
     </ScrollView>
   );
 }

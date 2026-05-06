@@ -1,12 +1,16 @@
 import { Text, View, TouchableOpacity, TextInput, Modal, Alert, ActivityIndicator } from 'react-native';
 import { colors } from '@/styles/global';
 import { type GoldPriceData } from '@/services/priceService';
+import { type SilverPriceData } from '@/services/silverPriceService';
 import { type UserSettings } from '@/services/settingsService';
 import { getCurrencySymbol, formatDate } from '@/utils/formatters';
 import { useState } from 'react';
 
+type MetalType = 'gold' | 'silver';
+
 type GoldPriceBannerProps = {
-  priceData: GoldPriceData | null;
+  priceData: GoldPriceData | SilverPriceData | null;
+  metal?: MetalType;
   isLoading: boolean;
   error: string | null;
   refreshPrice: () => Promise<void>;
@@ -17,7 +21,8 @@ type GoldPriceBannerProps = {
   onPriceUpdateStart?: () => void;
 };
 
-export default function GoldPriceBanner({ priceData, isLoading, error, refreshPrice, settings, showRefresh = true, offGridMode = false, onManualPriceChange, onPriceUpdateStart }: GoldPriceBannerProps) {
+export default function GoldPriceBanner({ priceData, metal = 'gold', isLoading, error, refreshPrice, settings, showRefresh = true, offGridMode = false, onManualPriceChange, onPriceUpdateStart }: GoldPriceBannerProps) {
+  const metalLabel = metal === 'gold' ? 'Gold' : 'Silver';
   const [modalVisible, setModalVisible] = useState(false);
   const [manualPriceInput, setManualPriceInput] = useState(priceData?.price?.toString() || '');
 
@@ -76,7 +81,7 @@ const changeColor = getChangeColor(priceData?.change);
     <View style={styles.container}>
       <View style={styles.content}>
         <View style={styles.left}>
-          <Text style={styles.label}>Gold Price ({settings.currency}/{settings.unit})</Text>
+          <Text style={styles.label}>{metalLabel} Price ({settings.currency}/{settings.unit})</Text>
           <View style={styles.priceRow}>
             <Text style={[styles.price, { flex: 0.6 }]}>{formatPrice(priceData?.price)}</Text>
             {priceData?.change !== undefined && priceData?.change !== null && (
@@ -126,7 +131,7 @@ const changeColor = getChangeColor(priceData?.change);
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Update Gold Price</Text>
+            <Text style={styles.modalTitle}>Update {metalLabel} Price</Text>
             <Text style={styles.modalLabel}>Enter new gold price ({settings.currency}/{settings.unit})</Text>
             <TextInput
               style={styles.modalInput}

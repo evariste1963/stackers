@@ -1,6 +1,8 @@
 import { getDb } from './db';
 import { priceData as staticPriceData } from '../../assets/priceData.js';
 
+export type MetalType = 'gold' | 'silver';
+
 export interface HistoryEntry {
   date: string;
   price: number;
@@ -19,10 +21,15 @@ interface CountRow {
   count: number;
 }
 
-export async function getHistory(): Promise<HistoryEntry[]> {
+function getHistoryTable(metal: MetalType): string {
+  return metal === 'gold' ? 'gold_price_history' : 'silver_price_history';
+}
+
+export async function getHistory(metal: MetalType = 'gold'): Promise<HistoryEntry[]> {
   try {
     const database = await getDb();
-    const rows = await database.getAllAsync<HistoryRow>('SELECT * FROM gold_price_history ORDER BY date ASC');
+    const tableName = getHistoryTable(metal);
+    const rows = await database.getAllAsync<HistoryRow>(`SELECT * FROM ${tableName} ORDER BY date ASC`);
     
     return rows.map(row => ({
       date: row.date,
@@ -40,6 +47,7 @@ export async function saveToHistory(
   price: number, 
   change: number = 0, 
   changePercent: number = 0,
+  metal: MetalType = 'gold',
   date?: string
 ): Promise<HistoryEntry> {
   const targetDate = date || new Date().toISOString().split('T')[0];
@@ -53,23 +61,24 @@ export async function saveToHistory(
 
   try {
     const database = await getDb();
+    const tableName = getHistoryTable(metal);
     
     const existing = await database.getAllAsync<HistoryRow>(
-      'SELECT * FROM gold_price_history WHERE date = ?',
+      `SELECT * FROM ${tableName} WHERE date = ?`,
       [targetDate]
     );
     
     if (existing.length > 0) {
       if (price > existing[0].price) {
         await database.runAsync(`
-          UPDATE gold_price_history 
+          UPDATE ${tableName} 
           SET price = ?, change = ?, changePercent = ?
           WHERE date = ?
         `, [price, change, changePercent, targetDate]);
       }
     } else {
       await database.runAsync(`
-        INSERT INTO gold_price_history (date, price, change, changePercent)
+        INSERT INTO ${tableName} (date, price, change, changePercent)
         VALUES (?, ?, ?, ?)
       `, [targetDate, price, change, changePercent]);
     }
@@ -81,10 +90,11 @@ export async function saveToHistory(
   }
 }
 
-export async function migrateStaticData(): Promise<void> {
+export async function migrateStaticData(metal: MetalType = 'gold'): Promise<void> {
   try {
     const database = await getDb();
-    const rows = await database.getAllAsync<CountRow>('SELECT COUNT(*) as count FROM gold_price_history');
+    const tableName = getHistoryTable(metal);
+    const rows = await database.getAllAsync<CountRow>(`SELECT COUNT(*) as count FROM ${tableName}`);
     
     if (rows[0].count > 0) return;
     
@@ -98,21 +108,22 @@ export async function migrateStaticData(): Promise<void> {
     if (staticEntries.length > 0) {
       for (const entry of staticEntries) {
         await database.runAsync(`
-          INSERT INTO gold_price_history (date, price, change, changePercent)
+          INSERT INTO ${tableName} (date, price, change, changePercent)
           VALUES (?, ?, ?, ?)
         `, [entry.date, entry.price, entry.change, entry.changePercent]);
       }
-      console.log('Migrated', staticEntries.length, 'static price entries to SQLite');
+      console.log('Migrated', staticEntries.length, 'static price entries to SQLite for', metal);
     }
   } catch (error) {
     console.error('Error migrating static data:', error);
   }
 }
 
-export async function getHistoryLength(): Promise<number> {
+export async function getHistoryLength(metal: MetalType = 'gold'): Promise<number> {
   try {
     const database = await getDb();
-    const rows = await database.getAllAsync<CountRow>('SELECT COUNT(*) as count FROM gold_price_history');
+    const tableName = getHistoryTable(metal);
+    const rows = await database.getAllAsync<CountRow>(`SELECT COUNT(*) as count FROM ${tableName}`);
     return rows[0].count;
   } catch (error) {
     console.error('Error getting history length:', error);

@@ -28,6 +28,7 @@ export async function initAllTables(): Promise<void> {
       purchasePrice TEXT NOT NULL,
       premium TEXT NOT NULL DEFAULT '',
       imageUri TEXT,
+      metal TEXT NOT NULL DEFAULT 'gold',
       createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
     );
   `);
@@ -51,6 +52,33 @@ export async function initAllTables(): Promise<void> {
   
   await database.execAsync(`
     CREATE TABLE IF NOT EXISTS gold_price_history (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      date TEXT,
+      price REAL,
+      change REAL,
+      changePercent REAL
+    );
+  `);
+  
+  await database.execAsync(`
+    CREATE TABLE IF NOT EXISTS silver_price_latest (
+      id INTEGER PRIMARY KEY CHECK (id = 1),
+      price REAL,
+      ask REAL,
+      bid REAL,
+      high REAL,
+      low REAL,
+      change REAL,
+      changePercent REAL,
+      date TEXT,
+      currency TEXT,
+      unit TEXT,
+      fetchedAt TEXT
+    );
+  `);
+  
+  await database.execAsync(`
+    CREATE TABLE IF NOT EXISTS silver_price_history (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       date TEXT,
       price REAL,
@@ -130,6 +158,71 @@ export async function initAllTables(): Promise<void> {
     if (!hasColumn) {
       try {
         await database.execAsync('ALTER TABLE user_settings ADD COLUMN previousManualPrice REAL');
+      } catch {}
+    }
+  }
+  
+  {
+    let hasColumn = false;
+    try {
+      await database.getFirstAsync('SELECT metal FROM stack_items WHERE id = 1');
+      hasColumn = true;
+    } catch {}
+    if (!hasColumn) {
+      try {
+        await database.execAsync('ALTER TABLE stack_items ADD COLUMN metal TEXT DEFAULT gold');
+      } catch {}
+    }
+  }
+  
+  {
+    let hasColumn = false;
+    try {
+      await database.getFirstAsync('SELECT manualSilverPrice FROM user_settings WHERE id = 1');
+      hasColumn = true;
+    } catch {}
+    if (!hasColumn) {
+      try {
+        await database.execAsync('ALTER TABLE user_settings ADD COLUMN manualSilverPrice REAL');
+      } catch {}
+    }
+  }
+  
+  {
+    let hasColumn = false;
+    try {
+      await database.getFirstAsync('SELECT manualSilverHighPrice FROM user_settings WHERE id = 1');
+      hasColumn = true;
+    } catch {}
+    if (!hasColumn) {
+      try {
+        await database.execAsync('ALTER TABLE user_settings ADD COLUMN manualSilverHighPrice REAL');
+      } catch {}
+    }
+  }
+  
+  {
+    let hasColumn = false;
+    try {
+      await database.getFirstAsync('SELECT manualSilverLowPrice FROM user_settings WHERE id = 1');
+      hasColumn = true;
+    } catch {}
+    if (!hasColumn) {
+      try {
+        await database.execAsync('ALTER TABLE user_settings ADD COLUMN manualSilverLowPrice REAL');
+      } catch {}
+    }
+  }
+  
+  {
+    let hasColumn = false;
+    try {
+      await database.getFirstAsync('SELECT defaultMetal FROM user_settings WHERE id = 1');
+      hasColumn = true;
+    } catch {}
+    if (!hasColumn) {
+      try {
+        await database.execAsync('ALTER TABLE user_settings ADD COLUMN defaultMetal TEXT DEFAULT gold');
       } catch {}
     }
   }

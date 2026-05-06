@@ -7,7 +7,7 @@ import { GestureDetector } from 'react-native-gesture-handler';
 import { useSwipeNavigation } from '@/hooks/useSwipeNavigation';
 import * as ImagePicker from 'expo-image-picker';
 import { File, Directory, Paths } from 'expo-file-system';
-import { addItem, cleanOrphanedImages, getItemById, updateItem } from '@/services/stackStorage';
+import { addItem, cleanOrphanedImages, getItemById, updateItem, type MetalType } from '@/services/stackStorage';
 import { getUserSettings } from '@/services/settingsService';
 import { getUnitAbbrev } from '@/utils/formatters';
 import GoldPriceBanner from '@/components/GoldPriceBanner';
@@ -15,7 +15,7 @@ import { usePrice } from '@/contexts/PriceContext';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function AddToStackScreen() {
-  const { priceData, isLoading, error, refreshPrice, settings, offGridMode, updateManualPrice } = usePrice();
+  const { goldPriceData, silverPriceData, isLoading, settings, offGridMode, silverOffGridMode, refreshGoldPrice, refreshSilverPrice, updateManualPrice, updateManualSilverPrice } = usePrice();
   const { swipeGesture } = useSwipeNavigation('add2stack');
   const params = useLocalSearchParams<{ editId?: string }>();
   const editId = params.editId ? parseInt(params.editId, 10) : null;
@@ -30,6 +30,7 @@ export default function AddToStackScreen() {
   const [submitting, setSubmitting] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [weightUnit, setWeightUnit] = useState('toz');
+  const [metal, setMetal] = useState<MetalType>('gold');
 
   const clearForm = () => {
     setCode('');
@@ -38,6 +39,7 @@ export default function AddToStackScreen() {
     setTotalAmount('');
     setImageUri(null);
     setOriginalImageUri(null);
+    setMetal('gold');
   };
 
   const computedCostPerUnit = (() => {
@@ -56,12 +58,11 @@ export default function AddToStackScreen() {
     useCallback(() => {
       getUserSettings().then(settings => {
         setWeightUnit(settings.unit || 'toz');
+        setMetal(settings.defaultMetal || 'gold');
       });
 
-      // Always clear form on focus first
       clearForm();
 
-      // Then load item data if we're editing
       if (editId) {
         getItemById(editId).then(item => {
           if (item) {
@@ -70,6 +71,7 @@ export default function AddToStackScreen() {
             setPurchasePrice(item.purchasePrice);
             setImageUri(item.imageUri);
             setOriginalImageUri(item.imageUri);
+            setMetal(item.metal || 'gold');
           }
         });
       }
@@ -120,11 +122,10 @@ export default function AddToStackScreen() {
           purchasePrice: finalCost,
           premium: '',
           imageUri: savedUri,
+          metal,
         });
         await cleanOrphanedImages();
-        // Clear form and reset URL before navigating
         clearForm();
-        // Clear the editId parameter from the current route
         router.setParams({ editId: undefined });
         router.replace('/yourStack');
       } else {
@@ -134,6 +135,7 @@ export default function AddToStackScreen() {
           purchasePrice: finalCost,
           premium: '',
           imageUri: savedUri,
+          metal,
         });
         await cleanOrphanedImages();
         setModalVisible(true);
@@ -176,7 +178,17 @@ export default function AddToStackScreen() {
           <Text style={globalStyles.title}>{isEditing ? 'Edit Item' : 'Add to Stack'}</Text>
         </View>
         <View style={styles.bannerContainer}>
-          <GoldPriceBanner priceData={priceData} isLoading={isLoading} error={error} refreshPrice={refreshPrice} settings={settings} showRefresh={false} offGridMode={offGridMode} onManualPriceChange={updateManualPrice} />
+          <GoldPriceBanner 
+            priceData={metal === 'gold' ? goldPriceData : silverPriceData} 
+            metal={metal}
+            isLoading={isLoading} 
+            error={null} 
+            refreshPrice={metal === 'gold' ? refreshGoldPrice : refreshSilverPrice} 
+            settings={settings} 
+            showRefresh={false} 
+            offGridMode={metal === 'gold' ? offGridMode : silverOffGridMode} 
+            onManualPriceChange={metal === 'gold' ? updateManualPrice : updateManualSilverPrice} 
+          />
         </View>
         <KeyboardAvoidingView style={styles.keyboardView} behavior="padding" keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}>
           <ScrollView style={styles.form} contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40 }} keyboardShouldPersistTaps="handled">
@@ -189,6 +201,23 @@ export default function AddToStackScreen() {
           {imageUri && (
             <Image source={{ uri: imageUri }} style={styles.preview} />
           )}
+          <View style={styles.metalSelector}>
+            <Text style={styles.label}>Metal Type</Text>
+            <View style={styles.metalOptions}>
+              <TouchableOpacity 
+                style={[styles.metalOption, metal === 'gold' && styles.metalOptionActive]}
+                onPress={() => setMetal('gold')}
+              >
+                <Text style={[styles.metalOptionText, metal === 'gold' && styles.metalOptionTextActive]}>Gold</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={[styles.metalOption, metal === 'silver' && styles.metalOptionActive]}
+                onPress={() => setMetal('silver')}
+              >
+                <Text style={[styles.metalOptionText, metal === 'silver' && styles.metalOptionTextActive]}>Silver</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
           <View style={styles.row}>
             <View style={styles.col}>
               <Text style={styles.label}>Item</Text>
@@ -275,6 +304,35 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: 'center',
     marginBottom: 12,
+  },
+  metalSelector: {
+    marginBottom: 16,
+  },
+  metalOptions: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  metalOption: {
+    flex: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#444',
+    backgroundColor: colors.themeGrey,
+    alignItems: 'center',
+  },
+  metalOptionActive: {
+    borderColor: colors.gold,
+    backgroundColor: colors.gold + '20',
+  },
+  metalOptionText: {
+    fontSize: 16,
+    color: colors.grey,
+    fontWeight: '600',
+  },
+  metalOptionTextActive: {
+    color: colors.gold,
   },
   cameraBtnContent: {
     flexDirection: 'row',

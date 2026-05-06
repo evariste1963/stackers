@@ -1,11 +1,12 @@
 import { globalStyles, colors } from "@/styles/global";
-import { Text, View, ScrollView, StyleSheet, Image } from 'react-native';
+import { Text, View, ScrollView, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import { router } from 'expo-router';
 import { useState, useCallback } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import { GestureDetector } from 'react-native-gesture-handler';
 import { useSwipeNavigation } from '@/hooks/useSwipeNavigation';
 import { getLatestPrice } from '@/services/priceService';
+import { getLatestSilverPrice } from '@/services/silverPriceService';
 import { getUserSettings } from '@/services/settingsService';
 import { useStack } from '@/contexts/StackContext';
 import StackItemCard from '@/components/StackItemCard';
@@ -14,15 +15,21 @@ import EmptyStackState from '@/components/EmptyStackState';
 export default function YourStackScreen() {
   const { items, refresh } = useStack();
   const { swipeGesture } = useSwipeNavigation('yourStack');
-  const [latestPrice, setLatestPrice] = useState<number | null>(null);
+  const [latestGoldPrice, setLatestGoldPrice] = useState<number | null>(null);
+  const [latestSilverPrice, setLatestSilverPrice] = useState<number | null>(null);
   const [currency, setCurrency] = useState('GBP');
   const [weightUnit, setWeightUnit] = useState('toz');
+  const [selectedMetal, setSelectedMetal] = useState<'gold' | 'silver'>('gold');
 
   const loadPriceAndSettings = useCallback(async () => {
-    const priceData = await getLatestPrice();
-    if (priceData) {
-      setLatestPrice(priceData.price);
-      setCurrency(priceData.currency);
+    const goldPriceData = await getLatestPrice();
+    if (goldPriceData) {
+      setLatestGoldPrice(goldPriceData.price);
+      setCurrency(goldPriceData.currency);
+    }
+    const silverPriceData = await getLatestSilverPrice();
+    if (silverPriceData) {
+      setLatestSilverPrice(silverPriceData.price);
     }
     const settings = await getUserSettings();
     if (settings.currency) {
@@ -31,6 +38,7 @@ export default function YourStackScreen() {
     if (settings.unit) {
       setWeightUnit(settings.unit);
     }
+    setSelectedMetal(settings.defaultMetal || 'gold');
   }, []);
 
   useFocusEffect(
@@ -48,9 +56,12 @@ export default function YourStackScreen() {
     router.push({ pathname: '/add2stack', params: { editId: itemId.toString() } });
   }, []);
 
+  const filteredItems = items.filter(item => item.metal === selectedMetal);
+  const latestPrice = selectedMetal === 'gold' ? latestGoldPrice : latestSilverPrice;
+
   const rows = [];
-  for (let i = 0; i < items.length; i += 2) {
-    rows.push(items.slice(i, i + 2));
+  for (let i = 0; i < filteredItems.length; i += 2) {
+    rows.push(filteredItems.slice(i, i + 2));
   }
 
 return (
@@ -61,8 +72,23 @@ return (
           <Text style={globalStyles.title}>Your Stack</Text>
         </View>
 
+        <View style={metalToggleStyles.container}>
+          <TouchableOpacity 
+            style={[metalToggleStyles.option, selectedMetal === 'gold' && metalToggleStyles.optionActive]}
+            onPress={() => setSelectedMetal('gold')}
+          >
+            <Text style={[metalToggleStyles.optionText, selectedMetal === 'gold' && metalToggleStyles.optionTextActive]}>Gold</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={[metalToggleStyles.option, selectedMetal === 'silver' && metalToggleStyles.optionActive]}
+            onPress={() => setSelectedMetal('silver')}
+          >
+            <Text style={[metalToggleStyles.optionText, selectedMetal === 'silver' && metalToggleStyles.optionTextActive]}>Silver</Text>
+          </TouchableOpacity>
+        </View>
+
         <ScrollView style={styles.gridContainer} contentContainerStyle={styles.scrollContent}>
-          {items.length === 0 ? (
+          {filteredItems.length === 0 ? (
             <EmptyStackState />
           ) : (
             <View style={styles.grid}>
@@ -88,6 +114,34 @@ return (
     </GestureDetector>
   );
 }
+
+const metalToggleStyles = {
+  container: {
+    flexDirection: 'row',
+    backgroundColor: '#2a2a2a',
+    borderRadius: 8,
+    padding: 4,
+    marginBottom: 15,
+  },
+  option: {
+    flex: 1,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 6,
+    alignItems: 'center',
+  },
+  optionActive: {
+    backgroundColor: colors.gold,
+  },
+  optionText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.grey,
+  },
+  optionTextActive: {
+    color: '#000',
+  },
+};
 
 const styles = StyleSheet.create({
   container: {

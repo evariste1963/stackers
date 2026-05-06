@@ -2,15 +2,20 @@ import * as SecureStore from 'expo-secure-store';
 import { getDb } from './db';
 import { savePrice, type GoldPriceData } from './priceService';
 import { saveToHistory, type HistoryEntry } from './historyService';
+import type { MetalType } from './stackStorage';
 
 export interface UserSettings {
   currency: string;
   unit: string;
   hasApiKey: boolean;
+  defaultMetal: MetalType;
   manualPrice?: number | null;
   manualHighPrice?: number | null;
   manualLowPrice?: number | null;
   previousManualPrice?: number | null;
+  manualSilverPrice?: number | null;
+  manualSilverHighPrice?: number | null;
+  manualSilverLowPrice?: number | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -19,6 +24,7 @@ export const DEFAULT_USER_SETTINGS: UserSettings = {
   currency: 'GBP',
   unit: 'toz',
   hasApiKey: false,
+  defaultMetal: 'gold',
   manualPrice: null,
   createdAt: '',
   updatedAt: '',
@@ -28,10 +34,14 @@ interface SettingsRow {
   currency: string;
   unit: string;
   hasApiKey: number;
+  defaultMetal: string;
   manualPrice: number | null;
   manualHighPrice: number | null;
   manualLowPrice: number | null;
   previousManualPrice: number | null;
+  manualSilverPrice: number | null;
+  manualSilverHighPrice: number | null;
+  manualSilverLowPrice: number | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -47,10 +57,14 @@ export async function getUserSettings(): Promise<UserSettings> {
         currency: row.currency,
         unit: row.unit,
         hasApiKey: Boolean(row.hasApiKey),
+        defaultMetal: (row.defaultMetal || 'gold') as MetalType,
         manualPrice: row.manualPrice,
         manualHighPrice: row.manualHighPrice,
         manualLowPrice: row.manualLowPrice,
         previousManualPrice: row.previousManualPrice,
+        manualSilverPrice: row.manualSilverPrice ?? null,
+        manualSilverHighPrice: row.manualSilverHighPrice ?? null,
+        manualSilverLowPrice: row.manualSilverLowPrice ?? null,
         createdAt: row.createdAt,
         updatedAt: row.updatedAt,
       };
@@ -67,16 +81,21 @@ export async function saveUserSettings(settings: UserSettings): Promise<void> {
     const database = await getDb();
     await database.runAsync(`
       INSERT OR REPLACE INTO user_settings 
-      (id, currency, unit, hasApiKey, manualPrice, manualHighPrice, manualLowPrice, createdAt, updatedAt)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      (id, currency, unit, hasApiKey, defaultMetal, manualPrice, manualHighPrice, manualLowPrice, previousManualPrice, manualSilverPrice, manualSilverHighPrice, manualSilverLowPrice, createdAt, updatedAt)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `, [
       1,
       settings.currency,
       settings.unit,
       settings.hasApiKey ? 1 : 0,
+      settings.defaultMetal || 'gold',
       settings.manualPrice ?? null,
       settings.manualHighPrice ?? null,
       settings.manualLowPrice ?? null,
+      settings.previousManualPrice ?? null,
+      settings.manualSilverPrice ?? null,
+      settings.manualSilverHighPrice ?? null,
+      settings.manualSilverLowPrice ?? null,
       settings.createdAt || new Date().toISOString(),
       settings.updatedAt || new Date().toISOString(),
     ]);
@@ -140,7 +159,7 @@ export async function removeApiKey(): Promise<void> {
   }
 }
 
-export async function updatePreference(key: 'currency' | 'unit', value: string): Promise<void> {
+export async function updatePreference(key: 'currency' | 'unit' | 'defaultMetal', value: string): Promise<void> {
   try {
     const database = await getDb();
     await database.runAsync(
@@ -178,6 +197,32 @@ export async function updateManualHighLow(high: number, low: number): Promise<vo
     );
   } catch (error) {
     console.error('Error updating manual high/low price:', error);
+    throw error;
+  }
+}
+
+export async function updateManualSilverPrice(price: number | null): Promise<void> {
+  try {
+    const database = await getDb();
+    await database.runAsync(
+      'UPDATE user_settings SET manualSilverPrice = ?, updatedAt = ? WHERE id = 1',
+      [price, new Date().toISOString()]
+    );
+  } catch (error) {
+    console.error('Error updating manual silver price:', error);
+    throw error;
+  }
+}
+
+export async function updateManualSilverHighLow(high: number, low: number): Promise<void> {
+  try {
+    const database = await getDb();
+    await database.runAsync(
+      'UPDATE user_settings SET manualSilverHighPrice = ?, manualSilverLowPrice = ?, updatedAt = ? WHERE id = 1',
+      [high, low, new Date().toISOString()]
+    );
+  } catch (error) {
+    console.error('Error updating manual silver high/low price:', error);
     throw error;
   }
 }

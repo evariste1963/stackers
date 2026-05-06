@@ -4,6 +4,8 @@ import { getDb } from './db';
 
 const IMAGES_DIR = new Directory(Paths.document, 'images');
 
+export type MetalType = 'gold' | 'silver';
+
 export interface StackItem {
   id: number;
   code: string;
@@ -11,6 +13,7 @@ export interface StackItem {
   purchasePrice: string;
   premium: string;
   imageUri: string | null;
+  metal: MetalType;
   createdAt: string;
 }
 
@@ -21,6 +24,7 @@ interface StackItemRow {
   purchasePrice: string;
   premium: string;
   imageUri: string | null;
+  metal: string;
   createdAt: string;
 }
 
@@ -34,6 +38,22 @@ export async function getAllItems(): Promise<StackItem[]> {
     purchasePrice: row.purchasePrice,
     premium: row.premium || '',
     imageUri: row.imageUri,
+    metal: (row.metal || 'gold') as MetalType,
+    createdAt: row.createdAt,
+  }));
+}
+
+export async function getItemsByMetal(metal: MetalType): Promise<StackItem[]> {
+  const database = await getDb();
+  const rows = await database.getAllAsync<StackItemRow>('SELECT * FROM stack_items WHERE metal = ? ORDER BY createdAt DESC', [metal]);
+  return rows.map(row => ({
+    id: Number(row.id),
+    code: row.code,
+    weight: row.weight,
+    purchasePrice: row.purchasePrice,
+    premium: row.premium || '',
+    imageUri: row.imageUri,
+    metal: (row.metal || 'gold') as MetalType,
     createdAt: row.createdAt,
   }));
 }
@@ -50,6 +70,7 @@ export async function getItemById(id: number): Promise<StackItem | null> {
     purchasePrice: row.purchasePrice,
     premium: row.premium || '',
     imageUri: row.imageUri,
+    metal: (row.metal || 'gold') as MetalType,
     createdAt: row.createdAt,
   };
 }
@@ -57,8 +78,8 @@ export async function getItemById(id: number): Promise<StackItem | null> {
 export async function addItem(item: Omit<StackItem, 'id' | 'createdAt'>): Promise<StackItem> {
   const database = await getDb();
   const result = await database.runAsync(
-    'INSERT INTO stack_items (code, weight, purchasePrice, premium, imageUri) VALUES (?, ?, ?, ?, ?)',
-    [item.code, item.weight, item.purchasePrice, item.premium || '', item.imageUri || null]
+    'INSERT INTO stack_items (code, weight, purchasePrice, premium, imageUri, metal) VALUES (?, ?, ?, ?, ?, ?)',
+    [item.code, item.weight, item.purchasePrice, item.premium || '', item.imageUri || null, item.metal || 'gold']
   );
   return {
     id: Number(result.lastInsertRowId),
@@ -67,6 +88,7 @@ export async function addItem(item: Omit<StackItem, 'id' | 'createdAt'>): Promis
     purchasePrice: item.purchasePrice,
     premium: item.premium || '',
     imageUri: item.imageUri,
+    metal: item.metal || 'gold',
     createdAt: new Date().toISOString(),
   };
 }
@@ -74,8 +96,8 @@ export async function addItem(item: Omit<StackItem, 'id' | 'createdAt'>): Promis
 export async function updateItem(id: number, item: Omit<StackItem, 'id' | 'createdAt'>): Promise<StackItem> {
   const database = await getDb();
   await database.runAsync(
-    'UPDATE stack_items SET code = ?, weight = ?, purchasePrice = ?, premium = ?, imageUri = ? WHERE id = ?',
-    [item.code, item.weight, item.purchasePrice, item.premium || '', item.imageUri || null, id]
+    'UPDATE stack_items SET code = ?, weight = ?, purchasePrice = ?, premium = ?, imageUri = ?, metal = ? WHERE id = ?',
+    [item.code, item.weight, item.purchasePrice, item.premium || '', item.imageUri || null, item.metal || 'gold', id]
   );
   const rows = await database.getAllAsync<StackItemRow>('SELECT * FROM stack_items WHERE id = ?', [id]);
   const row = rows[0];
@@ -86,6 +108,7 @@ export async function updateItem(id: number, item: Omit<StackItem, 'id' | 'creat
     purchasePrice: row.purchasePrice,
     premium: row.premium || '',
     imageUri: row.imageUri,
+    metal: (row.metal || 'gold') as MetalType,
     createdAt: row.createdAt,
   };
 }
