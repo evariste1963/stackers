@@ -178,8 +178,8 @@ export default function AddToStackScreen() {
         <View style={styles.bannerContainer}>
           <GoldPriceBanner priceData={priceData} isLoading={isLoading} error={error} refreshPrice={refreshPrice} settings={settings} showRefresh={false} runWithoutApiKey={runWithoutApiKey} onManualPriceChange={updateManualPrice} />
         </View>
-        <KeyboardAvoidingView style={styles.keyboardView} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-          <ScrollView style={[styles.form, { paddingHorizontal: 20 }]} keyboardShouldPersistTaps="handled">
+        <KeyboardAvoidingView style={styles.keyboardView} behavior="padding" keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}>
+          <ScrollView style={styles.form} contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40 }} keyboardShouldPersistTaps="handled">
             <TouchableOpacity style={styles.cameraBtn} onPress={openCamera}>
             <View style={styles.cameraBtnContent}>
               <Ionicons name="camera" size={20} color={colors.gold} style={{ marginRight: 8 }} />
@@ -263,7 +263,6 @@ const styles = StyleSheet.create({
   },
   form: {
     flex: 1,
-    padding: 16,
   },
   bannerContainer: {
     paddingHorizontal: 20,

@@ -41,6 +41,7 @@ export function useSwipeNavigation(currentTabName: string) {
   }, [currentIndex, router]);
 
   const swipeGesture = Gesture.Pan()
+    .activeOffsetX([-10, 10])
     .onEnd((event) => {
       const { translationX, velocityX } = event;
 
