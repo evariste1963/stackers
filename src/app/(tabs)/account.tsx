@@ -30,9 +30,9 @@ export default function AccountScreen() {
             </TouchableOpacity>
           </Link>
 
-          <Link href="/api-settings" asChild>
+          <Link href="/settings" asChild>
             <TouchableOpacity style={globalStyles.button}>
-              <Text style={globalStyles.buttonText}>API Settings</Text>
+              <Text style={globalStyles.buttonText}>Settings</Text>
             </TouchableOpacity>
           </Link>
 

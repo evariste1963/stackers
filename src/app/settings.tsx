@@ -112,7 +112,7 @@ async function loadSettings() {
               setSettings({ currency: 'GBP', unit: 'toz', hasApiKey: false, manualPrice: null, createdAt: '', updatedAt: '' });
               setOffGridMode(false);
               setManualPriceInput('');
-              Alert.alert('Success', 'API key removed. You can add a new key from Account > API Settings.');
+              Alert.alert('Success', 'API key removed. You can add a new key from Account > Settings.');
             } catch (error) {
               Alert.alert('Error', 'Failed to remove API key');
             }
@@ -184,7 +184,7 @@ async function loadSettings() {
   return (
     <ScrollView style={globalStyles.container}>
       <View style={apiStyles.header}>
-        <Text style={apiStyles.title}>API Settings</Text>
+        <Text style={apiStyles.title}>Settings</Text>
       </View>
 
       <View style={apiStyles.section}>

@@ -41,7 +41,7 @@ export default function GuideScreen() {
       </View>
 
       {showSetupApiKey && (
-        <Link href="/api-settings" asChild>
+        <Link href="/settings" asChild>
           <TouchableOpacity style={styles.apiButton}>
             <Text style={globalStyles.buttonText}>Set up Options</Text>
           </TouchableOpacity>
@@ -72,7 +72,7 @@ export default function GuideScreen() {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Using Manual Prices</Text>
         <Text style={styles.text}>If you choose Off Grid mode:</Text>
-        <Text style={styles.listItem}>• Enter your gold price in the API Settings screen</Text>
+        <Text style={styles.listItem}>• Enter your gold price in the Settings screen</Text>
         <Text style={styles.listItem}>• Tap "Submit Price" to save</Text>
         <Text style={styles.listItem}>• On the home screen, tap "Update Price" to enter a new price</Text>
         <Text style={styles.listItem}>• The app automatically tracks day high and low prices - high updates when you enter a higher price, low updates when you enter a lower price</Text>
@@ -166,7 +166,7 @@ export default function GuideScreen() {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Managing Settings</Text>
         <Text style={styles.text}>From the Account tab, you can:</Text>
-        <Text style={styles.listItem}>• Access API Settings to change currency, weight unit, or update your API key</Text>
+        <Text style={styles.listItem}>• Access Settings to change currency, weight unit, or update your API key</Text>
         <Text style={styles.listItem}>• Change your PIN</Text>
         <Text style={styles.listItem}>• Remove your PIN</Text>
         <Text style={styles.listItem}>• Log out</Text>
