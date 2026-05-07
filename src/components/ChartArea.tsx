@@ -123,17 +123,18 @@ export default function ChartArea({ history: propHistory, unit = 'toz', metal = 
   const chartHeight = 130;
   const chartWidth = screenWidth - 65;
 
-  const chartAreaWidth = screenWidth - 65;
-  const rightPadding = 20;
+  const yAxisWidth = 40;
+  const rightPadding = 15;
+  const availableWidth = screenWidth - yAxisWidth - rightPadding;
+  
   const totalRange = allMaxDate - allMinDate;
   const visibleRange = hasTwelveMonths ? (allMaxDate - twelveMonthsAgoTime) : totalRange;
   
-  const usableWidth = chartAreaWidth - rightPadding;
   let svgWidth: number;
   if (totalRange > visibleRange) {
-    svgWidth = usableWidth * (totalRange / visibleRange);
+    svgWidth = availableWidth * (totalRange / visibleRange);
   } else {
-    svgWidth = usableWidth;
+    svgWidth = availableWidth;
   }
   
   const generateMonthlyTicks = () => {
@@ -177,7 +178,7 @@ export default function ChartArea({ history: propHistory, unit = 'toz', metal = 
   return (
     <View style={{ flex: 1 }}>
       <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}>
-        <View style={{ width: 50, height: 150, justifyContent: 'space-between', paddingTop: 10, paddingBottom: 20 }}>
+        <View style={{ width: 40, height: 150, justifyContent: 'space-between', paddingTop: 10, paddingBottom: 20 }}>
           {yTicks.map((tick, i) => (
             <Text key={i} style={{ fontSize: 10, color: colors.chartAxis, textAlign: 'right' }}>
               {Math.round(tick)}
