@@ -94,11 +94,27 @@ export async function saveToHistory(
         VALUES (?, ?, ?, ?)
       `, [targetDate, price, change, changePercent]);
     }
+
+    await pruneOldHistory(metal);
     
     return entry;
   } catch (error) {
     console.error('Error saving to history:', error);
     throw error;
+  }
+}
+
+export async function pruneOldHistory(metal: MetalType = 'gold'): Promise<void> {
+  try {
+    const database = await getDb();
+    const tableName = getHistoryTable(metal);
+    
+    await database.runAsync(`
+      DELETE FROM ${tableName}
+      WHERE date < date('now', '-18 months')
+    `);
+  } catch (error) {
+    console.error('Error pruning old history:', error);
   }
 }
 
