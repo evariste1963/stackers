@@ -2,7 +2,7 @@ import { createContext, useContext, useState, useEffect, useCallback, useRef, Re
 import { getLatestPrice, saveSpotPrice, type GoldPriceData } from '@/services/priceService';
 import { getLatestSilverPrice, saveSilverSpotPrice, type SilverPriceData } from '@/services/silverPriceService';
 import { getHistory, saveToHistory, migrateStaticData, getHistoryLength, type HistoryEntry } from '@/services/historyService';
-import { getApiKey, getUserSettings, migrateFromKVStore, updateManualPrice as saveManualPriceToSettings, updateManualHighLow as saveManualHighLow, updateManualSilverPrice as saveManualSilverPrice, updateManualSilverHighLow as saveManualSilverHighLow, type UserSettings } from '@/services/settingsService';
+import { getApiKey, getUserSettings, migrateFromKVStore, updateManualPrice as saveManualPriceToSettings, updateManualHighLow as saveManualHighLow, updateManualSilverPrice as saveManualSilverPrice, updateManualSilverHighLow as saveManualSilverHighLow, updateManualGoldPremium as saveManualGoldPremium, updateManualSilverPremium as saveManualSilverPremium, type UserSettings } from '@/services/settingsService';
 import { fetchGoldPrice, fetchSilverPrice, type MetalType } from '@/services/metalPriceApi';
 
 interface PriceContextType {
@@ -25,6 +25,9 @@ interface PriceContextType {
   updateManualSilverPrice: (price: number) => Promise<void>;
   updateManualHighLow: (high: number, low: number) => Promise<void>;
   updateManualSilverHighLow: (high: number, low: number) => Promise<void>;
+  updateManualGoldPremium: (premium: number) => Promise<void>;
+  updateManualSilverPremium: (premium: number) => Promise<void>;
+  getAdjustedBidPrice: (metal: 'gold' | 'silver') => number;
 }
 
 const PriceContext = createContext<PriceContextType | undefined>(undefined);
@@ -246,6 +249,32 @@ export function PriceProvider({ children }: { children: ReactNode }) {
     setSettings(prev => ({ ...prev, manualSilverHighPrice: high, manualSilverLowPrice: low }));
   }, []);
 
+  const updateManualGoldPremium = useCallback(async (premium: number) => {
+    await saveManualGoldPremium(premium);
+    setSettings(prev => ({ ...prev, manualGoldPremium: premium }));
+  }, []);
+
+  const updateManualSilverPremium = useCallback(async (premium: number) => {
+    await saveManualSilverPremium(premium);
+    setSettings(prev => ({ ...prev, manualSilverPremium: premium }));
+  }, []);
+
+  const getAdjustedBidPrice = useCallback((metal: 'gold' | 'silver'): number => {
+    const priceData = metal === 'gold' ? goldPriceData : silverPriceData;
+    const premium = metal === 'gold' ? settings.manualGoldPremium : settings.manualSilverPremium;
+    const isOffGrid = !settings.hasApiKey;
+    
+    if (!priceData) return 0;
+    
+    const bidPrice = priceData.bid || priceData.price || 0;
+    
+    if (!isOffGrid) return bidPrice;
+    
+    if (premium === null || premium === undefined || premium < 0) return bidPrice;
+    
+    return bidPrice * (1 - premium / 100);
+  }, [goldPriceData, silverPriceData, settings.manualGoldPremium, settings.manualSilverPremium, settings.hasApiKey]);
+
   useEffect(() => {
     let mounted = true;
 
@@ -350,6 +379,9 @@ export function PriceProvider({ children }: { children: ReactNode }) {
       updateManualSilverPrice,
       updateManualHighLow,
       updateManualSilverHighLow,
+      updateManualGoldPremium,
+      updateManualSilverPremium,
+      getAdjustedBidPrice,
     }}>
       {children}
     </PriceContext.Provider>

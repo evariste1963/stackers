@@ -9,12 +9,14 @@ import { getLatestPrice } from '@/services/priceService';
 import { getLatestSilverPrice } from '@/services/silverPriceService';
 import { getUserSettings } from '@/services/settingsService';
 import { useStack } from '@/contexts/StackContext';
+import { usePrice } from '@/contexts/PriceContext';
 import StackItemCard from '@/components/StackItemCard';
 import EmptyStackState from '@/components/EmptyStackState';
 
 export default function YourStackScreen() {
   const { items, refresh } = useStack();
   const { swipeGesture } = useSwipeNavigation('yourStack');
+  const { getAdjustedBidPrice } = usePrice();
   const [latestGoldPrice, setLatestGoldPrice] = useState<number | null>(null);
   const [latestSilverPrice, setLatestSilverPrice] = useState<number | null>(null);
   const [currency, setCurrency] = useState('GBP');
@@ -57,7 +59,8 @@ export default function YourStackScreen() {
   }, []);
 
   const filteredItems = items.filter(item => item.metal === selectedMetal);
-  const latestPrice = selectedMetal === 'gold' ? latestGoldPrice : latestSilverPrice;
+  const adjustedBidPrice = getAdjustedBidPrice(selectedMetal);
+  const latestPrice = adjustedBidPrice > 0 ? adjustedBidPrice : (selectedMetal === 'gold' ? latestGoldPrice : latestSilverPrice);
 
   const rows = [];
   for (let i = 0; i < filteredItems.length; i += 2) {

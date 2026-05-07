@@ -16,6 +16,8 @@ export interface UserSettings {
   manualSilverPrice?: number | null;
   manualSilverHighPrice?: number | null;
   manualSilverLowPrice?: number | null;
+  manualGoldPremium?: number | null;
+  manualSilverPremium?: number | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -42,6 +44,8 @@ interface SettingsRow {
   manualSilverPrice: number | null;
   manualSilverHighPrice: number | null;
   manualSilverLowPrice: number | null;
+  manualGoldPremium: number | null;
+  manualSilverPremium: number | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -65,6 +69,8 @@ export async function getUserSettings(): Promise<UserSettings> {
         manualSilverPrice: row.manualSilverPrice ?? null,
         manualSilverHighPrice: row.manualSilverHighPrice ?? null,
         manualSilverLowPrice: row.manualSilverLowPrice ?? null,
+        manualGoldPremium: row.manualGoldPremium ?? null,
+        manualSilverPremium: row.manualSilverPremium ?? null,
         createdAt: row.createdAt,
         updatedAt: row.updatedAt,
       };
@@ -81,8 +87,8 @@ export async function saveUserSettings(settings: UserSettings): Promise<void> {
     const database = await getDb();
     await database.runAsync(`
       INSERT OR REPLACE INTO user_settings 
-      (id, currency, unit, hasApiKey, defaultMetal, manualPrice, manualHighPrice, manualLowPrice, previousManualPrice, manualSilverPrice, manualSilverHighPrice, manualSilverLowPrice, createdAt, updatedAt)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      (id, currency, unit, hasApiKey, defaultMetal, manualPrice, manualHighPrice, manualLowPrice, previousManualPrice, manualSilverPrice, manualSilverHighPrice, manualSilverLowPrice, manualGoldPremium, manualSilverPremium, createdAt, updatedAt)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `, [
       1,
       settings.currency,
@@ -96,6 +102,8 @@ export async function saveUserSettings(settings: UserSettings): Promise<void> {
       settings.manualSilverPrice ?? null,
       settings.manualSilverHighPrice ?? null,
       settings.manualSilverLowPrice ?? null,
+      settings.manualGoldPremium ?? null,
+      settings.manualSilverPremium ?? null,
       settings.createdAt || new Date().toISOString(),
       settings.updatedAt || new Date().toISOString(),
     ]);
@@ -223,6 +231,32 @@ export async function updateManualSilverHighLow(high: number, low: number): Prom
     );
   } catch (error) {
     console.error('Error updating manual silver high/low price:', error);
+    throw error;
+  }
+}
+
+export async function updateManualGoldPremium(premium: number | null): Promise<void> {
+  try {
+    const database = await getDb();
+    await database.runAsync(
+      'UPDATE user_settings SET manualGoldPremium = ?, updatedAt = ? WHERE id = 1',
+      [premium, new Date().toISOString()]
+    );
+  } catch (error) {
+    console.error('Error updating manual gold premium:', error);
+    throw error;
+  }
+}
+
+export async function updateManualSilverPremium(premium: number | null): Promise<void> {
+  try {
+    const database = await getDb();
+    await database.runAsync(
+      'UPDATE user_settings SET manualSilverPremium = ?, updatedAt = ? WHERE id = 1',
+      [premium, new Date().toISOString()]
+    );
+  } catch (error) {
+    console.error('Error updating manual silver premium:', error);
     throw error;
   }
 }

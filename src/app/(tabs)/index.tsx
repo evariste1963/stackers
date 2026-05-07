@@ -28,7 +28,8 @@ export default function HomeScreen() {
     offGridMode, 
     silverOffGridMode,
     updateManualPrice,
-    updateManualSilverPrice
+    updateManualSilverPrice,
+    getAdjustedBidPrice
   } = usePrice();
   const { items, refresh } = useStack();
   const { swipeGesture } = useSwipeNavigation('');
@@ -51,9 +52,11 @@ export default function HomeScreen() {
 
   const filteredItems = items.filter(item => item.metal === selectedMetal);
   
+  const adjustedBidPrice = getAdjustedBidPrice(selectedMetal);
+  
   const totalStackValue = filteredItems.reduce((sum, item) => {
     const weight = parseFloat(item.weight) || 0;
-    const price = priceData?.bid || 0;
+    const price = adjustedBidPrice || 0;
     return sum + (weight * price);
   }, 0);
 
@@ -126,7 +129,7 @@ export default function HomeScreen() {
           <View style={{ height: 160, width: '100%', marginTop: 0, backgroundColor: colors.background, alignItems: 'center' }}>
             <ChartArea history={history} unit={settings.unit} metal={selectedMetal} />
           </View>
-          <StackGrid price={priceData ?? undefined} />
+          <StackGrid price={priceData ?? undefined} metal={selectedMetal} />
           <StackValueBlock value={totalStackValue || undefined} costValue={totalCostValue || undefined} settings={settings} onPress={() => router.push('/yourStack')} />
         </ScrollView >
       </View>

@@ -8,11 +8,13 @@ import { getLatestPrice } from '@/services/priceService';
 import { getLatestSilverPrice } from '@/services/silverPriceService';
 import { getUserSettings } from '@/services/settingsService';
 import { useStack } from '@/contexts/StackContext';
+import { usePrice } from '@/contexts/PriceContext';
 import { getCurrencySymbol, getUnitAbbrev } from '@/utils/formatters';
 
 export default function PortfolioScreen() {
   const { items, refresh } = useStack();
   const { swipeGesture } = useSwipeNavigation('portfolio');
+  const { getAdjustedBidPrice } = usePrice();
 
   const [goldBid, setGoldBid] = useState<number | null>(null);
   const [goldSpot, setGoldSpot] = useState<number | null>(null);
@@ -20,6 +22,8 @@ export default function PortfolioScreen() {
   const [silverSpot, setSilverSpot] = useState<number | null>(null);
   const [currency, setCurrency] = useState('GBP');
   const [unit, setUnit] = useState('toz');
+  const [goldUserPremium, setGoldUserPremium] = useState<number | null>(null);
+  const [silverUserPremium, setSilverUserPremium] = useState<number | null>(null);
 
   useFocusEffect(
     useCallback(() => {
@@ -43,14 +47,19 @@ export default function PortfolioScreen() {
     const settings = await getUserSettings();
     setCurrency(settings.currency);
     setUnit(settings.unit);
+    setGoldUserPremium(settings.manualGoldPremium ?? null);
+    setSilverUserPremium(settings.manualSilverPremium ?? null);
   }
 
   const goldItems = items.filter(i => i.metal === 'gold');
   const silverItems = items.filter(i => i.metal === 'silver');
 
+  const goldAdjustedBid = getAdjustedBidPrice('gold');
+  const silverAdjustedBid = getAdjustedBidPrice('silver');
+
   const goldValue = goldItems.reduce((sum, item) => {
     const weight = parseFloat(item.weight) || 0;
-    return sum + (weight * (goldBid || 0));
+    return sum + (weight * (goldAdjustedBid > 0 ? goldAdjustedBid : (goldBid || 0)));
   }, 0);
 
   const goldCost = goldItems.reduce((sum, item) => {
@@ -61,11 +70,11 @@ export default function PortfolioScreen() {
 
   const goldProfit = goldValue - goldCost;
   const goldProfitPercent = goldCost > 0 ? (goldProfit / goldCost) * 100 : 0;
-  const goldPremium = goldSpot && goldSpot > 0 ? ((goldSpot - goldBid) / goldSpot) * 100 : 0;
+  const goldPremium = goldUserPremium !== null ? goldUserPremium : (goldSpot && goldSpot > 0 ? ((goldSpot - goldBid) / goldSpot) * 100 : 0);
 
   const silverValue = silverItems.reduce((sum, item) => {
     const weight = parseFloat(item.weight) || 0;
-    return sum + (weight * (silverBid || 0));
+    return sum + (weight * (silverAdjustedBid > 0 ? silverAdjustedBid : (silverBid || 0)));
   }, 0);
 
   const silverCost = silverItems.reduce((sum, item) => {
@@ -76,7 +85,7 @@ export default function PortfolioScreen() {
 
   const silverProfit = silverValue - silverCost;
   const silverProfitPercent = silverCost > 0 ? (silverProfit / silverCost) * 100 : 0;
-  const silverPremium = silverSpot && silverSpot > 0 ? ((silverSpot - silverBid) / silverSpot) * 100 : 0;
+  const silverPremium = silverUserPremium !== null ? silverUserPremium : (silverSpot && silverSpot > 0 ? ((silverSpot - silverBid) / silverSpot) * 100 : 0);
 
   const totalValue = goldValue + silverValue;
   const totalCost = goldCost + silverCost;
@@ -127,7 +136,7 @@ export default function PortfolioScreen() {
           </View>
           {goldBid && (
             <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-              <Text style={styles.priceInfo}>Bid: {symbol}{goldBid.toLocaleString('en-GB', { minimumFractionDigits: 2 })}/{unitAbbr}</Text>
+              <Text style={styles.priceInfo}>Bid: {symbol}{goldAdjustedBid.toLocaleString('en-GB', { minimumFractionDigits: 2 })}/{unitAbbr}</Text>
               {goldSpot && goldBid && (
                 <Text style={styles.priceInfo}>Premium: {goldPremium >= 0 ? '+' : ''}{goldPremium.toFixed(2)}%</Text>
               )}
@@ -159,7 +168,7 @@ export default function PortfolioScreen() {
           </View>
           {silverBid && (
             <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-              <Text style={styles.priceInfo}>Bid: {symbol}{silverBid.toLocaleString('en-GB', { minimumFractionDigits: 2 })}/{unitAbbr}</Text>
+              <Text style={styles.priceInfo}>Bid: {symbol}{silverAdjustedBid.toLocaleString('en-GB', { minimumFractionDigits: 2 })}/{unitAbbr}</Text>
               {silverSpot && silverBid && (
                 <Text style={styles.priceInfo}>Premium: {silverPremium >= 0 ? '+' : ''}{silverPremium.toFixed(2)}%</Text>
               )}

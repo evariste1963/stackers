@@ -2,13 +2,14 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'expo-router';
 import { globalStyles, colors } from '@/styles/global';
 import { Text, View, TextInput, TouchableOpacity, ScrollView, Alert, Linking, Image, Switch, KeyboardAvoidingView, Platform } from 'react-native';
-import { getUserSettings, updateApiKey, removeApiKey, updatePreference, updateManualPrice as clearManualPrice, updateManualSilverPrice as clearManualSilverPrice, type UserSettings } from '@/services/settingsService';
+import { getUserSettings, updateApiKey, removeApiKey, updatePreference, updateManualPrice as clearManualPrice, updateManualSilverPrice as clearManualSilverPrice, updateManualGoldPremium, updateManualSilverPremium, type UserSettings } from '@/services/settingsService';
 import { getAllItems } from '@/services/stackStorage';
 import { saveSpotPrice } from '@/services/priceService';
 import { saveSilverSpotPrice } from '@/services/silverPriceService';
 import { AVAILABLE_CURRENCIES, AVAILABLE_UNITS, METALS_DEV_URL } from '@/config';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePrice } from '@/contexts/PriceContext';
+import { refreshSettings as refreshPriceSettings } from '@/contexts/PriceContext';
 
 export default function ApiSettingsScreen() {
   const router = useRouter();
@@ -26,6 +27,8 @@ export default function ApiSettingsScreen() {
   const [apiKeyInput, setApiKeyInput] = useState('');
   const [manualPriceInput, setManualPriceInput] = useState('');
   const [manualSilverPriceInput, setManualSilverPriceInput] = useState('');
+  const [manualGoldPremiumInput, setManualGoldPremiumInput] = useState('');
+  const [manualSilverPremiumInput, setManualSilverPremiumInput] = useState('');
   const [offGridMode, setOffGridMode] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -57,6 +60,12 @@ async function loadSettings() {
       }
       if (s.manualSilverPrice) {
         setManualSilverPriceInput(s.manualSilverPrice.toString());
+      }
+      if (s.manualGoldPremium !== null && s.manualGoldPremium !== undefined) {
+        setManualGoldPremiumInput(s.manualGoldPremium.toString());
+      }
+      if (s.manualSilverPremium !== null && s.manualSilverPremium !== undefined) {
+        setManualSilverPremiumInput(s.manualSilverPremium.toString());
       }
     } catch (error) {
       console.error('Error loading settings:', error);
@@ -117,12 +126,16 @@ async function loadSettings() {
               await removeApiKey();
               await clearManualPrice(null);
               await clearManualSilverPrice(null);
+              await updateManualGoldPremium(null);
+              await updateManualSilverPremium(null);
               await saveSpotPrice(0, 0, 0, 0, 0, 0, 0, settings.currency, settings.unit);
               await saveSilverSpotPrice(0, 0, 0, 0, 0, 0, 0, settings.currency, settings.unit);
-              setSettings({ currency: 'GBP', unit: 'toz', hasApiKey: false, manualPrice: null, manualSilverPrice: null, createdAt: '', updatedAt: '' });
+              setSettings({ currency: 'GBP', unit: 'toz', hasApiKey: false, manualPrice: null, manualSilverPrice: null, manualGoldPremium: null, manualSilverPremium: null, createdAt: '', updatedAt: '' });
               setOffGridMode(false);
               setManualPriceInput('');
               setManualSilverPriceInput('');
+              setManualGoldPremiumInput('');
+              setManualSilverPremiumInput('');
               Alert.alert('Success', 'API key removed. You can add a new key from Account > Settings.');
             } catch (error) {
               Alert.alert('Error', 'Failed to remove API key');
@@ -188,17 +201,23 @@ async function loadSettings() {
     if (!value) {
       await clearManualPrice(null);
       await clearManualSilverPrice(null);
+      await updateManualGoldPremium(null);
+      await updateManualSilverPremium(null);
       await saveSpotPrice(0, 0, 0, 0, 0, 0, 0, settings.currency, settings.unit);
       await saveSilverSpotPrice(0, 0, 0, 0, 0, 0, 0, settings.currency, settings.unit);
-      setSettings(prev => ({ ...prev, manualPrice: null, manualSilverPrice: null }));
+      setSettings(prev => ({ ...prev, manualPrice: null, manualSilverPrice: null, manualGoldPremium: null, manualSilverPremium: null }));
       setManualPriceInput('');
       setManualSilverPriceInput('');
+      setManualGoldPremiumInput('');
+      setManualSilverPremiumInput('');
     }
   }
 
   async function handleManualPriceSubmit() {
     const goldPrice = parseFloat(manualPriceInput);
     const silverPrice = parseFloat(manualSilverPriceInput);
+    const goldPremium = manualGoldPremiumInput ? parseFloat(manualGoldPremiumInput) : null;
+    const silverPremium = manualSilverPremiumInput ? parseFloat(manualSilverPremiumInput) : null;
     
     if (isNaN(goldPrice) || goldPrice <= 0) {
       Alert.alert('Invalid Price', 'Please enter a valid gold price.');
@@ -211,7 +230,19 @@ async function loadSettings() {
     
     await updateManualPrice(goldPrice);
     await updateManualSilverPrice(silverPrice);
-    setSettings(prev => ({ ...prev, manualPrice: goldPrice, manualSilverPrice: silverPrice }));
+    if (goldPremium !== null && !isNaN(goldPremium) && goldPremium >= 0) {
+      await updateManualGoldPremium(goldPremium);
+    }
+    if (silverPremium !== null && !isNaN(silverPremium) && silverPremium >= 0) {
+      await updateManualSilverPremium(silverPremium);
+    }
+    setSettings(prev => ({ 
+      ...prev, 
+      manualPrice: goldPrice, 
+      manualSilverPrice: silverPrice,
+      manualGoldPremium: goldPremium,
+      manualSilverPremium: silverPremium
+    }));
     setOffGridMode(true);
     Alert.alert('Success', 'Both gold and silver prices have been saved.');
   }
@@ -342,27 +373,57 @@ return (
             <Text style={apiStyles.notConfiguredText}>API key not configured</Text>
             
             <View style={apiStyles.manualPriceContainer}>
-              <Text style={apiStyles.label}>Manual Gold Price ({settings.currency}/{settings.unit})</Text>
-              <TextInput
-                style={apiStyles.input}
-                placeholder="Enter gold price"
-                placeholderTextColor="#666"
-                value={manualPriceInput}
-                onChangeText={setManualPriceInput}
-                keyboardType="numeric"
-              />
+              <View style={{ flexDirection: 'row', gap: 10 }}>
+                <View style={{ flex: 1 }}>
+                  <Text style={apiStyles.label}>Gold Price ({settings.currency}/{settings.unit})</Text>
+                  <TextInput
+                    style={apiStyles.input}
+                    placeholder="Price"
+                    placeholderTextColor="#666"
+                    value={manualPriceInput}
+                    onChangeText={setManualPriceInput}
+                    keyboardType="numeric"
+                  />
+                </View>
+                <View style={{ flex: 0.6 }}>
+                  <Text style={apiStyles.label}>Premium %</Text>
+                  <TextInput
+                    style={apiStyles.input}
+                    placeholder="%"
+                    placeholderTextColor="#666"
+                    value={manualGoldPremiumInput}
+                    onChangeText={setManualGoldPremiumInput}
+                    keyboardType="numeric"
+                  />
+                </View>
+              </View>
             </View>
 
             <View style={apiStyles.manualPriceContainer}>
-              <Text style={apiStyles.label}>Manual Silver Price ({settings.currency}/{settings.unit})</Text>
-              <TextInput
-                style={apiStyles.input}
-                placeholder="Enter silver price"
-                placeholderTextColor="#666"
-                value={manualSilverPriceInput}
-                onChangeText={setManualSilverPriceInput}
-                keyboardType="numeric"
-              />
+              <View style={{ flexDirection: 'row', gap: 10 }}>
+                <View style={{ flex: 1 }}>
+                  <Text style={apiStyles.label}>Silver Price ({settings.currency}/{settings.unit})</Text>
+                  <TextInput
+                    style={apiStyles.input}
+                    placeholder="Price"
+                    placeholderTextColor="#666"
+                    value={manualSilverPriceInput}
+                    onChangeText={setManualSilverPriceInput}
+                    keyboardType="numeric"
+                  />
+                </View>
+                <View style={{ flex: 0.6 }}>
+                  <Text style={apiStyles.label}>Premium %</Text>
+                  <TextInput
+                    style={apiStyles.input}
+                    placeholder="%"
+                    placeholderTextColor="#666"
+                    value={manualSilverPremiumInput}
+                    onChangeText={setManualSilverPremiumInput}
+                    keyboardType="numeric"
+                  />
+                </View>
+              </View>
             </View>
 
             <TouchableOpacity

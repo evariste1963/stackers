@@ -3,13 +3,16 @@ import { StyleSheet, View } from 'react-native';
 import StackCard from './StackCard';
 import { getLatestPrice, type GoldPriceData } from '@/services/priceService';
 import { colors } from '@/styles/global';
+import { usePrice } from '@/contexts/PriceContext';
 
 interface StackGridProps {
   price?: GoldPriceData;
+  metal?: 'gold' | 'silver';
 }
 
-export default function StackGrid({ price }: StackGridProps) {
+export default function StackGrid({ price, metal = 'gold' }: StackGridProps) {
   const [priceData, setPriceData] = useState<GoldPriceData | null>(price ?? null);
+  const { getAdjustedBidPrice } = usePrice();
 
   useEffect(() => {
     if (priceData) return;
@@ -22,9 +25,13 @@ export default function StackGrid({ price }: StackGridProps) {
     }
   }, [price]);
 
+  const adjustedBid = getAdjustedBidPrice(metal);
+  
+  const displayBidPrice = adjustedBid > 0 ? adjustedBid : (priceData?.bid ?? 0);
+
   const cards = [
     { label: 'ask-price', field: 'ask' as const },
-    { label: 'bid-price', field: 'bid' as const },
+    { label: 'bid-price', field: 'bid' as const, adjustedValue: displayBidPrice },
     { label: 'high', field: 'high' as const },
     { label: 'low', field: 'low' as const },
   ];
@@ -38,11 +45,11 @@ export default function StackGrid({ price }: StackGridProps) {
     <View style={styles.container}>
       {rows.map((row, rowIndex) => (
         <View key={rowIndex} style={styles.row}>
-          {row.map(({ label, field }) => (
+          {row.map(({ label, field, adjustedValue }) => (
             <StackCard
               key={field}
               label={label}
-              value={priceData ? (priceData[field] as number).toFixed(2) : ''}
+              value={field === 'bid' && adjustedValue ? adjustedValue.toFixed(2) : (priceData ? (priceData[field] as number).toFixed(2) : '')}
               goal={priceData?.currency ?? 'GBP'}
               color={colors.darkGold}
             />
