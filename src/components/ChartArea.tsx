@@ -1,7 +1,6 @@
 import { View, useWindowDimensions, ScrollView, Text } from 'react-native';
-import { useRef, useState } from 'react';
-import { VictoryChart, VictoryLine, VictoryAxis } from 'victory-native';
-import { useEffect } from 'react';
+import { useRef, useState, useEffect, useMemo } from 'react';
+import Svg, { Path, Line, Text as SvgText, G } from 'react-native-svg';
 import { useIsFocused } from 'expo-router';
 import { getHistory, type HistoryEntry, migrateStaticData, getHistoryLength } from '@/services/historyService';
 import { colors } from '../styles/global';
@@ -69,23 +68,19 @@ export default function ChartArea({ history: propHistory, unit = 'toz', metal = 
   if (isLoading || data.length === 0) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', height: 150 }}>
-        <VictoryChart
-          width={screenWidth - 30}
-          height={150}
-        />
+        <Svg width={screenWidth - 30} height={150} />
       </View>
     );
   }
 
   const getPriceForUnit = (entry: HistoryEntry, unit: string) => {
     if (unit === 'toz') return entry.toz || entry.gms || entry.price;
-    return entry.gms || entry.price; // gram
+    return entry.gms || entry.price;
   };
 
   const chartData = data.map((entry) => ({
     x: new Date(entry.date).getTime(),
     y: getPriceForUnit(entry, unit),
-    date: entry.date,
   }));
 
   const timestamps = chartData.map(d => d.x);
@@ -118,96 +113,108 @@ export default function ChartArea({ history: propHistory, unit = 'toz', metal = 
     }
   }
 
-  const minDate = allMinDate;
-  const maxDate = allMaxDate;
-
-  const generateMonthlyTicks = () => {
-    const ticks: number[] = [];
-    const start = new Date(minDate);
-    start.setDate(1);
-    
-    while (start.getTime() <= maxDate) {
-      ticks.push(start.getTime());
-      start.setMonth(start.getMonth() + 2);
-    }
-    
-    return ticks;
-  };
-
-  const tickValues = generateMonthlyTicks();
-
   const allPrices = chartData.map(d => d.y);
   const maxPrice = Math.max(...allPrices);
   const minPrice = Math.min(...allPrices);
   const padding = (maxPrice - minPrice) * 0.1;
   const yMin = minPrice - padding;
   const yMax = maxPrice + padding;
-  const yTicks = [yMax, (yMax + yMin) / 2, yMin];
+
+  const chartHeight = 130;
+  const chartWidth = screenWidth - 65;
 
   const totalRange = allMaxDate - allMinDate;
   const visibleRange = hasTwelveMonths ? (allMaxDate - twelveMonthsAgoTime) : totalRange;
   
-  let chartWidth: number;
+  let svgWidth: number;
   if (totalRange > visibleRange) {
-    chartWidth = (screenWidth - 30) * (totalRange / visibleRange);
+    svgWidth = (screenWidth - 30) * (totalRange / visibleRange);
   } else {
-    chartWidth = screenWidth - 30;
+    svgWidth = screenWidth - 30;
   }
+
+  const generateMonthlyTicks = useMemo(() => {
+    const ticks: { x: number; label: string }[] = [];
+    const start = new Date(allMinDate);
+    start.setDate(1);
+    const end = new Date(allMaxDate);
+    
+    while (start.getTime() <= end.getTime()) {
+      ticks.push({
+        x: start.getTime(),
+        label: `${String(start.getMonth() + 1).padStart(2, '0')}-${String(start.getFullYear()).slice(-2)}`,
+      });
+      start.setMonth(start.getMonth() + 2);
+    }
+    return ticks;
+  }, [allMinDate, allMaxDate]);
+
+  const xScale = (timestamp: number) => {
+    const range = allMaxDate - allMinDate;
+    if (range === 0) return 0;
+    return ((timestamp - allMinDate) / range) * chartWidth;
+  };
+
+  const yScale = (price: number) => {
+    const range = yMax - yMin;
+    if (range === 0) return chartHeight / 2;
+    return chartHeight - ((price - yMin) / range) * chartHeight;
+  };
+
+  const linePath = displayData.length > 1
+    ? displayData.reduce((path, point, i) => {
+        const x = xScale(point.x);
+        const y = yScale(point.y);
+        return i === 0 ? `M ${x} ${y}` : `${path} L ${x} ${y}`;
+      }, '')
+    : '';
+
+  const yTicks = [yMax, (yMax + yMin) / 2, yMin];
 
   return (
     <View style={{ flex: 1 }}>
       <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}>
-      <View style={{ width: 50, height: 150, justifyContent: 'space-between', paddingTop: 10, paddingBottom: 20 }}>
-        {yTicks.map((tick, i) => (
-          <Text key={i} style={{ fontSize: 10, color: colors.chartAxis, textAlign: 'right' }}>
-            {Math.round(tick)}
-          </Text>
-        ))}
-      </View>
-      <ScrollView 
-        ref={scrollViewRef}
-        horizontal 
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ flexGrow: 1 }}
-      >
-        <VictoryChart
-          width={chartWidth}
-          height={150}
-          padding={{ top: 10, bottom: 20, left: 0, right: 15 }}
-          domainPadding={{ x: 0 }}
-          domain={{ x: [minDate, maxDate], y: [yMin, yMax] }}
+        <View style={{ width: 50, height: 150, justifyContent: 'space-between', paddingTop: 10, paddingBottom: 20 }}>
+          {yTicks.map((tick, i) => (
+            <Text key={i} style={{ fontSize: 10, color: colors.chartAxis, textAlign: 'right' }}>
+              {Math.round(tick)}
+            </Text>
+          ))}
+        </View>
+        <ScrollView 
+          ref={scrollViewRef}
+          horizontal 
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ flexGrow: 1 }}
         >
-          <VictoryAxis
-            tickValues={tickValues}
-            tickFormat={(t) => {
-              const d = new Date(t);
-              return `${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getFullYear()).slice(-2)}`;
-            }}
-            style={{
-              axis: { stroke: 'transparent' },
-              grid: { stroke: 'transparent' },
-              ticks: { stroke: 'transparent' },
-              tickLabels: {
-                fill: colors.chartAxis,
-                fontSize: 10,
-              },
-            }}
-          />
-          <VictoryLine
-            data={displayData}
-            x="x"
-            y="y"
-            style={{
-              data: {
-                stroke: colors.themeBlue,
-                strokeWidth: 5,
-              },
-            }}
-            interpolation="linear"
-          />
-        </VictoryChart>
-      </ScrollView>
-    </View>
+          <Svg width={svgWidth} height={150}>
+            <G y={10}>
+              {generateMonthlyTicks.map((tick, i) => {
+                const x = xScale(tick.x);
+                return (
+                  <G key={i}>
+                    <SvgText
+                      x={x}
+                      y={150}
+                      fontSize={10}
+                      fill={colors.chartAxis}
+                      textAnchor="middle"
+                    >
+                      {tick.label}
+                    </SvgText>
+                  </G>
+                );
+              })}
+              <Path
+                d={linePath}
+                stroke={colors.themeBlue}
+                strokeWidth={5}
+                fill="none"
+              />
+            </G>
+          </Svg>
+        </ScrollView>
+      </View>
     </View>
   );
 }
