@@ -124,8 +124,8 @@ export default function ChartArea({ history: propHistory, unit = 'toz', metal = 
   const chartWidth = screenWidth - 65;
 
   const yAxisWidth = 25;
-  const leftPadding = 5;
-  const rightPadding = 60;
+  const leftPadding = 0;
+  const rightPadding = 40;
   const availableWidth = screenWidth - yAxisWidth - leftPadding - rightPadding;
   
   const totalRange = allMaxDate - allMinDate;
