@@ -123,7 +123,7 @@ export default function ChartArea({ history: propHistory, unit = 'toz', metal = 
   const chartHeight = 130;
   const chartWidth = screenWidth - 65;
 
-const yAxisWidth = 25;
+  const yAxisWidth = 25;
   const leftPadding = 5;
   const rightPadding = 60;
   const availableWidth = screenWidth - yAxisWidth - leftPadding - rightPadding;
