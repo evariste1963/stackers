@@ -124,7 +124,7 @@ export default function ChartArea({ history: propHistory, unit = 'toz', metal = 
   const chartWidth = screenWidth - 65;
 
   const chartAreaWidth = screenWidth - 65;
-  const rightPadding = 40;
+  const rightPadding = 20;
   const totalRange = allMaxDate - allMinDate;
   const visibleRange = hasTwelveMonths ? (allMaxDate - twelveMonthsAgoTime) : totalRange;
   
@@ -138,8 +138,8 @@ export default function ChartArea({ history: propHistory, unit = 'toz', metal = 
   
   const xScale = (timestamp: number) => {
     const range = allMaxDate - allMinDate;
-    if (range === 0) return 10;
-    return 10 + ((timestamp - allMinDate) / range) * (svgWidth - 20);
+    if (range === 0) return 0;
+    return ((timestamp - allMinDate) / range) * svgWidth;
   };
 
   const generateMonthlyTicks = () => {
