@@ -136,12 +136,6 @@ export default function ChartArea({ history: propHistory, unit = 'toz', metal = 
     svgWidth = usableWidth;
   }
   
-  const xScale = (timestamp: number) => {
-    const range = allMaxDate - allMinDate;
-    if (range === 0) return 0;
-    return ((timestamp - allMinDate) / range) * svgWidth;
-  };
-
   const generateMonthlyTicks = () => {
     const ticks: { x: number; label: string }[] = [];
     const start = new Date(allMinDate);
