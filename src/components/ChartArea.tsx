@@ -123,9 +123,10 @@ export default function ChartArea({ history: propHistory, unit = 'toz', metal = 
   const chartHeight = 130;
   const chartWidth = screenWidth - 65;
 
-  const yAxisWidth = 30;
-  const rightPadding = 50;
-  const availableWidth = screenWidth - yAxisWidth - rightPadding;
+const yAxisWidth = 25;
+  const leftPadding = 5;
+  const rightPadding = 60;
+  const availableWidth = screenWidth - yAxisWidth - leftPadding - rightPadding;
   
   const totalRange = allMaxDate - allMinDate;
   const visibleRange = hasTwelveMonths ? (allMaxDate - twelveMonthsAgoTime) : totalRange;
@@ -137,20 +138,10 @@ export default function ChartArea({ history: propHistory, unit = 'toz', metal = 
     svgWidth = availableWidth;
   }
   
-  const generateMonthlyTicks = () => {
-    const ticks: { x: number; label: string }[] = [];
-    const start = new Date(allMinDate);
-    start.setDate(1);
-    const end = new Date(allMaxDate);
-    
-    while (start.getTime() <= end.getTime()) {
-      ticks.push({
-        x: start.getTime(),
-        label: `${String(start.getMonth() + 1).padStart(2, '0')}-${String(start.getFullYear()).slice(-2)}`,
-      });
-      start.setMonth(start.getMonth() + 2);
-    }
-    return ticks;
+  const xScale = (timestamp: number) => {
+    const range = allMaxDate - allMinDate;
+    if (range === 0) return leftPadding;
+    return leftPadding + ((timestamp - allMinDate) / range) * (svgWidth - leftPadding - rightPadding);
   };
 
   const xScale = (timestamp: number) => {
@@ -178,7 +169,7 @@ export default function ChartArea({ history: propHistory, unit = 'toz', metal = 
   return (
     <View style={{ flex: 1 }}>
       <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}>
-        <View style={{ width: 30, height: 150, justifyContent: 'space-between', paddingTop: 10, paddingBottom: 20 }}>
+        <View style={{ width: 25, height: 150, justifyContent: 'space-between', paddingTop: 10, paddingBottom: 20 }}>
           {yTicks.map((tick, i) => (
             <Text key={i} style={{ fontSize: 10, color: colors.chartAxis, textAlign: 'right' }}>
               {Math.round(tick)}
