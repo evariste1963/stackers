@@ -185,33 +185,30 @@ export default function ChartArea({ history: propHistory, unit = 'toz', metal = 
           ref={scrollViewRef}
           horizontal 
           showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ flexGrow: 1 }}
+          contentContainerStyle={{ minWidth: screenWidth - 50 }}
         >
-          <Svg width={svgWidth} height={150}>
-            <G y={10}>
-              {generateMonthlyTicks().map((tick, i) => {
-                const x = xScale(tick.x);
-                return (
-                  <G key={i}>
-                    <SvgText
-                      x={x}
-                      y={150}
-                      fontSize={10}
-                      fill={colors.chartAxis}
-                      textAnchor="middle"
-                    >
-                      {tick.label}
-                    </SvgText>
-                  </G>
-                );
-              })}
-              <Path
-                d={linePath}
-                stroke={colors.themeBlue}
-                strokeWidth={5}
-                fill="none"
-              />
-            </G>
+          <Svg width={Math.max(svgWidth, screenWidth - 65)} height={150}>
+            {generateMonthlyTicks().map((tick, i) => {
+              const x = xScale(tick.x);
+              return (
+                <SvgText
+                  key={i}
+                  x={x}
+                  y={140}
+                  fontSize={10}
+                  fill={colors.chartAxis}
+                  textAnchor="middle"
+                >
+                  {tick.label}
+                </SvgText>
+              );
+            })}
+            <Path
+              d={linePath}
+              stroke={colors.themeBlue}
+              strokeWidth={5}
+              fill="none"
+            />
           </Svg>
         </ScrollView>
       </View>
