@@ -58,13 +58,13 @@ export default function GuideScreen() {
         <Text style={styles.sectionTitle}>Getting Started</Text>
         <Text style={styles.stepNumber}>1</Text>
         <Text style={styles.text}>On first launch, the app will prompt you to set up an API key or use manual prices.</Text>
-        
+
         <Text style={styles.stepNumber}>2</Text>
         <Text style={styles.text}>Option A: Get a free API key from <Text style={styles.link}>metals.dev</Text> for live gold prices.</Text>
-        
+
         <Text style={styles.stepNumber}>3</Text>
-        <Text style={styles.text}>Option B: Toggle "Off Grid mode" to enter gold prices manually instead.</Text>
-        
+        <Text style={styles.text}>Option B: Toggle "Off Grid mode" to enter gold & silver prices and premiums manually instead.</Text>
+
         <Text style={styles.stepNumber}>4</Text>
         <Text style={styles.text}>Choose your preferred currency (GBP, USD, or EUR) and weight unit (troy ounces or grams).</Text>
       </View>
@@ -72,10 +72,10 @@ export default function GuideScreen() {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Using Manual Prices</Text>
         <Text style={styles.text}>If you choose Off Grid mode:</Text>
-        <Text style={styles.listItem}>• Enter both gold and silver prices in the Settings screen</Text>
-        <Text style={styles.listItem}>• Tap "Submit Prices" to save both</Text>
+        <Text style={styles.listItem}>• Enter both gold and silver prices and premiums in the Settings screen</Text>
+        <Text style={styles.listItem}>• Tap "Submit Prices" to save both and toggle mode</Text>
         <Text style={styles.listItem}>• On the home screen, tap "Update Price" to enter new prices</Text>
-        <Text style={styles.listItem}>• The app automatically tracks day high and low prices - high updates when you enter a higher price, low updates when you enter a lower price</Text>
+        <Text style={styles.listItem}>• The app automatically tracks day high/low and bid prices based on the premiums set on the settings page - high updates when you enter a higher price, low updates when you enter a lower price</Text>
         <Text style={styles.listItem}>• Change and change % are calculated based on the previous vs new price</Text>
         <Text style={styles.note}>Tip: If you switch between API and manual modes, the high/low prices sync automatically.</Text>
       </View>
@@ -84,18 +84,18 @@ export default function GuideScreen() {
         <Text style={styles.sectionTitle}>Setting Up Security (PIN)</Text>
         <Text style={styles.stepNumber}>1</Text>
         <Text style={styles.text}>Go to the Account tab.</Text>
-        
+
         <Text style={styles.stepNumber}>2</Text>
         <Text style={styles.text}>Tap "Set PIN" to create a 4-digit PIN.</Text>
-        
+
         <Text style={styles.stepNumber}>3</Text>
         <Text style={styles.text}>Enter your PIN twice to confirm it.</Text>
-        
+
         <Text style={styles.stepNumber}>4</Text>
         <Text style={styles.text}>The app will now require your PIN every time you open it.</Text>
-        
+
         <Text style={styles.note}>Note: You can change or remove your PIN anytime from the Account tab.</Text>
-        
+
         <Link href="/security-statement" asChild>
           <TouchableOpacity style={styles.linkButton}>
             <Text style={styles.linkButtonText}>View Security Statement →</Text>
@@ -106,25 +106,25 @@ export default function GuideScreen() {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Adding Items to Your Stack</Text>
         <Text style={styles.stepNumber}>1</Text>
-        <Text style={styles.text}>Navigate to the "Add" tab at the bottom of the screen.</Text>
-        
+        <Text style={styles.text}>Navigate to the "Add-2-Stack" tab at the bottom of the screen.</Text>
+
         <Text style={styles.stepNumber}>2</Text>
         <Text style={styles.text}>Optionally, tap "Take Photo" to capture an image of your item (great for keeping records).</Text>
-        
+
         <Text style={styles.stepNumber}>3</Text>
         <Text style={styles.text}>Enter the Item name (e.g., "American Gold Eagle 1oz").</Text>
-        
+
         <Text style={styles.stepNumber}>4</Text>
         <Text style={styles.text}>Enter the weight of the item in your chosen unit.</Text>
-        
+
         <Text style={styles.stepNumber}>5</Text>
         <Text style={styles.text}>Enter the cost. Choose ONE option:</Text>
         <Text style={styles.listItem}>• Cost per unit: the price you paid per ounce/gram</Text>
         <Text style={styles.listItem}>• Total amount: the total price you paid for the item</Text>
-        
+
         <Text style={styles.stepNumber}>6</Text>
         <Text style={styles.text}>Tap "Submit" to save the item.</Text>
-        
+
         <Text style={styles.stepNumber}>7</Text>
         <Text style={styles.text}>Choose to add another item or view your stack.</Text>
       </View>
@@ -133,13 +133,13 @@ export default function GuideScreen() {
         <Text style={styles.sectionTitle}>Editing & Deleting Items</Text>
         <Text style={styles.stepNumber}>1</Text>
         <Text style={styles.text}>Navigate to the "Your Stack" tab.</Text>
-        
+
         <Text style={styles.stepNumber}>2</Text>
         <Text style={styles.text}>Tap anywhere on an item card to edit it.</Text>
-        
+
         <Text style={styles.stepNumber}>3</Text>
         <Text style={styles.text}>The Add to Stack screen will open with your item's details pre-filled. Tap "Update" to save your changes.</Text>
-        
+
         <Text style={styles.stepNumber}>4</Text>
         <Text style={styles.text}>To delete an item, tap the "X" button in the top-right corner of the item card.</Text>
       </View>
@@ -151,7 +151,7 @@ export default function GuideScreen() {
         <Text style={styles.listItem}>• In API mode: Live price from the API</Text>
         <Text style={styles.listItem}>• In manual mode: Your entered price with calculated change</Text>
         <Text style={styles.listItem}>• Price history chart</Text>
-        <Text style={styles.listItem}>• Grid showing all your items with current values</Text>
+        <Text style={styles.listItem}>• Grid showing all your items with current values is located on the Your Stack screen</Text>
         <Text style={styles.listItem}>• Total stack value and total cost</Text>
       </View>
 
@@ -166,15 +166,15 @@ export default function GuideScreen() {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Managing Settings</Text>
         <Text style={styles.text}>From the Account tab, you can:</Text>
-        <Text style={styles.listItem}>• Access Settings to change currency, weight unit, or update your API key</Text>
+        <Text style={styles.listItem}>• Access Settings to change currency, weight unit, metal prices and premiums, toggle between live and Off Grid mode, or update your API key</Text>
         <Text style={styles.listItem}>• Change your PIN</Text>
         <Text style={styles.listItem}>• Remove your PIN</Text>
         <Text style={styles.listItem}>• Log out</Text>
         <Text style={styles.note}>Note: To remove the API key, you must be logged in with your PIN if one is set.</Text>
-        
+
         <Text style={styles.note}>
-          Important: Once you add items to your stack, the currency and unit selectors become disabled 
-          to prevent mismatched calculations. A message will show explaining this. To change currency or unit, 
+          Important: Once you add items to your stack, the currency and unit selectors become disabled
+          to prevent mismatched calculations. A message will show explaining this. To change currency or unit,
           you must first remove all items from your stack (Your Stack tab, tap each item and delete).
         </Text>
       </View>
