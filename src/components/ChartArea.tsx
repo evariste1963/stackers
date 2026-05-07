@@ -138,6 +138,22 @@ const yAxisWidth = 25;
     svgWidth = availableWidth;
   }
   
+  const generateMonthlyTicks = () => {
+    const ticks: { x: number; label: string }[] = [];
+    const start = new Date(allMinDate);
+    start.setDate(1);
+    const end = new Date(allMaxDate);
+    
+    while (start.getTime() <= end.getTime()) {
+      ticks.push({
+        x: start.getTime(),
+        label: `${String(start.getMonth() + 1).padStart(2, '0')}-${String(start.getFullYear()).slice(-2)}`,
+      });
+      start.setMonth(start.getMonth() + 2);
+    }
+    return ticks;
+  };
+  
   const xScale = (timestamp: number) => {
     const range = allMaxDate - allMinDate;
     if (range === 0) return leftPadding;
