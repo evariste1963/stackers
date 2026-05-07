@@ -56,30 +56,33 @@ export async function getUserSettings(): Promise<UserSettings> {
     const rows = await database.getAllAsync<SettingsRow>('SELECT * FROM user_settings WHERE id = 1');
     
     if (rows.length > 0) {
-      const row = rows[0];
-      return {
-        currency: row.currency,
-        unit: row.unit,
-        hasApiKey: Boolean(row.hasApiKey),
-        defaultMetal: (row.defaultMetal || 'gold') as MetalType,
-        manualPrice: row.manualPrice,
-        manualHighPrice: row.manualHighPrice,
-        manualLowPrice: row.manualLowPrice,
-        previousManualPrice: row.previousManualPrice,
-        manualSilverPrice: row.manualSilverPrice ?? null,
-        manualSilverHighPrice: row.manualSilverHighPrice ?? null,
-        manualSilverLowPrice: row.manualSilverLowPrice ?? null,
-        manualGoldPremium: row.manualGoldPremium ?? null,
-        manualSilverPremium: row.manualSilverPremium ?? null,
-        createdAt: row.createdAt,
-        updatedAt: row.updatedAt,
-      };
+      return mapRowToUserSettings(rows[0]);
     }
     return { ...DEFAULT_USER_SETTINGS };
   } catch (error) {
     console.error('Error reading user settings:', error);
     return { ...DEFAULT_USER_SETTINGS };
   }
+}
+
+function mapRowToUserSettings(row: SettingsRow): UserSettings {
+  return {
+    currency: row.currency,
+    unit: row.unit,
+    hasApiKey: Boolean(row.hasApiKey),
+    defaultMetal: (row.defaultMetal || 'gold') as MetalType,
+    manualPrice: row.manualPrice,
+    manualHighPrice: row.manualHighPrice,
+    manualLowPrice: row.manualLowPrice,
+    previousManualPrice: row.previousManualPrice,
+    manualSilverPrice: row.manualSilverPrice ?? null,
+    manualSilverHighPrice: row.manualSilverHighPrice ?? null,
+    manualSilverLowPrice: row.manualSilverLowPrice ?? null,
+    manualGoldPremium: row.manualGoldPremium ?? null,
+    manualSilverPremium: row.manualSilverPremium ?? null,
+    createdAt: row.createdAt,
+    updatedAt: row.updatedAt,
+  };
 }
 
 export async function saveUserSettings(settings: UserSettings): Promise<void> {
@@ -168,97 +171,62 @@ export async function removeApiKey(): Promise<void> {
 }
 
 export async function updatePreference(key: 'currency' | 'unit' | 'defaultMetal', value: string): Promise<void> {
-  try {
-    const database = await getDb();
-    await database.runAsync(
-      `UPDATE user_settings SET ${key} = ?, updatedAt = ? WHERE id = 1`,
-      [value, new Date().toISOString()]
-    );
-  } catch (error) {
-    console.error('Error updating preference:', error);
-    throw error;
-  }
+  await updateUserSetting(key, value);
+}
+
+async function updateUserSetting(column: string, value: unknown): Promise<void> {
+  const database = await getDb();
+  await database.runAsync(
+    `UPDATE user_settings SET ${column} = ?, updatedAt = ? WHERE id = 1`,
+    [value as string | number | null, new Date().toISOString()]
+  );
 }
 
 export async function updateManualPrice(price: number | null): Promise<void> {
-  try {
-    const database = await getDb();
-    const rows = await database.getAllAsync<{ manualPrice: number | null }>('SELECT manualPrice FROM user_settings WHERE id = 1');
-    const previousPrice = rows.length > 0 ? rows[0].manualPrice : null;
-    
-    await database.runAsync(
-'UPDATE user_settings SET manualPrice = ?, previousManualPrice = ?, updatedAt = ? WHERE id = 1',
-      [price, previousPrice, new Date().toISOString()]
-    );
-  } catch (error) {
-    console.error('Error updating manual price:', error);
-    throw error;
-  }
+  const database = await getDb();
+  const rows = await database.getAllAsync<{ manualPrice: number | null }>('SELECT manualPrice FROM user_settings WHERE id = 1');
+  const previousPrice = rows.length > 0 ? rows[0].manualPrice : null;
+  await updateUserSettingBatch([
+    ['manualPrice', price],
+    ['previousManualPrice', previousPrice],
+  ]);
 }
 
 export async function updateManualHighLow(high: number, low: number): Promise<void> {
-  try {
-    const database = await getDb();
-    await database.runAsync(
-      'UPDATE user_settings SET manualHighPrice = ?, manualLowPrice = ?, updatedAt = ? WHERE id = 1',
-      [high, low, new Date().toISOString()]
-    );
-  } catch (error) {
-    console.error('Error updating manual high/low price:', error);
-    throw error;
-  }
+  await updateUserSettingBatch([
+    ['manualHighPrice', high],
+    ['manualLowPrice', low],
+  ]);
 }
 
 export async function updateManualSilverPrice(price: number | null): Promise<void> {
-  try {
-    const database = await getDb();
-    await database.runAsync(
-      'UPDATE user_settings SET manualSilverPrice = ?, updatedAt = ? WHERE id = 1',
-      [price, new Date().toISOString()]
-    );
-  } catch (error) {
-    console.error('Error updating manual silver price:', error);
-    throw error;
-  }
+  await updateUserSetting('manualSilverPrice', price);
 }
 
 export async function updateManualSilverHighLow(high: number, low: number): Promise<void> {
-  try {
-    const database = await getDb();
-    await database.runAsync(
-      'UPDATE user_settings SET manualSilverHighPrice = ?, manualSilverLowPrice = ?, updatedAt = ? WHERE id = 1',
-      [high, low, new Date().toISOString()]
-    );
-  } catch (error) {
-    console.error('Error updating manual silver high/low price:', error);
-    throw error;
-  }
+  await updateUserSettingBatch([
+    ['manualSilverHighPrice', high],
+    ['manualSilverLowPrice', low],
+  ]);
 }
 
 export async function updateManualGoldPremium(premium: number | null): Promise<void> {
-  try {
-    const database = await getDb();
-    await database.runAsync(
-      'UPDATE user_settings SET manualGoldPremium = ?, updatedAt = ? WHERE id = 1',
-      [premium, new Date().toISOString()]
-    );
-  } catch (error) {
-    console.error('Error updating manual gold premium:', error);
-    throw error;
-  }
+  await updateUserSetting('manualGoldPremium', premium);
 }
 
 export async function updateManualSilverPremium(premium: number | null): Promise<void> {
-  try {
-    const database = await getDb();
-    await database.runAsync(
-      'UPDATE user_settings SET manualSilverPremium = ?, updatedAt = ? WHERE id = 1',
-      [premium, new Date().toISOString()]
-    );
-  } catch (error) {
-    console.error('Error updating manual silver premium:', error);
-    throw error;
-  }
+  await updateUserSetting('manualSilverPremium', premium);
+}
+
+async function updateUserSettingBatch(pairs: [string, unknown][]): Promise<void> {
+  const database = await getDb();
+  const now = new Date().toISOString();
+  const setClause = pairs.map(([col]) => `${col} = ?`).join(', ');
+  const values: (string | number | null)[] = [...pairs.map(([, val]) => val as string | number | null), now];
+  await database.runAsync(
+    `UPDATE user_settings SET ${setClause}, updatedAt = ? WHERE id = 1`,
+    values
+  );
 }
 
 export async function clearUserSettings(): Promise<void> {
