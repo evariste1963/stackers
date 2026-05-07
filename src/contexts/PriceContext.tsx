@@ -266,7 +266,7 @@ export function PriceProvider({ children }: { children: ReactNode }) {
     
     if (!priceData) return 0;
     
-    const bidPrice = priceData.bid || priceData.price || 0;
+    const bidPrice = (priceData.bid && priceData.bid > 0) ? priceData.bid : priceData.price || 0;
     
     if (!isOffGrid) return bidPrice;
     

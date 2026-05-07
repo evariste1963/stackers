@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import StackCard from './StackCard';
 import { getLatestPrice, type GoldPriceData } from '@/services/priceService';
+import { getLatestSilverPrice, type SilverPriceData } from '@/services/silverPriceService';
 import { colors } from '@/styles/global';
 import { usePrice } from '@/contexts/PriceContext';
 
@@ -16,8 +17,12 @@ export default function StackGrid({ price, metal = 'gold' }: StackGridProps) {
 
   useEffect(() => {
     if (priceData) return;
-    getLatestPrice().then(setPriceData);
-  }, [priceData]);
+    if (metal === 'silver') {
+      getLatestSilverPrice().then(setPriceData);
+    } else {
+      getLatestPrice().then(setPriceData);
+    }
+  }, [priceData, metal]);
 
   useEffect(() => {
     if (price) {
@@ -27,7 +32,7 @@ export default function StackGrid({ price, metal = 'gold' }: StackGridProps) {
 
   const adjustedBid = getAdjustedBidPrice(metal);
   
-  const displayBidPrice = adjustedBid > 0 ? adjustedBid : (priceData?.bid ?? 0);
+  const displayBidPrice = adjustedBid > 0 ? adjustedBid : (priceData?.bid && priceData.bid > 0 ? priceData.bid : (priceData?.price ?? 0));
 
   const cards = [
     { label: 'ask-price', field: 'ask' as const },
