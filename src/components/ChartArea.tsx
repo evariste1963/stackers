@@ -152,7 +152,7 @@ export default function ChartArea({ history: propHistory, unit = 'toz', metal = 
   const xScale = (timestamp: number) => {
     const range = allMaxDate - allMinDate;
     if (range === 0) return 0;
-    return ((timestamp - allMinDate) / range) * chartWidth;
+    return ((timestamp - allMinDate) / range) * svgWidth;
   };
 
   const yScale = (price: number) => {
