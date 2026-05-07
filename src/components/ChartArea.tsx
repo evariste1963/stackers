@@ -144,12 +144,6 @@ const yAxisWidth = 25;
     return leftPadding + ((timestamp - allMinDate) / range) * (svgWidth - leftPadding - rightPadding);
   };
 
-  const xScale = (timestamp: number) => {
-    const range = allMaxDate - allMinDate;
-    if (range === 0) return 0;
-    return ((timestamp - allMinDate) / range) * svgWidth;
-  };
-
   const yScale = (price: number) => {
     const range = yMax - yMin;
     if (range === 0) return chartHeight / 2;
