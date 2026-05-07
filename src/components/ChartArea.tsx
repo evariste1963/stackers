@@ -123,9 +123,9 @@ export default function ChartArea({ history: propHistory, unit = 'toz', metal = 
   const chartHeight = 130;
   const chartWidth = screenWidth - 65;
 
-  const yAxisWidth = 22;
+  const yAxisWidth = 24;
   const leftPadding = 0;
-  const rightPadding = 8;
+  const rightPadding = 34;
   const availableWidth = screenWidth - yAxisWidth - leftPadding - rightPadding;
   
   const totalRange = allMaxDate - allMinDate;
@@ -179,7 +179,7 @@ export default function ChartArea({ history: propHistory, unit = 'toz', metal = 
   return (
     <View style={{ flex: 1 }}>
       <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}>
-        <View style={{ width: 22, height: 150, justifyContent: 'space-between', paddingTop: 10, paddingBottom: 20 }}>
+        <View style={{ width: 24, height: 150, justifyContent: 'space-between', paddingTop: 10, paddingBottom: 20 }}>
           {yTicks.map((tick, i) => (
             <Text key={i} style={{ fontSize: 10, color: colors.chartAxis, textAlign: 'right' }}>
               {Math.round(tick)}
