@@ -1,5 +1,5 @@
 import { View, useWindowDimensions, ScrollView, Text } from 'react-native';
-import { useRef, useState, useEffect, useMemo } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import Svg, { Path, Line, Text as SvgText, G } from 'react-native-svg';
 import { useIsFocused } from 'expo-router';
 import { getHistory, type HistoryEntry, migrateStaticData, getHistoryLength } from '@/services/historyService';
@@ -133,7 +133,7 @@ export default function ChartArea({ history: propHistory, unit = 'toz', metal = 
     svgWidth = screenWidth - 30;
   }
 
-  const generateMonthlyTicks = useMemo(() => {
+  const generateMonthlyTicks = () => {
     const ticks: { x: number; label: string }[] = [];
     const start = new Date(allMinDate);
     start.setDate(1);
@@ -147,7 +147,7 @@ export default function ChartArea({ history: propHistory, unit = 'toz', metal = 
       start.setMonth(start.getMonth() + 2);
     }
     return ticks;
-  }, [allMinDate, allMaxDate]);
+  };
 
   const xScale = (timestamp: number) => {
     const range = allMaxDate - allMinDate;
@@ -189,7 +189,7 @@ export default function ChartArea({ history: propHistory, unit = 'toz', metal = 
         >
           <Svg width={svgWidth} height={150}>
             <G y={10}>
-              {generateMonthlyTicks.map((tick, i) => {
+              {generateMonthlyTicks().map((tick, i) => {
                 const x = xScale(tick.x);
                 return (
                   <G key={i}>
