@@ -1,13 +1,12 @@
 import { createContext, useContext, useState, useEffect, useCallback, useRef, ReactNode } from 'react';
-import { getLatestPrice, saveSpotPrice, type GoldPriceData } from '@/services/priceService';
-import { getLatestSilverPrice, saveSilverSpotPrice, type SilverPriceData } from '@/services/silverPriceService';
+import { getLatestGoldPrice, getLatestSilverPrice, saveGoldSpotPrice, saveSilverSpotPrice, type MetalPriceData } from '@/services/metalPriceService';
 import { getHistory, saveToHistory, migrateStaticData, getHistoryLength, type HistoryEntry } from '@/services/historyService';
 import { getApiKey, getUserSettings, migrateFromKVStore, updateManualPrice as saveManualPriceToSettings, updateManualHighLow as saveManualHighLow, updateManualSilverPrice as saveManualSilverPrice, updateManualSilverHighLow as saveManualSilverHighLow, updateManualGoldPremium as saveManualGoldPremium, updateManualSilverPremium as saveManualSilverPremium, type UserSettings } from '@/services/settingsService';
 import { fetchGoldPrice, fetchSilverPrice, type MetalType } from '@/services/metalPriceApi';
 
 interface PriceContextType {
-  goldPriceData: GoldPriceData | null;
-  silverPriceData: SilverPriceData | null;
+  goldPriceData: MetalPriceData | null;
+  silverPriceData: MetalPriceData | null;
   goldHistory: HistoryEntry[];
   silverHistory: HistoryEntry[];
   settings: UserSettings;
@@ -33,8 +32,8 @@ interface PriceContextType {
 const PriceContext = createContext<PriceContextType | undefined>(undefined);
 
 export function PriceProvider({ children }: { children: ReactNode }) {
-  const [goldPriceData, setGoldPriceData] = useState<GoldPriceData | null>(null);
-  const [silverPriceData, setSilverPriceData] = useState<SilverPriceData | null>(null);
+  const [goldPriceData, setGoldPriceData] = useState<MetalPriceData | null>(null);
+  const [silverPriceData, setSilverPriceData] = useState<MetalPriceData | null>(null);
   const [goldHistory, setGoldHistory] = useState<HistoryEntry[]>([]);
   const [silverHistory, setSilverHistory] = useState<HistoryEntry[]>([]);
   const [settings, setSettings] = useState<UserSettings>({
@@ -70,7 +69,7 @@ export function PriceProvider({ children }: { children: ReactNode }) {
       const currentSettings = settingsRef.current;
       const result = await fetchGoldPrice(apiKey, currentSettings.currency, currentSettings.unit);
       
-      const savedData = await saveSpotPrice(
+      const savedData = await saveGoldSpotPrice(
         result.price,
         result.ask,
         result.bid,
@@ -147,7 +146,7 @@ export function PriceProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const refreshPricesFromDb = useCallback(async () => {
-    const cachedGold = await getLatestPrice();
+    const cachedGold = await getLatestGoldPrice();
     if (cachedGold) {
       setGoldPriceData(cachedGold);
     }
@@ -180,7 +179,7 @@ export function PriceProvider({ children }: { children: ReactNode }) {
       setSettings(prev => ({ ...prev, manualHighPrice: newHigh, manualLowPrice: newLow }));
     }
     
-    const savedData = await saveSpotPrice(
+    const savedData = await saveGoldSpotPrice(
       price,
       price,
       price,
@@ -281,7 +280,7 @@ export function PriceProvider({ children }: { children: ReactNode }) {
     const init = async () => {
       const apiKey = await getApiKey();
 
-      const cachedGold = await getLatestPrice();
+const cachedGold = await getLatestGoldPrice();
       if (mounted && cachedGold) {
         setGoldPriceData(cachedGold);
       }
@@ -319,7 +318,7 @@ export function PriceProvider({ children }: { children: ReactNode }) {
         }
         
         if (s.manualPrice !== null && s.manualPrice !== undefined && !apiKey) {
-          const savedData = await saveSpotPrice(
+          const savedData = await saveGoldSpotPrice(
             s.manualPrice,
             s.manualPrice,
             s.manualPrice,

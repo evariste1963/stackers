@@ -4,12 +4,10 @@ import { globalStyles, colors } from '@/styles/global';
 import { Text, View, TextInput, TouchableOpacity, ScrollView, Alert, Linking, Image, Switch, KeyboardAvoidingView, Platform } from 'react-native';
 import { getUserSettings, updateApiKey, removeApiKey, updatePreference, updateManualPrice as clearManualPrice, updateManualSilverPrice as clearManualSilverPrice, updateManualGoldPremium, updateManualSilverPremium, type UserSettings } from '@/services/settingsService';
 import { getAllItems } from '@/services/stackStorage';
-import { saveSpotPrice } from '@/services/priceService';
-import { saveSilverSpotPrice } from '@/services/silverPriceService';
+import { saveGoldSpotPrice, saveSilverSpotPrice } from '@/services/metalPriceService';
 import { AVAILABLE_CURRENCIES, AVAILABLE_UNITS, METALS_DEV_URL } from '@/config';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePrice } from '@/contexts/PriceContext';
-import { refreshSettings as refreshPriceSettings } from '@/contexts/PriceContext';
 
 export default function ApiSettingsScreen() {
   const router = useRouter();
@@ -128,9 +126,9 @@ async function loadSettings() {
               await clearManualSilverPrice(null);
               await updateManualGoldPremium(null);
               await updateManualSilverPremium(null);
-              await saveSpotPrice(0, 0, 0, 0, 0, 0, 0, settings.currency, settings.unit);
+await saveGoldSpotPrice(0, 0, 0, 0, 0, 0, 0, settings.currency, settings.unit);
               await saveSilverSpotPrice(0, 0, 0, 0, 0, 0, 0, settings.currency, settings.unit);
-              setSettings({ currency: 'GBP', unit: 'toz', hasApiKey: false, manualPrice: null, manualSilverPrice: null, manualGoldPremium: null, manualSilverPremium: null, createdAt: '', updatedAt: '' });
+              setSettings({ currency: 'GBP', unit: 'toz', hasApiKey: false, defaultMetal: 'gold', manualPrice: null, manualSilverPrice: null, manualGoldPremium: null, manualSilverPremium: null, createdAt: '', updatedAt: '' });
               setOffGridMode(false);
               setManualPriceInput('');
               setManualSilverPriceInput('');
@@ -203,7 +201,7 @@ async function loadSettings() {
       await clearManualSilverPrice(null);
       await updateManualGoldPremium(null);
       await updateManualSilverPremium(null);
-      await saveSpotPrice(0, 0, 0, 0, 0, 0, 0, settings.currency, settings.unit);
+      await saveGoldSpotPrice(0, 0, 0, 0, 0, 0, 0, settings.currency, settings.unit);
       await saveSilverSpotPrice(0, 0, 0, 0, 0, 0, 0, settings.currency, settings.unit);
       setSettings(prev => ({ ...prev, manualPrice: null, manualSilverPrice: null, manualGoldPremium: null, manualSilverPremium: null }));
       setManualPriceInput('');

@@ -1,6 +1,6 @@
 import * as SecureStore from 'expo-secure-store';
 import { getDb } from './db';
-import { savePrice, type GoldPriceData } from './priceService';
+import { saveGoldPrice, type MetalPriceData } from './metalPriceService';
 import { saveToHistory, type HistoryEntry } from './historyService';
 import type { MetalType } from './stackStorage';
 
@@ -303,8 +303,8 @@ export async function migrateFromKVStore(): Promise<void> {
     
     const priceData = await Storage.getItemAsync('gold_price_latest');
     if (priceData) {
-      const price = JSON.parse(priceData) as GoldPriceData;
-      await savePrice(price);
+      const price = JSON.parse(priceData) as MetalPriceData;
+      await saveGoldPrice(price);
     }
     
     const historyData = await Storage.getItemAsync('gold_price_history');

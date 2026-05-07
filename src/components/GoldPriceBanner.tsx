@@ -1,7 +1,6 @@
 import { Text, View, TouchableOpacity, TextInput, Modal, Alert, ActivityIndicator } from 'react-native';
 import { colors } from '@/styles/global';
-import { type GoldPriceData } from '@/services/priceService';
-import { type SilverPriceData } from '@/services/silverPriceService';
+import { type MetalPriceData } from '@/services/metalPriceService';
 import { type UserSettings } from '@/services/settingsService';
 import { getCurrencySymbol, formatDate } from '@/utils/formatters';
 import { useState } from 'react';
@@ -9,7 +8,7 @@ import { useState } from 'react';
 type MetalType = 'gold' | 'silver';
 
 type GoldPriceBannerProps = {
-  priceData: GoldPriceData | SilverPriceData | null;
+  priceData: MetalPriceData | null;
   metal?: MetalType;
   isLoading: boolean;
   error: string | null;

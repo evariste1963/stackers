@@ -28,41 +28,7 @@ interface StackItemRow {
   createdAt: string;
 }
 
-export async function getAllItems(): Promise<StackItem[]> {
-  const database = await getDb();
-  const rows = await database.getAllAsync<StackItemRow>('SELECT * FROM stack_items ORDER BY createdAt DESC');
-  return rows.map(row => ({
-    id: Number(row.id),
-    code: row.code,
-    weight: row.weight,
-    purchasePrice: row.purchasePrice,
-    premium: row.premium || '',
-    imageUri: row.imageUri,
-    metal: (row.metal || 'gold') as MetalType,
-    createdAt: row.createdAt,
-  }));
-}
-
-export async function getItemsByMetal(metal: MetalType): Promise<StackItem[]> {
-  const database = await getDb();
-  const rows = await database.getAllAsync<StackItemRow>('SELECT * FROM stack_items WHERE metal = ? ORDER BY createdAt DESC', [metal]);
-  return rows.map(row => ({
-    id: Number(row.id),
-    code: row.code,
-    weight: row.weight,
-    purchasePrice: row.purchasePrice,
-    premium: row.premium || '',
-    imageUri: row.imageUri,
-    metal: (row.metal || 'gold') as MetalType,
-    createdAt: row.createdAt,
-  }));
-}
-
-export async function getItemById(id: number): Promise<StackItem | null> {
-  const database = await getDb();
-  const rows = await database.getAllAsync<StackItemRow>('SELECT * FROM stack_items WHERE id = ?', [id]);
-  if (rows.length === 0) return null;
-  const row = rows[0];
+function mapRowToStackItem(row: StackItemRow): StackItem {
   return {
     id: Number(row.id),
     code: row.code,
@@ -73,6 +39,24 @@ export async function getItemById(id: number): Promise<StackItem | null> {
     metal: (row.metal || 'gold') as MetalType,
     createdAt: row.createdAt,
   };
+}
+
+export async function getAllItems(): Promise<StackItem[]> {
+  const database = await getDb();
+  const rows = await database.getAllAsync<StackItemRow>('SELECT * FROM stack_items ORDER BY createdAt DESC');
+  return rows.map(mapRowToStackItem);
+}
+
+export async function getItemsByMetal(metal: MetalType): Promise<StackItem[]> {
+  const database = await getDb();
+  const rows = await database.getAllAsync<StackItemRow>('SELECT * FROM stack_items WHERE metal = ? ORDER BY createdAt DESC', [metal]);
+  return rows.map(mapRowToStackItem);
+}
+
+export async function getItemById(id: number): Promise<StackItem | null> {
+  const database = await getDb();
+  const rows = await database.getAllAsync<StackItemRow>('SELECT * FROM stack_items WHERE id = ?', [id]);
+  return rows.length > 0 ? mapRowToStackItem(rows[0]) : null;
 }
 
 export async function addItem(item: Omit<StackItem, 'id' | 'createdAt'>): Promise<StackItem> {

@@ -1,18 +1,17 @@
 import { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import StackCard from './StackCard';
-import { getLatestPrice, type GoldPriceData } from '@/services/priceService';
-import { getLatestSilverPrice, type SilverPriceData } from '@/services/silverPriceService';
+import { getLatestGoldPrice, getLatestSilverPrice, type MetalPriceData } from '@/services/metalPriceService';
 import { colors } from '@/styles/global';
 import { usePrice } from '@/contexts/PriceContext';
 
 interface StackGridProps {
-  price?: GoldPriceData;
+  price?: MetalPriceData;
   metal?: 'gold' | 'silver';
 }
 
 export default function StackGrid({ price, metal = 'gold' }: StackGridProps) {
-  const [priceData, setPriceData] = useState<GoldPriceData | null>(price ?? null);
+  const [priceData, setPriceData] = useState<MetalPriceData | null>(price ?? null);
   const { getAdjustedBidPrice } = usePrice();
 
   useEffect(() => {
@@ -20,7 +19,7 @@ export default function StackGrid({ price, metal = 'gold' }: StackGridProps) {
     if (metal === 'silver') {
       getLatestSilverPrice().then(setPriceData);
     } else {
-      getLatestPrice().then(setPriceData);
+      getLatestGoldPrice().then(setPriceData);
     }
   }, [priceData, metal]);
 

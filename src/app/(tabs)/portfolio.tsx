@@ -4,8 +4,7 @@ import { useCallback, useState } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import { GestureDetector } from 'react-native-gesture-handler';
 import { useSwipeNavigation } from '@/hooks/useSwipeNavigation';
-import { getLatestPrice } from '@/services/priceService';
-import { getLatestSilverPrice } from '@/services/silverPriceService';
+import { getLatestGoldPrice, getLatestSilverPrice } from '@/services/metalPriceService';
 import { getUserSettings } from '@/services/settingsService';
 import { useStack } from '@/contexts/StackContext';
 import { usePrice } from '@/contexts/PriceContext';
@@ -33,7 +32,7 @@ export default function PortfolioScreen() {
   );
 
   async function loadData() {
-    const goldData = await getLatestPrice();
+    const goldData = await getLatestGoldPrice();
     if (goldData) {
       setGoldBid(goldData.bid);
       setGoldSpot(goldData.price);
