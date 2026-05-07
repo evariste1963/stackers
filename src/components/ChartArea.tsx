@@ -123,14 +123,15 @@ export default function ChartArea({ history: propHistory, unit = 'toz', metal = 
   const chartHeight = 130;
   const chartWidth = screenWidth - 65;
 
+  const chartAreaWidth = screenWidth - 65;
   const totalRange = allMaxDate - allMinDate;
   const visibleRange = hasTwelveMonths ? (allMaxDate - twelveMonthsAgoTime) : totalRange;
   
   let svgWidth: number;
   if (totalRange > visibleRange) {
-    svgWidth = (screenWidth - 30) * (totalRange / visibleRange);
+    svgWidth = chartAreaWidth * (totalRange / visibleRange);
   } else {
-    svgWidth = screenWidth - 30;
+    svgWidth = chartAreaWidth;
   }
 
   const generateMonthlyTicks = () => {
@@ -185,9 +186,9 @@ export default function ChartArea({ history: propHistory, unit = 'toz', metal = 
           ref={scrollViewRef}
           horizontal 
           showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ minWidth: screenWidth - 50 }}
+          contentContainerStyle={{ width: svgWidth }}
         >
-          <Svg width={Math.max(svgWidth, screenWidth - 65)} height={150}>
+          <Svg width={svgWidth} height={150}>
             {generateMonthlyTicks().map((tick, i) => {
               const x = xScale(tick.x);
               return (
