@@ -43,25 +43,25 @@ export default function ChartArea({ history: propHistory, unit = 'toz', metal = 
 
   useEffect(() => {
     if (!isLoading && scrollViewRef.current && hasTwelveMonths) {
-      requestAnimationFrame(() => {
+      setTimeout(() => {
         scrollViewRef.current?.scrollToEnd({ animated: false });
-      });
+      }, 100);
     }
   }, [isLoading]);
 
   useEffect(() => {
     if (propHistory && propHistory.length > 0 && scrollViewRef.current) {
-      requestAnimationFrame(() => {
+      setTimeout(() => {
         scrollViewRef.current?.scrollToEnd({ animated: true });
-      });
+      }, 100);
     }
   }, [propHistory]);
 
   useEffect(() => {
     if (isFocused && scrollViewRef.current && !isLoading) {
-      requestAnimationFrame(() => {
+      setTimeout(() => {
         scrollViewRef.current?.scrollToEnd({ animated: true });
-      });
+      }, 100);
     }
   }, [isFocused, isLoading]);
 
@@ -124,16 +124,23 @@ export default function ChartArea({ history: propHistory, unit = 'toz', metal = 
   const chartWidth = screenWidth - 65;
 
   const chartAreaWidth = screenWidth - 65;
-  const rightPadding = 30;
+  const rightPadding = 40;
   const totalRange = allMaxDate - allMinDate;
   const visibleRange = hasTwelveMonths ? (allMaxDate - twelveMonthsAgoTime) : totalRange;
   
+  const usableWidth = chartAreaWidth - rightPadding;
   let svgWidth: number;
   if (totalRange > visibleRange) {
-    svgWidth = (chartAreaWidth - rightPadding) * (totalRange / visibleRange);
+    svgWidth = usableWidth * (totalRange / visibleRange);
   } else {
-    svgWidth = chartAreaWidth - rightPadding;
+    svgWidth = usableWidth;
   }
+  
+  const xScale = (timestamp: number) => {
+    const range = allMaxDate - allMinDate;
+    if (range === 0) return 10;
+    return 10 + ((timestamp - allMinDate) / range) * (svgWidth - 20);
+  };
 
   const generateMonthlyTicks = () => {
     const ticks: { x: number; label: string }[] = [];
