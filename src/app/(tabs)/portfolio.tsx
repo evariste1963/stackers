@@ -69,7 +69,7 @@ export default function PortfolioScreen() {
 
   const goldProfit = goldValue - goldCost;
   const goldProfitPercent = goldCost > 0 ? (goldProfit / goldCost) * 100 : 0;
-  const goldPremium = goldUserPremium !== null ? goldUserPremium : (goldSpot && goldSpot > 0 ? ((goldSpot - goldBid) / goldSpot) * 100 : 0);
+  const goldPremium = goldUserPremium !== null ? goldUserPremium : (goldSpot && goldSpot > 0 ? ((goldSpot - (goldBid || 0)) / goldSpot) * 100 : 0);
 
   const silverValue = silverItems.reduce((sum, item) => {
     const weight = parseFloat(item.weight) || 0;
@@ -84,7 +84,7 @@ export default function PortfolioScreen() {
 
   const silverProfit = silverValue - silverCost;
   const silverProfitPercent = silverCost > 0 ? (silverProfit / silverCost) * 100 : 0;
-  const silverPremium = silverUserPremium !== null ? silverUserPremium : (silverSpot && silverSpot > 0 ? ((silverSpot - silverBid) / silverSpot) * 100 : 0);
+  const silverPremium = silverUserPremium !== null ? silverUserPremium : (silverSpot && silverSpot > 0 ? ((silverSpot - (silverBid || 0)) / silverSpot) * 100 : 0);
 
   const totalValue = goldValue + silverValue;
   const totalCost = goldCost + silverCost;
@@ -134,7 +134,7 @@ export default function PortfolioScreen() {
             </Text>
           </View>
           {goldBid && (
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+            <View style={styles.priceRow}>
               <Text style={styles.priceInfo}>Bid: {symbol}{goldAdjustedBid.toLocaleString('en-GB', { minimumFractionDigits: 2 })}/{unitAbbr}</Text>
               {goldSpot && goldBid && (
                 <Text style={styles.priceInfo}>Premium: {goldPremium >= 0 ? '+' : ''}{Math.abs(goldPremium).toFixed(2)}%</Text>
@@ -166,7 +166,7 @@ export default function PortfolioScreen() {
             </Text>
           </View>
           {silverBid && (
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+            <View style={styles.priceRow}>
               <Text style={styles.priceInfo}>Bid: {symbol}{silverAdjustedBid.toLocaleString('en-GB', { minimumFractionDigits: 2 })}/{unitAbbr}</Text>
               {silverSpot && silverBid && (
                 <Text style={styles.priceInfo}>Premium: {silverPremium >= 0 ? '+' : ''}{Math.abs(silverPremium).toFixed(2)}%</Text>
@@ -175,7 +175,7 @@ export default function PortfolioScreen() {
           )}
         </View>
 
-        <View style={{ height: 40 }} />
+        <View style={styles.spacer} />
       </ScrollView>
     </GestureDetector>
   );
@@ -281,10 +281,11 @@ const styles = StyleSheet.create({
     marginTop: 8,
     textAlign: 'center',
   },
-  premiumInfo: {
-    fontSize: 12,
-    color: colors.silver,
-    marginTop: 4,
-    textAlign: 'center',
+  priceRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  spacer: {
+    height: 40,
   },
 });

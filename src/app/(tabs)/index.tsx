@@ -12,20 +12,20 @@ import { usePrice } from '@/contexts/PriceContext';
 import { useStack } from '@/contexts/StackContext';
 
 export default function HomeScreen() {
-  const { 
-    goldPriceData, 
-    silverPriceData, 
-    goldHistory, 
-    silverHistory, 
-    isLoading, 
-    refreshGoldPrice, 
+  const {
+    goldPriceData,
+    silverPriceData,
+    goldHistory,
+    silverHistory,
+    isLoading,
+    refreshGoldPrice,
     refreshSilverPrice,
-    settings, 
-    apiKeyConfigured, 
-    isSettingsLoading, 
-    refreshSettings, 
-    refreshPricesFromDb, 
-    offGridMode, 
+    settings,
+    apiKeyConfigured,
+    isSettingsLoading,
+    refreshSettings,
+    refreshPricesFromDb,
+    offGridMode,
     silverOffGridMode,
     updateManualPrice,
     updateManualSilverPrice,
@@ -51,9 +51,9 @@ export default function HomeScreen() {
   const updateManualPriceFn = selectedMetal === 'gold' ? updateManualPrice : updateManualSilverPrice;
 
   const filteredItems = items.filter(item => item.metal === selectedMetal);
-  
+
   const adjustedBidPrice = getAdjustedBidPrice(selectedMetal);
-  
+
   const totalStackValue = filteredItems.reduce((sum, item) => {
     const weight = parseFloat(item.weight) || 0;
     const price = adjustedBidPrice || 0;
@@ -100,13 +100,13 @@ export default function HomeScreen() {
 
         <View style={styles.toggleWrapper}>
           <View style={metalToggleStyles.container}>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={[metalToggleStyles.option, selectedMetal === 'gold' && metalToggleStyles.optionActive]}
               onPress={() => setSelectedMetal('gold')}
             >
               <Text style={[metalToggleStyles.optionText, selectedMetal === 'gold' && metalToggleStyles.optionTextActive]}>Gold</Text>
             </TouchableOpacity>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={[metalToggleStyles.option, selectedMetal === 'silver' && metalToggleStyles.optionActive]}
               onPress={() => setSelectedMetal('silver')}
             >
