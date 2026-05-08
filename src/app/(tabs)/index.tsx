@@ -36,6 +36,7 @@ export default function HomeScreen() {
   const [selectedMetal, setSelectedMetal] = useState<'gold' | 'silver'>('gold');
 
   useEffect(() => {
+    refresh();
     refreshSettings();
     refreshPricesFromDb();
   }, []);

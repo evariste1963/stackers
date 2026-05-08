@@ -312,11 +312,9 @@ const cachedGold = await getLatestGoldPrice();
       
       const s = await getUserSettings();
       if (mounted) {
-        const apiKey = await getApiKey();
-        if (!s.hasApiKey && apiKey) {
-          s.hasApiKey = true;
-        }
-        
+        const existingGold = await getLatestGoldPrice();
+        const existingSilver = await getLatestSilverPrice();
+
         if (s.manualPrice !== null && s.manualPrice !== undefined && !apiKey) {
           const savedData = await saveGoldSpotPrice(
             s.manualPrice,
@@ -324,14 +322,14 @@ const cachedGold = await getLatestGoldPrice();
             s.manualPrice,
             s.manualHighPrice ?? s.manualPrice,
             s.manualLowPrice ?? s.manualPrice,
-            0,
-            0,
+            existingGold?.change ?? 0,
+            existingGold?.changePercent ?? 0,
             s.currency,
             s.unit
           );
           setGoldPriceData(savedData);
         }
-        
+
         if (s.manualSilverPrice !== null && s.manualSilverPrice !== undefined && !apiKey) {
           const savedData = await saveSilverSpotPrice(
             s.manualSilverPrice,
@@ -339,14 +337,14 @@ const cachedGold = await getLatestGoldPrice();
             s.manualSilverPrice,
             s.manualSilverHighPrice ?? s.manualSilverPrice,
             s.manualSilverLowPrice ?? s.manualSilverPrice,
-            0,
-            0,
+            existingSilver?.change ?? 0,
+            existingSilver?.changePercent ?? 0,
             s.currency,
             s.unit
           );
           setSilverPriceData(savedData);
         }
-        
+
         setSettings(s);
         setIsSettingsLoading(false);
       }
