@@ -1,5 +1,6 @@
-import { globalStyles, colors } from "@/styles/global";
+import { colors, globalStyles } from "@/styles/global";
 import { Text, View, TextInput, TouchableOpacity, Image, ScrollView, Modal, StyleSheet, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import PageHeader from '@/components/PageHeader';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { useState, useCallback, useRef } from 'react';
@@ -172,11 +173,8 @@ export default function AddToStackScreen() {
 
   return (
     <GestureDetector gesture={swipeGesture}>
-      <View style={styles.formScreen}>
-        <View style={styles.header}>
-          <Image source={require('../../../assets/images/stackers-logo.png')} style={globalStyles.logo} />
-          <Text style={globalStyles.title}>{isEditing ? 'Edit Item' : 'Add to Stack'}</Text>
-        </View>
+      <View style={globalStyles.tabPageContainer}>
+        <PageHeader title={isEditing ? 'Edit Item' : 'Add to Stack'} />
         <View style={styles.bannerContainer}>
           <GoldPriceBanner 
             priceData={metal === 'gold' ? goldPriceData : silverPriceData} 
@@ -383,23 +381,6 @@ const styles = StyleSheet.create({
   },
   disabledInput: {
     opacity: 0.5,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'flex-start',
-    alignItems: 'center',
-    marginBottom: 20,
-    paddingBottom: 12,
-    paddingHorizontal: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.borderDark,
-  },
-  formScreen: {
-    flex: 1,
-    flexDirection: 'column',
-    backgroundColor: colors.background,
-    paddingHorizontal: 0,
-    paddingTop: 60,
   },
   formContent: {
     paddingHorizontal: 20,

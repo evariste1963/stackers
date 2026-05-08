@@ -1,5 +1,6 @@
-import { globalStyles, colors } from "@/styles/global";
-import { Text, View, ScrollView, StyleSheet, Image } from 'react-native';
+import { colors, globalStyles } from "@/styles/global";
+import { Text, View, ScrollView, StyleSheet } from 'react-native';
+import PageHeader from '@/components/PageHeader';
 import { useCallback, useState } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import { GestureDetector } from 'react-native-gesture-handler';
@@ -96,11 +97,8 @@ export default function PortfolioScreen() {
 
   return (
     <GestureDetector gesture={swipeGesture}>
-      <ScrollView style={styles.container}>
-        <View style={styles.header}>
-          <Image source={require('../../../assets/images/stackers-logo.png')} style={globalStyles.logo} />
-          <Text style={globalStyles.title}>Portfolio</Text>
-        </View>
+      <ScrollView style={globalStyles.tabPageContainer}>
+        <PageHeader title="Portfolio" />
 
         <View style={styles.summaryCard}>
           <Text style={styles.summaryLabel}>Total Value</Text>
@@ -182,21 +180,6 @@ export default function PortfolioScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-    paddingHorizontal: 20,
-    paddingTop: 60,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'flex-start',
-    alignItems: 'center',
-    marginBottom: 20,
-    paddingBottom: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.borderDark,
-  },
   summaryCard: {
     backgroundColor: colors.themeGrey,
     borderRadius: 12,

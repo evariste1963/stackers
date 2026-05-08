@@ -1,5 +1,6 @@
-import { globalStyles, colors, toggleStyles } from "@/styles/global";
-import { Text, View, ScrollView, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import { colors, toggleStyles, globalStyles } from "@/styles/global";
+import { Text, View, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
+import PageHeader from '@/components/PageHeader';
 import { router } from 'expo-router';
 import { useState, useCallback } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
@@ -68,11 +69,8 @@ export default function YourStackScreen() {
 
   return (
     <GestureDetector gesture={swipeGesture}>
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <Image source={require('../../../assets/images/stackers-logo.png')} style={globalStyles.logo} />
-          <Text style={globalStyles.title}>Your Stack</Text>
-        </View>
+      <View style={globalStyles.tabPageContainer}>
+        <PageHeader title="Your Stack" />
 
         <View style={toggleStyles.container}>
           <TouchableOpacity
@@ -118,21 +116,6 @@ export default function YourStackScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-    paddingHorizontal: 20,
-    paddingTop: 60,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'flex-start',
-    alignItems: 'center',
-    marginBottom: 20,
-    paddingBottom: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.borderDark,
-  },
   gridContainer: {
     flex: 1,
   },

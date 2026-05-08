@@ -1,4 +1,4 @@
-import { Text, ScrollView, View, TouchableOpacity, Image, StyleSheet } from 'react-native';
+import { Text, ScrollView, View, TouchableOpacity, StyleSheet } from 'react-native';
 import { GestureDetector } from 'react-native-gesture-handler';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
@@ -8,6 +8,7 @@ import StackGrid from '@/components/StackGrid';
 import ChartArea from '@/components/ChartArea';
 import GoldPriceBanner from '@/components/GoldPriceBanner';
 import StackValueBlock from '@/components/StackValueBlock';
+import PageHeader from '@/components/PageHeader';
 import { usePrice } from '@/contexts/PriceContext';
 import { useStack } from '@/contexts/StackContext';
 
@@ -91,13 +92,8 @@ export default function HomeScreen() {
 
   return (
     <GestureDetector gesture={swipeGesture}>
-      <View style={styles.root}>
-        <View style={styles.pageHeader}>
-          <View style={globalStyles.logoContainer}>
-            <Image source={require('../../../assets/images/stackers-logo.png')} style={globalStyles.logo} />
-            <Text style={globalStyles.title}>Stackers</Text>
-          </View>
-        </View>
+      <View style={globalStyles.tabPageContainer}>
+        <PageHeader title="Stackers" />
 
         <View style={styles.toggleWrapper}>
           <View style={toggleStyles.container}>
@@ -151,21 +147,6 @@ const styles = StyleSheet.create({
   loadingText: {
     color: colors.gold,
     fontSize: 16,
-  },
-  root: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  pageHeader: {
-    flexDirection: 'row',
-    justifyContent: 'flex-start',
-    alignItems: 'center',
-    marginBottom: 20,
-    paddingHorizontal: 20,
-    paddingTop: 60,
-    paddingBottom: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.borderDark,
   },
   toggleWrapper: {
     paddingHorizontal: 20,

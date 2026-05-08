@@ -27,6 +27,11 @@ export const globalStyles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 60,
   },
+  tabPageContainer: {
+    flex: 1,
+    backgroundColor: colors.background,
+    paddingHorizontal: 20,
+  },
   title: {
     fontSize: 40,
     fontWeight: 'bold',

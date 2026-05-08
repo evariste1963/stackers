@@ -1,7 +1,7 @@
-import { globalStyles } from "@/styles/global";
-import { Text, View, ScrollView, Image, TouchableOpacity, StyleSheet } from 'react-native';
+import { globalStyles, colors } from "@/styles/global";
+import { Text, View, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
 import { Link } from 'expo-router';
-import { colors } from '@/styles/global';
+import PageHeader from '@/components/PageHeader';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'expo-router';
 import { GestureDetector } from 'react-native-gesture-handler';
@@ -18,11 +18,8 @@ export default function AccountScreen() {
 
   return (
     <GestureDetector gesture={swipeGesture}>
-      <ScrollView style={globalStyles.container}>
-        <View style={styles.header}>
-          <Image source={require('../../../assets/images/stackers-logo.png')} style={globalStyles.logo} />
-          <Text style={globalStyles.title}>Account</Text>
-        </View>
+      <ScrollView style={globalStyles.tabPageContainer}>
+        <PageHeader title="Account" />
         <View style={styles.section}>
           <Link href="/guide" asChild>
             <TouchableOpacity style={globalStyles.button}>
@@ -78,15 +75,6 @@ export default function AccountScreen() {
 const styles = StyleSheet.create({
   section: {
     padding: 16,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'flex-start',
-    alignItems: 'center',
-    marginBottom: 20,
-    paddingBottom: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.borderDark,
   },
   dangerButton: {
     marginTop: 20,
