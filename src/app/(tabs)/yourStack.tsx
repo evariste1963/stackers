@@ -117,7 +117,7 @@ return (
   );
 }
 
-const metalToggleStyles = {
+const metalToggleStyles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     backgroundColor: '#2a2a2a',
@@ -143,7 +143,7 @@ const metalToggleStyles = {
   optionTextActive: {
     color: '#000',
   },
-};
+});
 
 const styles = StyleSheet.create({
   container: {
