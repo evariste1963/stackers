@@ -172,7 +172,7 @@ export default function AddToStackScreen() {
 
   return (
     <GestureDetector gesture={swipeGesture}>
-      <View style={[globalStyles.container, { paddingHorizontal: 0 }]}>
+      <View style={styles.formScreen}>
         <View style={globalStyles.header}>
           <Image source={require('../../../assets/images/stackers-logo.png')} style={globalStyles.logo} />
           <Text style={globalStyles.title}>{isEditing ? 'Edit Item' : 'Add to Stack'}</Text>
@@ -191,10 +191,10 @@ export default function AddToStackScreen() {
           />
         </View>
         <KeyboardAvoidingView style={styles.keyboardView} behavior="padding" keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}>
-          <ScrollView style={styles.form} contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40 }} keyboardShouldPersistTaps="handled">
+          <ScrollView style={styles.form} contentContainerStyle={styles.formContent} keyboardShouldPersistTaps="handled">
             <TouchableOpacity style={styles.cameraBtn} onPress={openCamera}>
             <View style={styles.cameraBtnContent}>
-              <Ionicons name="camera" size={20} color={colors.gold} style={{ marginRight: 8 }} />
+              <Ionicons name="camera" size={20} color={colors.gold} style={styles.cameraIcon} />
               <Text style={styles.cameraBtnText}>{imageUri ? 'Retake Photo' : 'Take Photo'}</Text>
             </View>
           </TouchableOpacity>
@@ -224,7 +224,7 @@ export default function AddToStackScreen() {
               <TextInput style={styles.input} placeholder="Coin" placeholderTextColor="#666" value={code} onChangeText={setCode} />
             </View>
             <View style={styles.col}>
-              <Text style={[styles.label, { textAlign: 'right' }]}>Weight ({getUnitAbbrev(weightUnit)})</Text>
+              <Text style={styles.labelRight}>Weight ({getUnitAbbrev(weightUnit)})</Text>
               <TextInput
                 style={styles.input}
                 placeholder={`Weight (${getUnitAbbrev(weightUnit)})`}
@@ -248,7 +248,7 @@ export default function AddToStackScreen() {
             </View>
             <Text style={styles.orText}>OR</Text>
             <View style={styles.col}>
-              <Text style={[styles.label, { textAlign: 'right' }]}>Total Amount</Text>
+              <Text style={styles.labelRight}>Total Amount</Text>
               <TextInput style={styles.input} placeholder="Total" placeholderTextColor="#666" value={totalAmount} onChangeText={setTotalAmount} />
             </View>
           </View>
@@ -272,10 +272,10 @@ export default function AddToStackScreen() {
             <Text style={styles.modalMessage}>Submit Something Else?</Text>
             <View style={styles.modalButtons}>
               <TouchableOpacity style={styles.yesBtn} onPress={handleModalYes}>
-                <Text style={styles.yesBtnText}>Yes</Text>
+                <Text style={styles.modalBtnText}>Yes</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.noBtn} onPress={handleModalNo}>
-                <Text style={styles.noBtnText}>No</Text>
+                <Text style={styles.modalBtnText}>No</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -384,10 +384,26 @@ const styles = StyleSheet.create({
   disabledInput: {
     opacity: 0.5,
   },
-  buttonRow: {
-    flexDirection: 'row',
-    gap: 12,
-    marginTop: 16,
+  formScreen: {
+    flex: 1,
+    flexDirection: 'column',
+    backgroundColor: colors.background,
+    paddingHorizontal: 0,
+    paddingTop: 60,
+  },
+  formContent: {
+    paddingHorizontal: 20,
+    paddingBottom: 40,
+  },
+  cameraIcon: {
+    marginRight: 8,
+  },
+  labelRight: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.gold,
+    marginBottom: 4,
+    textAlign: 'right',
   },
   submitBtn: {
     backgroundColor: colors.green,
@@ -403,14 +419,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 12,
   },
-  calcTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: colors.gold,
-    marginTop: 8,
-    marginBottom: 12,
-    textAlign: 'center',
-  },
   submitBtnText: {
     color: colors.gold,
     fontSize: 20,
@@ -419,6 +427,11 @@ const styles = StyleSheet.create({
   cancelBtnText: {
     color: colors.gold,
     fontSize: 20,
+    fontWeight: 'bold',
+  },
+  modalBtnText: {
+    color: colors.gold,
+    fontSize: 18,
     fontWeight: 'bold',
   },
   modalOverlay: {
@@ -458,11 +471,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 32,
     borderRadius: 8,
   },
-  yesBtnText: {
-    color: colors.gold,
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
   noBtn: {
     backgroundColor: colors.themeGrey,
     paddingVertical: 12,
@@ -470,10 +478,5 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     borderWidth: 1,
     borderColor: colors.gold,
-  },
-  noBtnText: {
-    color: colors.gold,
-    fontSize: 18,
-    fontWeight: 'bold',
   },
 });
