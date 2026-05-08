@@ -22,12 +22,12 @@ function DbInitializer({ children }: { children: React.ReactNode }) {
   
   if (!dbReady) {
     return (
-      <View style={{ flex: 1, backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center' }}>
+      <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={colors.gold} />
       </View>
     );
   }
-  
+
   return <>{children}</>;
 }
 
@@ -53,7 +53,7 @@ function AuthRouter() {
 
   if (isLoading) {
     return (
-      <View style={{ flex: 1, backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center' }}>
+      <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={colors.gold} />
       </View>
     );
@@ -90,5 +90,11 @@ export default function RootLayout() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  loadingContainer: {
+    flex: 1,
+    backgroundColor: colors.background,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });

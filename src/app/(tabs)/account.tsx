@@ -1,5 +1,5 @@
 import { globalStyles } from "@/styles/global";
-import { Text, View, ScrollView, Image, TouchableOpacity } from 'react-native';
+import { Text, View, ScrollView, Image, TouchableOpacity, StyleSheet } from 'react-native';
 import { Link } from 'expo-router';
 import { colors } from '@/styles/global';
 import { useAuth } from '@/contexts/AuthContext';
@@ -23,7 +23,7 @@ export default function AccountScreen() {
           <Image source={require('../../../assets/images/stackers-logo.png')} style={globalStyles.logo} />
           <Text style={globalStyles.title}>Account</Text>
         </View>
-        <View style={{ padding: 16 }}>
+        <View style={styles.section}>
           <Link href="/guide" asChild>
             <TouchableOpacity style={globalStyles.button}>
               <Text style={globalStyles.buttonText}>Guide</Text>
@@ -61,11 +61,11 @@ export default function AccountScreen() {
                 <Text style={globalStyles.buttonText}>Remove PIN</Text>
               </TouchableOpacity>
               
-              <TouchableOpacity 
-                style={[globalStyles.button, { marginTop: 20, borderColor: colors.red, borderWidth: 1 }]} 
+              <TouchableOpacity
+                style={[globalStyles.button, styles.dangerButton]}
                 onPress={handleLogOut}
               >
-                <Text style={[globalStyles.buttonText, { color: colors.red }]}>Log Out</Text>
+                <Text style={[globalStyles.buttonText, styles.dangerButtonText]}>Log Out</Text>
               </TouchableOpacity>
             </>
           )}
@@ -74,3 +74,17 @@ export default function AccountScreen() {
     </GestureDetector>
   );
 }
+
+const styles = StyleSheet.create({
+  section: {
+    padding: 16,
+  },
+  dangerButton: {
+    marginTop: 20,
+    borderColor: colors.red,
+    borderWidth: 1,
+  },
+  dangerButtonText: {
+    color: colors.red,
+  },
+});
