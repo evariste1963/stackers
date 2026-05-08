@@ -295,8 +295,8 @@ const styles = StyleSheet.create({
   },
   bannerContainer: {
     paddingHorizontal: 20,
-    paddingTop: 8,
-    marginBottom: 30,
+    paddingTop: 0,
+    marginBottom: 10,
   },
   cameraBtn: {
     backgroundColor: colors.themeBlue,
