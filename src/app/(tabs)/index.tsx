@@ -1,4 +1,4 @@
-import { Text, Image, ScrollView, View, TouchableOpacity } from 'react-native';
+import { Text, Image, ScrollView, View, TouchableOpacity, StyleSheet } from 'react-native';
 import { GestureDetector } from 'react-native-gesture-handler';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
@@ -77,8 +77,8 @@ export default function HomeScreen() {
 
   if (isSettingsLoading) {
     return (
-      <View style={[globalStyles.container, { justifyContent: 'center', alignItems: 'center' }]}>
-        <Text style={{ color: colors.gold, fontSize: 16 }}>Loading...</Text>
+      <View style={styles.loadingContainer}>
+        <Text style={styles.loadingText}>Loading...</Text>
       </View>
     );
   }
@@ -90,15 +90,15 @@ export default function HomeScreen() {
 
   return (
     <GestureDetector gesture={swipeGesture}>
-      <View style={{ flex: 1, backgroundColor: colors.background }}>
-        <View style={[globalStyles.header, { paddingHorizontal: 20, paddingTop: 60 }]}>
+      <View style={styles.root}>
+        <View style={styles.pageHeader}>
           <View style={globalStyles.logoContainer}>
             <Image source={require('../../../assets/images/stackers-logo.png')} style={globalStyles.logo} />
             <Text style={globalStyles.title}>Stackers</Text>
           </View>
         </View>
-        
-        <View style={{ paddingHorizontal: 20, marginBottom: 10 }}>
+
+        <View style={styles.toggleWrapper}>
           <View style={metalToggleStyles.container}>
             <TouchableOpacity 
               style={[metalToggleStyles.option, selectedMetal === 'gold' && metalToggleStyles.optionActive]}
@@ -115,18 +115,18 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 20 }}>
-          <GoldPriceBanner 
+        <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+          <GoldPriceBanner
             priceData={priceData}
             metal={selectedMetal}
-            isLoading={isLoading} 
-            error={null} 
-            refreshPrice={refreshPrice} 
-            settings={settings} 
+            isLoading={isLoading}
+            error={null}
+            refreshPrice={refreshPrice}
+            settings={settings}
             offGridMode={metalOffGridMode}
             onManualPriceChange={updateManualPriceFn}
           />
-          <View style={{ height: 160, width: '100%', marginTop: 0, backgroundColor: colors.background, alignItems: 'center' }}>
+          <View style={globalStyles.chart}>
             <ChartArea history={history} unit={settings.unit} metal={selectedMetal} />
           </View>
           <StackGrid price={priceData ?? undefined} metal={selectedMetal} />
@@ -137,7 +137,7 @@ export default function HomeScreen() {
   );
 }
 
-const metalToggleStyles = {
+const metalToggleStyles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     backgroundColor: '#2a2a2a',
@@ -162,4 +162,43 @@ const metalToggleStyles = {
   optionTextActive: {
     color: '#000',
   },
-};
+});
+
+const styles = StyleSheet.create({
+  loadingContainer: {
+    flex: 1,
+    flexDirection: 'column',
+    backgroundColor: colors.background,
+    paddingHorizontal: 20,
+    paddingTop: 60,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    color: colors.gold,
+    fontSize: 16,
+  },
+  root: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  pageHeader: {
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+    marginBottom: 15,
+    paddingHorizontal: 20,
+    paddingTop: 60,
+  },
+  toggleWrapper: {
+    paddingHorizontal: 20,
+    marginBottom: 10,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+  },
+});

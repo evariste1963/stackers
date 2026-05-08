@@ -107,7 +107,7 @@ export default function PortfolioScreen() {
           <Text style={styles.summaryValue}>{symbol}{totalValue.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Text>
           <Text style={styles.costLabel}>Cost: {symbol}{totalCost.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Text>
           <Text style={[styles.profitLabel, totalProfit >= 0 ? styles.profitPositive : styles.profitNegative]}>
-            {totalProfit >= 0 ? '+' : ''}{symbol}{totalProfit.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ({profitPercent.toFixed(2)}%)
+            {totalProfit >= 0 ? '+' : ''}{symbol}{Math.abs(totalProfit).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ({Math.abs(profitPercent).toFixed(2)}%)
           </Text>
         </View>
 
@@ -130,14 +130,14 @@ export default function PortfolioScreen() {
           <View style={styles.costRow}>
             <Text style={styles.costLabel}>Cost: {symbol}{goldCost.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Text>
             <Text style={[styles.profitLabel, goldProfit >= 0 ? styles.profitPositive : styles.profitNegative]}>
-              {goldProfit >= 0 ? '+' : ''}{symbol}{goldProfit.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ({goldProfitPercent.toFixed(2)}%)
+              {goldProfit >= 0 ? '+' : ''}{symbol}{Math.abs(goldProfit).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ({Math.abs(goldProfitPercent).toFixed(2)}%)
             </Text>
           </View>
           {goldBid && (
             <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
               <Text style={styles.priceInfo}>Bid: {symbol}{goldAdjustedBid.toLocaleString('en-GB', { minimumFractionDigits: 2 })}/{unitAbbr}</Text>
               {goldSpot && goldBid && (
-                <Text style={styles.priceInfo}>Premium: {goldPremium >= 0 ? '+' : ''}{goldPremium.toFixed(2)}%</Text>
+                <Text style={styles.priceInfo}>Premium: {goldPremium >= 0 ? '+' : ''}{Math.abs(goldPremium).toFixed(2)}%</Text>
               )}
             </View>
           )}
@@ -162,14 +162,14 @@ export default function PortfolioScreen() {
           <View style={styles.costRow}>
             <Text style={styles.costLabel}>Cost: {symbol}{silverCost.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Text>
             <Text style={[styles.profitLabel, silverProfit >= 0 ? styles.profitPositive : styles.profitNegative]}>
-              {silverProfit >= 0 ? '+' : ''}{symbol}{silverProfit.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ({silverProfitPercent.toFixed(2)}%)
+              {silverProfit >= 0 ? '+' : ''}{symbol}{Math.abs(silverProfit).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ({Math.abs(silverProfitPercent).toFixed(2)}%)
             </Text>
           </View>
           {silverBid && (
             <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
               <Text style={styles.priceInfo}>Bid: {symbol}{silverAdjustedBid.toLocaleString('en-GB', { minimumFractionDigits: 2 })}/{unitAbbr}</Text>
               {silverSpot && silverBid && (
-                <Text style={styles.priceInfo}>Premium: {silverPremium >= 0 ? '+' : ''}{silverPremium.toFixed(2)}%</Text>
+                <Text style={styles.priceInfo}>Premium: {silverPremium >= 0 ? '+' : ''}{Math.abs(silverPremium).toFixed(2)}%</Text>
               )}
             </View>
           )}

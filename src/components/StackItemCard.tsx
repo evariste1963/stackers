@@ -76,10 +76,10 @@ export default function StackItemCard({ item, latestPrice, currency, weightUnit 
             <Text style={styles.valueAmount}>{sym}{currentValue.toFixed(2)}</Text>
             <View style={styles.changeRow}>
               <Text style={[styles.changePct, isPositive ? styles.positive : styles.negative]}>
-                {isPositive ? '+' : ''}{valueChangePct?.toFixed(1)}%
+                {isPositive ? '+' : '-'}{valueChangePct?.toFixed(1)}%
               </Text>
               <Text style={[styles.changeAmt, isPositive ? styles.positive : styles.negative]}>
-                {isPositive ? '+' : ''}{sym}{valueChange?.toFixed(2)}
+                {isPositive ? '+' : ''}{sym}{Math.abs(valueChange ?? 0).toFixed(2)}
               </Text>
             </View>
           </>

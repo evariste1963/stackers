@@ -35,7 +35,7 @@ export default function StackValueBlock({ value, costValue, settings, onPress }:
 
   const formatChangePercent = (changePct: number) => {
     const sign = changePct > 0 ? '+' : '';
-    return `(${sign}${changePct.toFixed(2)}%)`;
+    return `(${sign}${Math.abs(changePct).toFixed(2)}%)`;
   };
 
   return (
