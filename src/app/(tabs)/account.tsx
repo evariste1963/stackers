@@ -19,7 +19,7 @@ export default function AccountScreen() {
   return (
     <GestureDetector gesture={swipeGesture}>
       <ScrollView style={globalStyles.container}>
-        <View style={globalStyles.header}>
+        <View style={styles.header}>
           <Image source={require('../../../assets/images/stackers-logo.png')} style={globalStyles.logo} />
           <Text style={globalStyles.title}>Account</Text>
         </View>
@@ -37,8 +37,8 @@ export default function AccountScreen() {
           </Link>
 
           {!hasPinSet && (
-            <TouchableOpacity 
-              style={globalStyles.button} 
+            <TouchableOpacity
+              style={globalStyles.button}
               onPress={() => router.push('/pin-management?mode=set')}
             >
               <Text style={globalStyles.buttonText}>Set PIN</Text>
@@ -47,20 +47,20 @@ export default function AccountScreen() {
 
           {hasPinSet && (
             <>
-              <TouchableOpacity 
-                style={globalStyles.button} 
+              <TouchableOpacity
+                style={globalStyles.button}
                 onPress={() => router.push('/pin-management?mode=change')}
               >
                 <Text style={globalStyles.buttonText}>Change PIN</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity 
-                style={globalStyles.button} 
+              <TouchableOpacity
+                style={globalStyles.button}
                 onPress={() => router.push('/pin-management?mode=remove')}
               >
                 <Text style={globalStyles.buttonText}>Remove PIN</Text>
               </TouchableOpacity>
-              
+
               <TouchableOpacity
                 style={[globalStyles.button, styles.dangerButton]}
                 onPress={handleLogOut}
@@ -78,6 +78,15 @@ export default function AccountScreen() {
 const styles = StyleSheet.create({
   section: {
     padding: 16,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+    marginBottom: 20,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.borderDark,
   },
   dangerButton: {
     marginTop: 20,

@@ -3,6 +3,7 @@ import { StyleSheet } from "react-native";
 export const colors = {
   background: "#000000",
   themeGrey: "#1a1a1a",
+  toggleBg: "#2a2a2a",
   gold: "#D4AF37",
   silver: "#C0C0C0",
   darkGold: "#B8860B",
@@ -12,6 +13,7 @@ export const colors = {
   changeGreen: "#00AA00",
   grey: "#888888",
   lightGrey: "#666666",
+  borderDark: "#333333",
   red: "#e74c3c",
   orange: "#f39c12",
   white: "#ffffff"
@@ -55,7 +57,20 @@ export const globalStyles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'flex-start',
     alignItems: 'center',
-    marginBottom: 15,
+    marginBottom: 20,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.borderDark,
+  },
+  tabHeader: {
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+    marginBottom: 20,
+    paddingBottom: 12,
+    paddingHorizontal: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.borderDark,
   },
   logoContainer: {
     flexDirection: 'row',
@@ -77,5 +92,33 @@ export const globalStyles = StyleSheet.create({
     color: colors.gold,
     fontSize: 18,
     fontWeight: '600',
+  },
+});
+
+export const toggleStyles = StyleSheet.create({
+  container: {
+    flexDirection: 'row',
+    backgroundColor: colors.toggleBg,
+    borderRadius: 8,
+    padding: 4,
+    marginBottom: 8,
+  },
+  option: {
+    flex: 1,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 6,
+    alignItems: 'center',
+  },
+  optionActive: {
+    backgroundColor: colors.gold,
+  },
+  optionText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.grey,
+  },
+  optionTextActive: {
+    color: colors.background,
   },
 });

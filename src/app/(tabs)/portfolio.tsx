@@ -195,7 +195,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     paddingBottom: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#333',
+    borderBottomColor: colors.borderDark,
   },
   summaryCard: {
     backgroundColor: colors.themeGrey,
@@ -273,7 +273,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
     paddingTop: 8,
     borderTopWidth: 1,
-    borderTopColor: '#333',
+    borderTopColor: colors.borderDark,
   },
   priceInfo: {
     fontSize: 12,

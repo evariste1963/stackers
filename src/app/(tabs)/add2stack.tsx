@@ -173,7 +173,7 @@ export default function AddToStackScreen() {
   return (
     <GestureDetector gesture={swipeGesture}>
       <View style={styles.formScreen}>
-        <View style={globalStyles.header}>
+        <View style={styles.header}>
           <Image source={require('../../../assets/images/stackers-logo.png')} style={globalStyles.logo} />
           <Text style={globalStyles.title}>{isEditing ? 'Edit Item' : 'Add to Stack'}</Text>
         </View>
@@ -383,6 +383,16 @@ const styles = StyleSheet.create({
   },
   disabledInput: {
     opacity: 0.5,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+    marginBottom: 20,
+    paddingBottom: 12,
+    paddingHorizontal: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.borderDark,
   },
   formScreen: {
     flex: 1,

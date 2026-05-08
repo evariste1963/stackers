@@ -1,9 +1,9 @@
-import { Text, Image, ScrollView, View, TouchableOpacity, StyleSheet } from 'react-native';
+import { Text, ScrollView, View, TouchableOpacity, Image, StyleSheet } from 'react-native';
 import { GestureDetector } from 'react-native-gesture-handler';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { useSwipeNavigation } from '@/hooks/useSwipeNavigation';
-import { colors, globalStyles } from '@/styles/global';
+import { colors, globalStyles, toggleStyles } from '@/styles/global';
 import StackGrid from '@/components/StackGrid';
 import ChartArea from '@/components/ChartArea';
 import GoldPriceBanner from '@/components/GoldPriceBanner';
@@ -100,18 +100,18 @@ export default function HomeScreen() {
         </View>
 
         <View style={styles.toggleWrapper}>
-          <View style={metalToggleStyles.container}>
+          <View style={toggleStyles.container}>
             <TouchableOpacity
-              style={[metalToggleStyles.option, selectedMetal === 'gold' && metalToggleStyles.optionActive]}
+              style={[toggleStyles.option, selectedMetal === 'gold' && toggleStyles.optionActive]}
               onPress={() => setSelectedMetal('gold')}
             >
-              <Text style={[metalToggleStyles.optionText, selectedMetal === 'gold' && metalToggleStyles.optionTextActive]}>Gold</Text>
+              <Text style={[toggleStyles.optionText, selectedMetal === 'gold' && toggleStyles.optionTextActive]}>Gold</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[metalToggleStyles.option, selectedMetal === 'silver' && metalToggleStyles.optionActive]}
+              style={[toggleStyles.option, selectedMetal === 'silver' && toggleStyles.optionActive]}
               onPress={() => setSelectedMetal('silver')}
             >
-              <Text style={[metalToggleStyles.optionText, selectedMetal === 'silver' && metalToggleStyles.optionTextActive]}>Silver</Text>
+              <Text style={[toggleStyles.optionText, selectedMetal === 'silver' && toggleStyles.optionTextActive]}>Silver</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -138,33 +138,6 @@ export default function HomeScreen() {
   );
 }
 
-const metalToggleStyles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    backgroundColor: '#2a2a2a',
-    borderRadius: 8,
-    padding: 4,
-  },
-  option: {
-    flex: 1,
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 6,
-    alignItems: 'center',
-  },
-  optionActive: {
-    backgroundColor: colors.gold,
-  },
-  optionText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: colors.grey,
-  },
-  optionTextActive: {
-    color: '#000',
-  },
-});
-
 const styles = StyleSheet.create({
   loadingContainer: {
     flex: 1,
@@ -187,13 +160,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'flex-start',
     alignItems: 'center',
-    marginBottom: 15,
+    marginBottom: 20,
     paddingHorizontal: 20,
     paddingTop: 60,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.borderDark,
   },
   toggleWrapper: {
     paddingHorizontal: 20,
-    marginBottom: 10,
+    marginBottom: 0,
   },
   scrollView: {
     flex: 1,
