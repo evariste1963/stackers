@@ -5,6 +5,7 @@ export const colors = {
   themeGrey: "#1a1a1a",
   toggleBg: "#2a2a2a",
   gold: "#D4AF37",
+  goldTint: "rgba(212, 175, 55, 0.13)",
   silver: "#C0C0C0",
   darkGold: "#B8860B",
   themeBlue: "#13336f",
@@ -14,9 +15,10 @@ export const colors = {
   grey: "#888888",
   lightGrey: "#666666",
   borderDark: "#333333",
+  borderMid: "#444444",
   red: "#e74c3c",
   orange: "#f39c12",
-  white: "#ffffff"
+  white: "#ffffff",
 };
 
 export const globalStyles = StyleSheet.create({
@@ -98,6 +100,34 @@ export const globalStyles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
   },
+  settingsSection: {
+    backgroundColor: colors.themeGrey,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 20,
+  },
+  settingsSectionTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.gold,
+    marginBottom: 16,
+  },
+  input: {
+    backgroundColor: colors.themeGrey,
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 14,
+    color: colors.white,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: colors.borderMid,
+  },
+  inputLabel: {
+    fontSize: 14,
+    color: colors.grey,
+    marginBottom: 8,
+    marginTop: 12,
+  },
 });
 
 export const toggleStyles = StyleSheet.create({
@@ -125,5 +155,25 @@ export const toggleStyles = StyleSheet.create({
   },
   optionTextActive: {
     color: colors.background,
+  },
+  optionButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.borderMid,
+    backgroundColor: colors.themeGrey,
+  },
+  optionButtonActive: {
+    borderColor: colors.gold,
+    backgroundColor: colors.goldTint,
+  },
+  optionButtonText: {
+    fontSize: 14,
+    color: colors.grey,
+  },
+  optionButtonTextActive: {
+    color: colors.gold,
+    fontWeight: '600',
   },
 });

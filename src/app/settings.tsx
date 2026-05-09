@@ -1,18 +1,18 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'expo-router';
-import { globalStyles, colors } from '@/styles/global';
-import { Text, View, TextInput, TouchableOpacity, ScrollView, Alert, Linking, Image, Switch, KeyboardAvoidingView, Platform } from 'react-native';
-import { getUserSettings, updateApiKey, removeApiKey, updatePreference, updateManualPrice as clearManualPrice, updateManualSilverPrice as clearManualSilverPrice, updateManualGoldPremium, updateManualSilverPremium, type UserSettings } from '@/services/settingsService';
+import { globalStyles, toggleStyles, colors } from '@/styles/global';
+import { Text, View, TextInput, TouchableOpacity, ScrollView, Alert, Linking, Switch, KeyboardAvoidingView, Platform, StyleSheet } from 'react-native';
+import { getUserSettings, updateApiKey, removeApiKey, updatePreference, updateManualPrice, updateManualSilverPrice, updateManualGoldPremium, updateManualSilverPremium, type UserSettings } from '@/services/settingsService';
 import { getAllItems } from '@/services/stackStorage';
 import { saveGoldSpotPrice, saveSilverSpotPrice } from '@/services/metalPriceService';
 import { AVAILABLE_CURRENCIES, AVAILABLE_UNITS, METALS_DEV_URL } from '@/config';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePrice } from '@/contexts/PriceContext';
 
-export default function ApiSettingsScreen() {
+export default function SettingsScreen() {
   const router = useRouter();
   const { isAuthenticated, hasPinSet } = useAuth();
-  const { updateManualPrice, updateManualSilverPrice } = usePrice();
+  const { updateManualPrice: setManualPriceCtx, updateManualSilverPrice: setManualSilverPriceCtx } = usePrice();
   const [settings, setSettings] = useState<UserSettings>({
     currency: 'GBP',
     unit: 'toz',
@@ -22,11 +22,7 @@ export default function ApiSettingsScreen() {
     createdAt: '',
     updatedAt: '',
   });
-  const [apiKeyInput, setApiKeyInput] = useState('');
-  const [manualPriceInput, setManualPriceInput] = useState('');
-  const [manualSilverPriceInput, setManualSilverPriceInput] = useState('');
-  const [manualGoldPremiumInput, setManualGoldPremiumInput] = useState('');
-  const [manualSilverPremiumInput, setManualSilverPremiumInput] = useState('');
+  const [manualInputs, setManualInputs] = useState({ gold: '', silver: '', goldPremium: '', silverPremium: '' });
   const [offGridMode, setOffGridMode] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -46,25 +42,17 @@ export default function ApiSettingsScreen() {
     }
   }
 
-async function loadSettings() {
+  async function loadSettings() {
     try {
       const s = await getUserSettings();
       setSettings(s);
-      const hasManual = s.manualPrice !== null && s.manualPrice !== undefined && s.manualPrice > 0;
-      const hasSilverManual = s.manualSilverPrice !== null && s.manualSilverPrice !== undefined && s.manualSilverPrice > 0;
-      setOffGridMode(hasManual && hasSilverManual);
-      if (s.manualPrice) {
-        setManualPriceInput(s.manualPrice.toString());
-      }
-      if (s.manualSilverPrice) {
-        setManualSilverPriceInput(s.manualSilverPrice.toString());
-      }
-      if (s.manualGoldPremium !== null && s.manualGoldPremium !== undefined) {
-        setManualGoldPremiumInput(s.manualGoldPremium.toString());
-      }
-      if (s.manualSilverPremium !== null && s.manualSilverPremium !== undefined) {
-        setManualSilverPremiumInput(s.manualSilverPremium.toString());
-      }
+      const hasGold = s.manualPrice !== null && s.manualPrice !== undefined && s.manualPrice > 0;
+      const hasSilver = s.manualSilverPrice !== null && s.manualSilverPrice !== undefined && s.manualSilverPrice > 0;
+      setOffGridMode(hasGold && hasSilver);
+      if (s.manualPrice) setManualInputs(prev => ({ ...prev, gold: s.manualPrice!.toString() }));
+      if (s.manualSilverPrice) setManualInputs(prev => ({ ...prev, silver: s.manualSilverPrice!.toString() }));
+      if (s.manualGoldPremium != null) setManualInputs(prev => ({ ...prev, goldPremium: s.manualGoldPremium!.toString() }));
+      if (s.manualSilverPremium != null) setManualInputs(prev => ({ ...prev, silverPremium: s.manualSilverPremium!.toString() }));
     } catch (error) {
       console.error('Error loading settings:', error);
     } finally {
@@ -72,19 +60,29 @@ async function loadSettings() {
     }
   }
 
+  async function clearAllPrices() {
+    await Promise.all([
+      updateManualPrice(null),
+      updateManualSilverPrice(null),
+      updateManualGoldPremium(null),
+      updateManualSilverPremium(null),
+      saveGoldSpotPrice(0, 0, 0, 0, 0, 0, 0, settings.currency, settings.unit),
+      saveSilverSpotPrice(0, 0, 0, 0, 0, 0, 0, settings.currency, settings.unit),
+    ]);
+  }
+
   async function handleSaveApiKey() {
-    if (!apiKeyInput.trim()) {
+    if (!manualInputs.gold.trim()) {
       Alert.alert('Error', 'Please enter an API key');
       return;
     }
-
     setIsSaving(true);
     try {
-      await updateApiKey(apiKeyInput.trim());
+      await updateApiKey(manualInputs.gold.trim());
       setSettings(prev => ({ ...prev, hasApiKey: true }));
-      setApiKeyInput('');
+      setManualInputs(prev => ({ ...prev, gold: '' }));
       Alert.alert('Success', 'API key saved successfully', [
-        { text: 'OK', onPress: () => router.replace('/') }
+        { text: 'OK', onPress: () => router.replace('/guide') }
       ]);
     } catch (error) {
       Alert.alert('Error', 'Failed to save API key');
@@ -93,22 +91,12 @@ async function loadSettings() {
     }
   }
 
-  function handleGoBack() {
-    if (offGridMode) {
-      router.replace('/guide');
-    } else if (settings.hasApiKey) {
-      router.replace('/guide');
-    } else {
-      router.replace('/guide');
-    }
-  }
-
   async function handleRemoveApiKey() {
     if (hasPinSet && !isAuthenticated) {
       Alert.alert('Authentication Required', 'Please log in with your PIN to remove the API key.');
       return;
     }
-    const message = offGridMode 
+    const message = offGridMode
       ? 'Your manual gold and silver prices will be kept. You can still use the app with manual prices.'
       : 'You can add manual gold and silver prices to continue using the app without an API key.';
     Alert.alert(
@@ -122,18 +110,10 @@ async function loadSettings() {
           onPress: async () => {
             try {
               await removeApiKey();
-              await clearManualPrice(null);
-              await clearManualSilverPrice(null);
-              await updateManualGoldPremium(null);
-              await updateManualSilverPremium(null);
-await saveGoldSpotPrice(0, 0, 0, 0, 0, 0, 0, settings.currency, settings.unit);
-              await saveSilverSpotPrice(0, 0, 0, 0, 0, 0, 0, settings.currency, settings.unit);
+              await clearAllPrices();
               setSettings({ currency: 'GBP', unit: 'toz', hasApiKey: false, defaultMetal: 'gold', manualPrice: null, manualSilverPrice: null, manualGoldPremium: null, manualSilverPremium: null, createdAt: '', updatedAt: '' });
               setOffGridMode(false);
-              setManualPriceInput('');
-              setManualSilverPriceInput('');
-              setManualGoldPremiumInput('');
-              setManualSilverPremiumInput('');
+              setManualInputs({ gold: '', silver: '', goldPremium: '', silverPremium: '' });
               Alert.alert('Success', 'API key removed. You can add a new key from Account > Settings.');
             } catch (error) {
               Alert.alert('Error', 'Failed to remove API key');
@@ -171,23 +151,26 @@ await saveGoldSpotPrice(0, 0, 0, 0, 0, 0, 0, settings.currency, settings.unit);
     }
   }
 
-  
-
-  function handleManualSilverPriceChange(text: string) {
-    setManualSilverPriceInput(text);
-  }
-
-  async function handleManualSilverPriceSubmit() {
-    const price = parseFloat(manualSilverPriceInput);
-    if (isNaN(price) || price <= 0) {
+  async function handleManualPriceSubmit() {
+    const goldPrice = parseFloat(manualInputs.gold);
+    const silverPrice = parseFloat(manualInputs.silver);
+    if (isNaN(goldPrice) || goldPrice <= 0) {
+      Alert.alert('Invalid Price', 'Please enter a valid gold price.');
+      return;
+    }
+    if (isNaN(silverPrice) || silverPrice <= 0) {
       Alert.alert('Invalid Price', 'Please enter a valid silver price.');
       return;
     }
-    await updateManualSilverPrice(price);
-    setSettings(prev => ({ ...prev, manualSilverPrice: price }));
-    if (settings.manualPrice && settings.manualPrice > 0) {
-      setOffGridMode(true);
-    }
+    const goldPremium = manualInputs.goldPremium ? parseFloat(manualInputs.goldPremium) : null;
+    const silverPremium = manualInputs.silverPremium ? parseFloat(manualInputs.silverPremium) : null;
+    if (goldPremium != null && !isNaN(goldPremium) && goldPremium >= 0) await updateManualGoldPremium(goldPremium);
+    if (silverPremium != null && !isNaN(silverPremium) && silverPremium >= 0) await updateManualSilverPremium(silverPremium);
+    await setManualPriceCtx(goldPrice);
+    await setManualSilverPriceCtx(silverPrice);
+    setSettings(prev => ({ ...prev, manualPrice: goldPrice, manualSilverPrice: silverPrice, manualGoldPremium: goldPremium ?? null, manualSilverPremium: silverPremium ?? null }));
+    setOffGridMode(true);
+    Alert.alert('Success', 'Both gold and silver prices have been saved.');
   }
 
   async function handleOffGridModeToggle(value: boolean) {
@@ -197,52 +180,10 @@ await saveGoldSpotPrice(0, 0, 0, 0, 0, 0, 0, settings.currency, settings.unit);
     }
     setOffGridMode(value);
     if (!value) {
-      await clearManualPrice(null);
-      await clearManualSilverPrice(null);
-      await updateManualGoldPremium(null);
-      await updateManualSilverPremium(null);
-      await saveGoldSpotPrice(0, 0, 0, 0, 0, 0, 0, settings.currency, settings.unit);
-      await saveSilverSpotPrice(0, 0, 0, 0, 0, 0, 0, settings.currency, settings.unit);
+      await clearAllPrices();
       setSettings(prev => ({ ...prev, manualPrice: null, manualSilverPrice: null, manualGoldPremium: null, manualSilverPremium: null }));
-      setManualPriceInput('');
-      setManualSilverPriceInput('');
-      setManualGoldPremiumInput('');
-      setManualSilverPremiumInput('');
+      setManualInputs({ gold: '', silver: '', goldPremium: '', silverPremium: '' });
     }
-  }
-
-  async function handleManualPriceSubmit() {
-    const goldPrice = parseFloat(manualPriceInput);
-    const silverPrice = parseFloat(manualSilverPriceInput);
-    const goldPremium = manualGoldPremiumInput ? parseFloat(manualGoldPremiumInput) : null;
-    const silverPremium = manualSilverPremiumInput ? parseFloat(manualSilverPremiumInput) : null;
-    
-    if (isNaN(goldPrice) || goldPrice <= 0) {
-      Alert.alert('Invalid Price', 'Please enter a valid gold price.');
-      return;
-    }
-    if (isNaN(silverPrice) || silverPrice <= 0) {
-      Alert.alert('Invalid Price', 'Please enter a valid silver price.');
-      return;
-    }
-    
-    await updateManualPrice(goldPrice);
-    await updateManualSilverPrice(silverPrice);
-    if (goldPremium !== null && !isNaN(goldPremium) && goldPremium >= 0) {
-      await updateManualGoldPremium(goldPremium);
-    }
-    if (silverPremium !== null && !isNaN(silverPremium) && silverPremium >= 0) {
-      await updateManualSilverPremium(silverPremium);
-    }
-    setSettings(prev => ({ 
-      ...prev, 
-      manualPrice: goldPrice, 
-      manualSilverPrice: silverPrice,
-      manualGoldPremium: goldPremium,
-      manualSilverPremium: silverPremium
-    }));
-    setOffGridMode(true);
-    Alert.alert('Success', 'Both gold and silver prices have been saved.');
   }
 
   function openMetalsDev() {
@@ -251,432 +192,314 @@ await saveGoldSpotPrice(0, 0, 0, 0, 0, 0, 0, settings.currency, settings.unit);
 
   if (isLoading) {
     return (
-      <View style={[globalStyles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+      <View style={[globalStyles.container, localStyles.loadingContainer]}>
         <Text style={{ color: colors.gold }}>Loading...</Text>
       </View>
     );
   }
 
-return (
-    <KeyboardAvoidingView 
-      style={{ flex: 1 }} 
+  const hasGold = !!manualInputs.gold.trim();
+  const hasSilver = !!manualInputs.silver.trim();
+
+  return (
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <ScrollView style={globalStyles.container} keyboardShouldPersistTaps="handled">
-      <View style={apiStyles.header}>
-        <Text style={apiStyles.title}>Settings</Text>
-      </View>
+        <View style={localStyles.header}>
+          <Text style={localStyles.title}>Settings</Text>
+        </View>
 
-      <View style={apiStyles.section}>
-        <Text style={apiStyles.sectionTitle}>Currency</Text>
-        {hasStackItems && (
-          <Text style={apiStyles.notConfiguredText}>Cannot change - items in stack</Text>
-        )}
-        <View style={apiStyles.optionsRow}>
-          {AVAILABLE_CURRENCIES.map((curr) => (
+        <View style={globalStyles.settingsSection}>
+          <Text style={globalStyles.settingsSectionTitle}>Currency</Text>
+          {hasStackItems && (
+            <Text style={localStyles.notConfiguredText}>Cannot change - items in stack</Text>
+          )}
+          <View style={localStyles.optionsRow}>
+            {AVAILABLE_CURRENCIES.map((curr) => (
+              <TouchableOpacity
+                key={curr.code}
+                style={[toggleStyles.optionButton, settings.currency === curr.code && toggleStyles.optionButtonActive, hasStackItems && localStyles.optionDisabled]}
+                onPress={() => !hasStackItems && handleCurrencyChange(curr.code)}
+                disabled={hasStackItems}
+              >
+                <Text style={[toggleStyles.optionButtonText, settings.currency === curr.code && toggleStyles.optionButtonTextActive]}>{curr.code} ({curr.symbol})</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+
+        <View style={globalStyles.settingsSection}>
+          <Text style={globalStyles.settingsSectionTitle}>Weight Unit</Text>
+          {hasStackItems && (
+            <Text style={localStyles.notConfiguredText}>Cannot change - items in stack</Text>
+          )}
+          <View style={localStyles.optionsRow}>
+            {AVAILABLE_UNITS.map((u) => (
+              <TouchableOpacity
+                key={u.code}
+                style={[toggleStyles.optionButton, settings.unit === u.code && toggleStyles.optionButtonActive, hasStackItems && localStyles.optionDisabled]}
+                onPress={() => !hasStackItems && handleUnitChange(u.code)}
+                disabled={hasStackItems}
+              >
+                <Text style={[toggleStyles.optionButtonText, settings.unit === u.code && toggleStyles.optionButtonTextActive]}>{u.name} ({u.abbrev})</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+
+        <View style={globalStyles.settingsSection}>
+          <Text style={globalStyles.settingsSectionTitle}>Default Metal</Text>
+          <View style={localStyles.optionsRow}>
             <TouchableOpacity
-              key={curr.code}
-              style={[
-                apiStyles.optionButton,
-                settings.currency === curr.code && apiStyles.optionButtonActive,
-                hasStackItems && apiStyles.optionButtonDisabled
-              ]}
-              onPress={() => !hasStackItems && handleCurrencyChange(curr.code)}
-              disabled={hasStackItems}
+              style={[toggleStyles.optionButton, settings.defaultMetal === 'gold' && toggleStyles.optionButtonActive]}
+              onPress={() => handleDefaultMetalChange('gold')}
             >
-              <Text style={[
-                apiStyles.optionButtonText,
-                settings.currency === curr.code && apiStyles.optionButtonTextActive
-              ]}>{curr.code} ({curr.symbol})</Text>
+              <Text style={[toggleStyles.optionButtonText, settings.defaultMetal === 'gold' && toggleStyles.optionButtonTextActive]}>Gold</Text>
             </TouchableOpacity>
-          ))}
-        </View>
-      </View>
-
-      <View style={apiStyles.section}>
-        <Text style={apiStyles.sectionTitle}>Weight Unit</Text>
-        {hasStackItems && (
-          <Text style={apiStyles.notConfiguredText}>Cannot change - items in stack</Text>
-        )}
-        <View style={apiStyles.optionsRow}>
-          {AVAILABLE_UNITS.map((u) => (
             <TouchableOpacity
-              key={u.code}
-              style={[
-                apiStyles.optionButton,
-                settings.unit === u.code && apiStyles.optionButtonActive,
-                hasStackItems && apiStyles.optionButtonDisabled
-              ]}
-              onPress={() => !hasStackItems && handleUnitChange(u.code)}
-              disabled={hasStackItems}
+              style={[toggleStyles.optionButton, settings.defaultMetal === 'silver' && toggleStyles.optionButtonActive]}
+              onPress={() => handleDefaultMetalChange('silver')}
             >
-              <Text style={[
-                apiStyles.optionButtonText,
-                settings.unit === u.code && apiStyles.optionButtonTextActive
-              ]}>{u.name} ({u.abbrev})</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      </View>
-
-      <View style={apiStyles.section}>
-        <Text style={apiStyles.sectionTitle}>Default Metal</Text>
-        <View style={apiStyles.optionsRow}>
-          <TouchableOpacity
-            style={[
-              apiStyles.optionButton,
-              settings.defaultMetal === 'gold' && apiStyles.optionButtonActive
-            ]}
-            onPress={() => handleDefaultMetalChange('gold')}
-          >
-            <Text style={[
-              apiStyles.optionButtonText,
-              settings.defaultMetal === 'gold' && apiStyles.optionButtonTextActive
-            ]}>Gold</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[
-              apiStyles.optionButton,
-              settings.defaultMetal === 'silver' && apiStyles.optionButtonActive
-            ]}
-            onPress={() => handleDefaultMetalChange('silver')}
-          >
-            <Text style={[
-              apiStyles.optionButtonText,
-              settings.defaultMetal === 'silver' && apiStyles.optionButtonTextActive
-            ]}>Silver</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      <View style={apiStyles.section}>
-        <Text style={apiStyles.sectionTitle}>API Key</Text>
-
-        {settings.hasApiKey ? (
-          <View style={apiStyles.statusContainer}>
-            <Text style={apiStyles.statusText}>API Key configured ✓</Text>
-            <TouchableOpacity 
-              style={[
-                apiStyles.removeButton, 
-                (hasPinSet && !isAuthenticated) && apiStyles.removeButtonDisabled
-              ]} 
-              onPress={handleRemoveApiKey}
-              disabled={hasPinSet && !isAuthenticated}
-            >
-              <Text style={apiStyles.removeButtonText}>Remove</Text>
+              <Text style={[toggleStyles.optionButtonText, settings.defaultMetal === 'silver' && toggleStyles.optionButtonTextActive]}>Silver</Text>
             </TouchableOpacity>
           </View>
-        ) : (
-          <View>
-            <Text style={apiStyles.notConfiguredText}>API key not configured</Text>
-            
-            <View style={apiStyles.manualPriceContainer}>
-              <View style={{ flexDirection: 'row', gap: 10 }}>
+        </View>
+
+        <View style={globalStyles.settingsSection}>
+          <Text style={globalStyles.settingsSectionTitle}>API Key</Text>
+
+          {settings.hasApiKey ? (
+            <View style={localStyles.statusContainer}>
+              <Text style={localStyles.statusText}>API Key configured ✓</Text>
+              <TouchableOpacity
+                style={[localStyles.removeButton, (hasPinSet && !isAuthenticated) && localStyles.removeDisabled]}
+                onPress={handleRemoveApiKey}
+                disabled={hasPinSet && !isAuthenticated}
+              >
+                <Text style={localStyles.removeButtonText}>Remove</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <View>
+              <View style={localStyles.priceRow}>
                 <View style={{ flex: 1 }}>
-                  <Text style={apiStyles.label}>Gold Price ({settings.currency}/{settings.unit})</Text>
+                  <Text style={globalStyles.inputLabel}>Gold Price ({settings.currency}/{settings.unit})</Text>
                   <TextInput
-                    style={apiStyles.input}
+                    style={globalStyles.input}
                     placeholder="Price"
-                    placeholderTextColor="#666"
-                    value={manualPriceInput}
-                    onChangeText={setManualPriceInput}
+                    placeholderTextColor={colors.lightGrey}
+                    value={manualInputs.gold}
+                    onChangeText={(v) => setManualInputs(prev => ({ ...prev, gold: v }))}
                     keyboardType="numeric"
                   />
                 </View>
                 <View style={{ flex: 0.6 }}>
-                  <Text style={apiStyles.label}>Premium %</Text>
+                  <Text style={globalStyles.inputLabel}>Premium %</Text>
                   <TextInput
-                    style={apiStyles.input}
+                    style={globalStyles.input}
                     placeholder="%"
-                    placeholderTextColor="#666"
-                    value={manualGoldPremiumInput}
-                    onChangeText={setManualGoldPremiumInput}
+                    placeholderTextColor={colors.lightGrey}
+                    value={manualInputs.goldPremium}
+                    onChangeText={(v) => setManualInputs(prev => ({ ...prev, goldPremium: v }))}
                     keyboardType="numeric"
                   />
                 </View>
               </View>
-            </View>
 
-            <View style={apiStyles.manualPriceContainer}>
-              <View style={{ flexDirection: 'row', gap: 10 }}>
+              <View style={localStyles.priceRow}>
                 <View style={{ flex: 1 }}>
-                  <Text style={apiStyles.label}>Silver Price ({settings.currency}/{settings.unit})</Text>
+                  <Text style={globalStyles.inputLabel}>Silver Price ({settings.currency}/{settings.unit})</Text>
                   <TextInput
-                    style={apiStyles.input}
+                    style={globalStyles.input}
                     placeholder="Price"
-                    placeholderTextColor="#666"
-                    value={manualSilverPriceInput}
-                    onChangeText={setManualSilverPriceInput}
+                    placeholderTextColor={colors.lightGrey}
+                    value={manualInputs.silver}
+                    onChangeText={(v) => setManualInputs(prev => ({ ...prev, silver: v }))}
                     keyboardType="numeric"
                   />
                 </View>
                 <View style={{ flex: 0.6 }}>
-                  <Text style={apiStyles.label}>Premium %</Text>
+                  <Text style={globalStyles.inputLabel}>Premium %</Text>
                   <TextInput
-                    style={apiStyles.input}
+                    style={globalStyles.input}
                     placeholder="%"
-                    placeholderTextColor="#666"
-                    value={manualSilverPremiumInput}
-                    onChangeText={setManualSilverPremiumInput}
+                    placeholderTextColor={colors.lightGrey}
+                    value={manualInputs.silverPremium}
+                    onChangeText={(v) => setManualInputs(prev => ({ ...prev, silverPremium: v }))}
                     keyboardType="numeric"
                   />
                 </View>
               </View>
-            </View>
 
-            <TouchableOpacity
-              style={[apiStyles.saveButton, (!manualPriceInput || !manualSilverPriceInput) && apiStyles.buttonDisabled]}
-              onPress={handleManualPriceSubmit}
-              disabled={!manualPriceInput || !manualSilverPriceInput}
-            >
-              <Text style={apiStyles.saveButtonText}>Submit Prices</Text>
-            </TouchableOpacity>
+              <TouchableOpacity
+                style={[localStyles.saveButton, (!hasGold || !hasSilver) && localStyles.buttonDisabled]}
+                onPress={handleManualPriceSubmit}
+                disabled={!hasGold || !hasSilver}
+              >
+                <Text style={localStyles.saveButtonText}>Submit Prices</Text>
+              </TouchableOpacity>
 
-            <View style={[apiStyles.offGridModeContainer, { marginTop: 24 }]}>
-              <View style={apiStyles.offGridModeRow}>
-                <Text style={apiStyles.offGridModeLabel}>Off Grid Mode</Text>
-                <Switch
-                  value={offGridMode}
-                  onValueChange={handleOffGridModeToggle}
-                  trackColor={{ false: colors.themeGrey, true: colors.gold }}
-                  thumbColor={colors.white}
-                />
+              <View style={localStyles.offGridContainer}>
+                <View style={localStyles.offGridRow}>
+                  <Text style={localStyles.offGridLabel}>Off Grid Mode</Text>
+                  <Switch
+                    value={offGridMode}
+                    onValueChange={handleOffGridModeToggle}
+                    trackColor={{ false: colors.themeGrey, true: colors.gold }}
+                    thumbColor={colors.white}
+                  />
+                </View>
               </View>
+
+              {!offGridMode && (
+                <>
+                  <TouchableOpacity style={localStyles.linkButton} onPress={openMetalsDev}>
+                    <Text style={localStyles.linkButtonText}>Get free API key at metals.dev ↗</Text>
+                  </TouchableOpacity>
+                  <TextInput
+                    style={globalStyles.input}
+                    placeholder="Enter your API key"
+                    placeholderTextColor={colors.lightGrey}
+                    value={manualInputs.gold}
+                    onChangeText={(v) => setManualInputs(prev => ({ ...prev, gold: v }))}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                  />
+                  <TouchableOpacity
+                    style={[localStyles.saveButton, isSaving && localStyles.buttonDisabled]}
+                    onPress={handleSaveApiKey}
+                    disabled={isSaving}
+                  >
+                    <Text style={localStyles.saveButtonText}>
+                      {isSaving ? 'Saving...' : 'Save API Key'}
+                    </Text>
+                  </TouchableOpacity>
+                </>
+              )}
             </View>
+          )}
+        </View>
 
-            {!offGridMode && (
-              <>
-                <TouchableOpacity style={apiStyles.linkButton} onPress={openMetalsDev}>
-                  <Text style={apiStyles.linkButtonText}>Get free API key at metals.dev ↗</Text>
-                </TouchableOpacity>
-                <TextInput
-                  style={apiStyles.input}
-                  placeholder="Enter your API key"
-                  placeholderTextColor="#666"
-                  value={apiKeyInput}
-                  onChangeText={setApiKeyInput}
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                />
-                <TouchableOpacity
-                  style={[apiStyles.saveButton, isSaving && apiStyles.buttonDisabled]}
-                  onPress={handleSaveApiKey}
-                  disabled={isSaving}
-                >
-                  <Text style={apiStyles.saveButtonText}>
-                    {isSaving ? 'Saving...' : 'Save API Key'}
-                  </Text>
-                </TouchableOpacity>
-              </>
-            )}
-          </View>
+        {(offGridMode || settings.hasApiKey) && (
+          <TouchableOpacity style={localStyles.continueButton} onPress={() => router.replace('/guide')}>
+            <Text style={localStyles.continueButtonText}>Continue</Text>
+          </TouchableOpacity>
         )}
-      </View>
 
-      {offGridMode && (
-        <TouchableOpacity style={apiStyles.continueButton} onPress={handleGoBack}>
-          <Text style={apiStyles.continueButtonText}>Continue</Text>
-        </TouchableOpacity>
-      )}
-
-      {settings.hasApiKey && (
-        <TouchableOpacity style={apiStyles.returnButton} onPress={handleGoBack}>
-          <Text style={apiStyles.returnButtonText}>Return</Text>
-        </TouchableOpacity>
-      )}
-
-      <View style={{ height: 120 }} />
-    </ScrollView>
+        <View style={{ height: 120 }} />
+      </ScrollView>
     </KeyboardAvoidingView>
   );
 }
 
-const apiStyles = {
+const localStyles = StyleSheet.create({
+  loadingContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   header: {
     marginBottom: 10,
-  } as const,
-  continueButton: {
-    backgroundColor: colors.gold,
-    borderRadius: 12,
-    padding: 16,
-    alignItems: 'center',
-    marginBottom: 20,
-  } as const,
-  continueButtonText: {
-    color: colors.white,
-    fontSize: 16,
-    fontWeight: '600',
-  } as const,
-  returnButton: {
-    backgroundColor: colors.themeGrey,
-    borderRadius: 12,
-    padding: 16,
-    alignItems: 'center',
-    marginBottom: 20,
-  } as const,
-  returnButtonText: {
-    color: colors.gold,
-    fontSize: 16,
-    fontWeight: '600',
-  } as const,
+  },
   title: {
     fontSize: 28,
     fontWeight: 'bold',
     color: colors.gold,
-  } as const,
-  section: {
-    backgroundColor: colors.themeGrey,
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 20,
-  } as const,
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.gold,
-    marginBottom: 16,
-  } as const,
+  },
+  notConfiguredText: {
+    fontSize: 14,
+    color: colors.red,
+    marginBottom: 12,
+  },
   statusContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-  } as const,
+  },
   statusText: {
     fontSize: 14,
-    color: '#4caf50',
-  } as const,
+    color: colors.changeGreen,
+  },
   removeButton: {
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 8,
     borderWidth: 1,
     borderColor: colors.red,
-  } as const,
+  },
   removeButtonText: {
     color: colors.red,
     fontSize: 14,
     fontWeight: '600',
-  } as const,
-  removeButtonDisabled: {
+  },
+  removeDisabled: {
     opacity: 0.5,
-  } as const,
-  notConfiguredText: {
-    fontSize: 14,
-    color: colors.red,
-    marginBottom: 12,
-  } as const,
+  },
   linkButton: {
     marginBottom: 16,
-  } as const,
+  },
   linkButtonText: {
     fontSize: 14,
     color: colors.white,
-    textDecorationLine: 'underline' as const,
-  } as const,
-  input: {
-    backgroundColor: colors.themeGrey,
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 14,
-    color: '#fff',
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: '#444',
-  } as const,
+    textDecorationLine: 'underline',
+  },
   saveButton: {
     backgroundColor: colors.gold,
     borderRadius: 8,
     padding: 14,
-    alignItems: 'center' as const,
-  } as const,
-  saveButtonSilver: {
-    backgroundColor: colors.themeGrey,
-    borderRadius: 8,
-    padding: 14,
-    alignItems: 'center' as const,
-    borderWidth: 1,
-    borderColor: colors.silver,
-  } as const,
-  buttonDisabled: {
-    opacity: 0.7,
-  } as const,
+    alignItems: 'center',
+  },
   saveButtonText: {
     color: colors.white,
     fontSize: 16,
     fontWeight: '600',
-  } as const,
-  label: {
-    fontSize: 14,
-    color: '#888',
-    marginBottom: 8,
-    marginTop: 12,
-  } as const,
+  },
+  buttonDisabled: {
+    opacity: 0.7,
+  },
+  optionDisabled: {
+    opacity: 0.5,
+  },
   optionsRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
-  } as const,
-  optionButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#444',
-    backgroundColor: colors.themeGrey,
-  } as const,
-  optionButtonActive: {
-    borderColor: colors.gold,
-    backgroundColor: colors.gold + '20',
-  } as const,
-  optionButtonDisabled: {
-    borderColor: '#333',
-    backgroundColor: '#2a2a2a',
-    opacity: 0.5,
-  } as const,
-  optionButtonText: {
-    fontSize: 14,
-    color: '#888',
-  } as const,
-  optionButtonTextActive: {
-    color: colors.gold,
-    fontWeight: '600' as const,
-  } as const,
-  optionButtonTextDisabled: {
-    color: '#555',
-  } as const,
-  lockedNote: {
-    fontSize: 13,
-    color: colors.orange,
-    fontStyle: 'italic',
-    marginBottom: 16,
-    padding: 10,
-    backgroundColor: colors.orange + '20',
-    borderRadius: 8,
-  } as const,
-  offGridModeContainer: {
+  },
+  priceRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginBottom: 0,
+  },
+  offGridContainer: {
     backgroundColor: colors.themeGrey,
     borderRadius: 8,
     padding: 12,
+    marginTop: 24,
     marginBottom: 16,
     borderWidth: 1,
     borderColor: colors.gold,
-  } as const,
-  offGridModeRow: {
+  },
+  offGridRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-  } as const,
-  offGridModeLabel: {
+  },
+  offGridLabel: {
     fontSize: 14,
     color: colors.gold,
     fontWeight: '600',
-  } as const,
-  offGridModeDescription: {
-    fontSize: 12,
-    color: colors.grey,
-    marginTop: 4,
-  } as const,
-  manualPriceContainer: {
-    marginTop: 8,
-  } as const,
-};
+  },
+  continueButton: {
+    backgroundColor: colors.gold,
+    borderRadius: 12,
+    padding: 16,
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  continueButtonText: {
+    color: colors.white,
+    fontSize: 16,
+    fontWeight: '600',
+  },
+});
