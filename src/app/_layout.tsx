@@ -6,7 +6,7 @@ import { StackProvider } from "@/contexts/StackContext";
 import { PriceProvider } from "@/contexts/PriceContext";
 import { View, ActivityIndicator } from "react-native";
 import { colors } from "@/styles/global";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "expo-router";
 import { cleanOrphanedImages } from "@/services/stackStorage";
 import { initAllTables } from "@/services/db";
@@ -15,11 +15,11 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 function DbInitializer({ children }: { children: React.ReactNode }) {
   const [dbReady, setDbReady] = useState(false);
-  
+
   useEffect(() => {
     initAllTables().then(() => setDbReady(true));
   }, []);
-  
+
   if (!dbReady) {
     return (
       <View style={styles.loadingContainer}>
