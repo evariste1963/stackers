@@ -70,8 +70,8 @@ const styles = {
     width: '100%',
     backgroundColor: colors.themeGrey,
     borderRadius: 12,
-    padding: 14,
-    marginBottom: 20,
+    padding: 10,
+    marginBottom: 12,
     marginTop: 10,
   } as const,
   row: {
@@ -91,7 +91,7 @@ const styles = {
     marginTop: 8,
   } as const,
   title: {
-    fontSize: 20,
+    fontSize: 16,
     color: colors.gold,
     fontWeight: 'bold',
     marginBottom: 1,
@@ -112,7 +112,7 @@ const styles = {
     textAlign: 'right',
   } as const,
   value: {
-    fontSize: 20,
+    fontSize: 18,
     color: colors.gold,
     fontWeight: 'bold',
   } as const,

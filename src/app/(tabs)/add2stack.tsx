@@ -176,112 +176,112 @@ export default function AddToStackScreen() {
       <View style={globalStyles.tabPageContainer}>
         <PageHeader title={isEditing ? 'Edit Item' : 'Add to Stack'} />
         <View style={styles.bannerContainer}>
-          <GoldPriceBanner 
-            priceData={metal === 'gold' ? goldPriceData : silverPriceData} 
+          <GoldPriceBanner
+            priceData={metal === 'gold' ? goldPriceData : silverPriceData}
             metal={metal}
-            isLoading={isLoading} 
-            error={null} 
-            refreshPrice={metal === 'gold' ? refreshGoldPrice : refreshSilverPrice} 
-            settings={settings} 
-            showRefresh={false} 
-            offGridMode={metal === 'gold' ? offGridMode : silverOffGridMode} 
-            onManualPriceChange={metal === 'gold' ? updateManualPrice : updateManualSilverPrice} 
+            isLoading={isLoading}
+            error={null}
+            refreshPrice={metal === 'gold' ? refreshGoldPrice : refreshSilverPrice}
+            settings={settings}
+            showRefresh={false}
+            offGridMode={metal === 'gold' ? offGridMode : silverOffGridMode}
+            onManualPriceChange={metal === 'gold' ? updateManualPrice : updateManualSilverPrice}
           />
         </View>
         <KeyboardAvoidingView style={styles.keyboardView} behavior="padding" keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}>
           <ScrollView style={styles.form} contentContainerStyle={styles.formContent} keyboardShouldPersistTaps="handled">
             <TouchableOpacity style={styles.cameraBtn} onPress={openCamera}>
-            <View style={styles.cameraBtnContent}>
-              <Ionicons name="camera" size={20} color={colors.gold} style={styles.cameraIcon} />
-              <Text style={styles.cameraBtnText}>{imageUri ? 'Retake Photo' : 'Take Photo'}</Text>
+              <View style={styles.cameraBtnContent}>
+                <Ionicons name="camera" size={20} color={colors.gold} style={styles.cameraIcon} />
+                <Text style={styles.cameraBtnText}>{imageUri ? 'Retake Photo' : 'Take Photo'}</Text>
+              </View>
+            </TouchableOpacity>
+            {imageUri && (
+              <Image source={{ uri: imageUri }} style={styles.preview} />
+            )}
+            <View style={styles.metalSelector}>
+              <Text style={styles.label}>Metal Type</Text>
+              <View style={styles.metalOptions}>
+                <TouchableOpacity
+                  style={[styles.metalOption, metal === 'gold' && styles.metalOptionActive]}
+                  onPress={() => setMetal('gold')}
+                >
+                  <Text style={[styles.metalOptionText, metal === 'gold' && styles.metalOptionTextActive]}>Gold</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.metalOption, metal === 'silver' && styles.metalOptionActive]}
+                  onPress={() => setMetal('silver')}
+                >
+                  <Text style={[styles.metalOptionText, metal === 'silver' && styles.metalOptionTextActive]}>Silver</Text>
+                </TouchableOpacity>
+              </View>
             </View>
-          </TouchableOpacity>
-          {imageUri && (
-            <Image source={{ uri: imageUri }} style={styles.preview} />
-          )}
-          <View style={styles.metalSelector}>
-            <Text style={styles.label}>Metal Type</Text>
-            <View style={styles.metalOptions}>
-              <TouchableOpacity 
-                style={[styles.metalOption, metal === 'gold' && styles.metalOptionActive]}
-                onPress={() => setMetal('gold')}
-              >
-                <Text style={[styles.metalOptionText, metal === 'gold' && styles.metalOptionTextActive]}>Gold</Text>
-              </TouchableOpacity>
-              <TouchableOpacity 
-                style={[styles.metalOption, metal === 'silver' && styles.metalOptionActive]}
-                onPress={() => setMetal('silver')}
-              >
-                <Text style={[styles.metalOptionText, metal === 'silver' && styles.metalOptionTextActive]}>Silver</Text>
-              </TouchableOpacity>
+            <View style={styles.row}>
+              <View style={styles.col}>
+                <Text style={styles.label}>Item</Text>
+                <TextInput style={styles.input} placeholder="Coin" placeholderTextColor="#666" value={code} onChangeText={setCode} />
+              </View>
+              <View style={styles.col}>
+                <Text style={styles.labelRight}>Weight ({getUnitAbbrev(weightUnit)})</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder={`Weight (${getUnitAbbrev(weightUnit)})`}
+                  placeholderTextColor="#666"
+                  value={weight}
+                  onChangeText={setWeight}
+                />
+              </View>
+            </View>
+            <View style={styles.row}>
+              <View style={styles.col}>
+                <Text style={styles.label}>Cost/{getUnitAbbrev(weightUnit)}</Text>
+                <TextInput
+                  style={[styles.input, totalAmount ? styles.disabledInput : null]}
+                  placeholder={`Cost/${getUnitAbbrev(weightUnit)}`}
+                  placeholderTextColor="#666"
+                  value={costPerUnit}
+                  onChangeText={setPurchasePrice}
+                  editable={!totalAmount}
+                />
+              </View>
+              <Text style={styles.orText}>OR</Text>
+              <View style={styles.col}>
+                <Text style={styles.labelRight}>Total Amount</Text>
+                <TextInput style={styles.input} placeholder="Total" placeholderTextColor="#666" value={totalAmount} onChangeText={setTotalAmount} />
+              </View>
+            </View>
+            <TouchableOpacity style={styles.submitBtn} onPress={handleSubmit} disabled={submitting}>
+              <Text style={styles.submitBtnText}>{submitting ? (isEditing ? 'Updating...' : 'Saving...') : (isEditing ? 'Update' : 'Submit')}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.cancelBtn} onPress={handleCancel}>
+              <Text style={styles.cancelBtnText}>Cancel</Text>
+            </TouchableOpacity>
+          </ScrollView>
+        </KeyboardAvoidingView>
+        <Modal
+          visible={modalVisible}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setModalVisible(false)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>Success!</Text>
+              <Text style={styles.modalMessage}>Submit Something Else?</Text>
+              <View style={styles.modalButtons}>
+                <TouchableOpacity style={styles.yesBtn} onPress={handleModalYes}>
+                  <Text style={styles.modalBtnText}>Yes</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.noBtn} onPress={handleModalNo}>
+                  <Text style={styles.modalBtnText}>No</Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
-          <View style={styles.row}>
-            <View style={styles.col}>
-              <Text style={styles.label}>Item</Text>
-              <TextInput style={styles.input} placeholder="Coin" placeholderTextColor="#666" value={code} onChangeText={setCode} />
-            </View>
-            <View style={styles.col}>
-              <Text style={styles.labelRight}>Weight ({getUnitAbbrev(weightUnit)})</Text>
-              <TextInput
-                style={styles.input}
-                placeholder={`Weight (${getUnitAbbrev(weightUnit)})`}
-                placeholderTextColor="#666"
-                value={weight}
-                onChangeText={setWeight}
-              />
-            </View>
-          </View>
-          <View style={styles.row}>
-            <View style={styles.col}>
-              <Text style={styles.label}>Cost/{getUnitAbbrev(weightUnit)}</Text>
-              <TextInput
-                style={[styles.input, totalAmount ? styles.disabledInput : null]}
-                placeholder={`Cost/${getUnitAbbrev(weightUnit)}`}
-                placeholderTextColor="#666"
-                value={costPerUnit}
-                onChangeText={setPurchasePrice}
-                editable={!totalAmount}
-              />
-            </View>
-            <Text style={styles.orText}>OR</Text>
-            <View style={styles.col}>
-              <Text style={styles.labelRight}>Total Amount</Text>
-              <TextInput style={styles.input} placeholder="Total" placeholderTextColor="#666" value={totalAmount} onChangeText={setTotalAmount} />
-            </View>
-          </View>
-          <TouchableOpacity style={styles.submitBtn} onPress={handleSubmit} disabled={submitting}>
-            <Text style={styles.submitBtnText}>{submitting ? (isEditing ? 'Updating...' : 'Saving...') : (isEditing ? 'Update' : 'Submit')}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.cancelBtn} onPress={handleCancel}>
-            <Text style={styles.cancelBtnText}>Cancel</Text>
-          </TouchableOpacity>
-        </ScrollView>
-      </KeyboardAvoidingView>
-      <Modal
-        visible={modalVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setModalVisible(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Success!</Text>
-            <Text style={styles.modalMessage}>Submit Something Else?</Text>
-            <View style={styles.modalButtons}>
-              <TouchableOpacity style={styles.yesBtn} onPress={handleModalYes}>
-                <Text style={styles.modalBtnText}>Yes</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.noBtn} onPress={handleModalNo}>
-                <Text style={styles.modalBtnText}>No</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
-    </View>
-  </GestureDetector>
-);
+        </Modal>
+      </View>
+    </GestureDetector>
+  );
 }
 
 const styles = StyleSheet.create({
@@ -292,7 +292,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   bannerContainer: {
-    paddingHorizontal: 20,
     paddingTop: 0,
     marginBottom: 10,
   },
@@ -383,7 +382,6 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   formContent: {
-    paddingHorizontal: 20,
     paddingBottom: 40,
   },
   cameraIcon: {

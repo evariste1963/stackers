@@ -148,15 +148,13 @@ const styles = StyleSheet.create({
     color: colors.gold,
     fontSize: 16,
   },
-  toggleWrapper: {
-    paddingHorizontal: 20,
+toggleWrapper: {
     marginBottom: 0,
   },
   scrollView: {
     flex: 1,
   },
   scrollContent: {
-    paddingHorizontal: 20,
     paddingBottom: 20,
   },
 });

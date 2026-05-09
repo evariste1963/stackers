@@ -66,8 +66,8 @@ export default function StackGrid({ price, metal = 'gold' }: StackGridProps) {
 
 const styles = StyleSheet.create({
   container: {
-    marginTop: 15,
-    marginBottom: 8,
+    marginTop: 12,
+    marginBottom: 4,
     gap: 8,
   },
   row: {

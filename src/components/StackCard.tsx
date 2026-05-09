@@ -27,16 +27,16 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.themeGrey,
     borderRadius: 12,
-    padding: 14,
+    padding: 10,
     width: '49%',
-    borderLeftWidth: 4,
+    borderLeftWidth: 3,
   },
   label: {
     fontSize: 12,
     color: colors.grey
   },
   value: {
-    fontSize: 20,
+    fontSize: 16,
     fontWeight: 'bold',
     color: colors.gold,
     marginTop: 4,

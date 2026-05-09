@@ -50,7 +50,7 @@ export default function GoldPriceBanner({ priceData, metal = 'gold', isLoading, 
     return colors.changeGreen;
   };
 
-const changeColor = getChangeColor(priceData?.change);
+  const changeColor = getChangeColor(priceData?.change);
 
   const handleManualPriceChange = (text: string) => {
     setManualPriceInput(text);
@@ -178,9 +178,13 @@ const styles = {
     marginBottom: 4,
   } as const,
   price: {
-    fontSize: 28,
+    fontSize: 26,
     color: colors.gold,
     fontWeight: 'bold',
+    flexShrink: 1,
+    adjustsFontSizeToFit: true,
+    minimumFontScale: 0.7,
+    numberOfLines: 1,
   } as const,
   priceRow: {
     flexDirection: 'row',
@@ -191,11 +195,11 @@ const styles = {
     alignItems: 'flex-start',
   } as const,
   changeValue: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: '500',
   } as const,
   changePercent: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: '500',
   } as const,
   date: {

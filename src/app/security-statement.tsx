@@ -151,9 +151,8 @@ const styles = StyleSheet.create({
   section: {
     backgroundColor: colors.themeGrey,
     borderRadius: 12,
-    padding: 16,
-    marginBottom: 20,
-    marginHorizontal: 16,
+    padding: 12,
+    marginBottom: 16,
   },
   sectionTitle: {
     fontSize: 18,

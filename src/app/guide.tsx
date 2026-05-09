@@ -60,7 +60,7 @@ export default function GuideScreen() {
         <Text style={styles.text}>On first launch, the app will prompt you to set up an API key or use manual prices.</Text>
 
         <Text style={styles.stepNumber}>2</Text>
-        <Text style={styles.text}>Option A: Get a free API key from <Text style={styles.link}>metals.dev</Text> for live gold prices.</Text>
+        <Text style={styles.text}>Option A: Get a free API key from <Text style={styles.link}>metals.dev</Text> for live gold/silver prices.</Text>
 
         <Text style={styles.stepNumber}>3</Text>
         <Text style={styles.text}>Option B: Toggle "Off Grid mode" to enter gold & silver prices and premiums manually instead.</Text>
