@@ -10,7 +10,6 @@ import { useEffect, useState } from "react";
 import { useRouter } from "expo-router";
 import { cleanOrphanedImages } from "@/services/stackStorage";
 import { initAllTables } from "@/services/db";
-import { useState } from "react";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 function DbInitializer({ children }: { children: React.ReactNode }) {
