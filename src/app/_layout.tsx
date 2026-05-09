@@ -6,20 +6,32 @@ import { StackProvider } from "@/contexts/StackContext";
 import { PriceProvider } from "@/contexts/PriceContext";
 import { View, ActivityIndicator } from "react-native";
 import { colors } from "@/styles/global";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "expo-router";
 import { cleanOrphanedImages } from "@/services/stackStorage";
 import { initAllTables } from "@/services/db";
-import { useState } from "react";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 function DbInitializer({ children }: { children: React.ReactNode }) {
   const [dbReady, setDbReady] = useState(false);
-  
+  const [dbError, setDbError] = useState<string | null>(null);
+
   useEffect(() => {
-    initAllTables().then(() => setDbReady(true));
+    initAllTables()
+      .then(() => setDbReady(true))
+      .catch((err) => {
+        setDbError(err.message || "Failed to initialize database");
+      });
   }, []);
-  
+
+  if (dbError) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={colors.gold} />
+      </View>
+    );
+  }
+
   if (!dbReady) {
     return (
       <View style={styles.loadingContainer}>
@@ -36,22 +48,18 @@ function AuthRouter() {
   const router = useRouter();
 
   useEffect(() => {
-    cleanOrphanedImages();
-  }, []);
-
-  useEffect(() => {
-    if (!isLoading) {
-      if (isAuthenticated) {
-        if (router.canGoBack()) {
-          router.replace('/');
-        }
-      } else {
-        router.replace('/lock');
-      }
+    if (!isLoading && !isAuthenticated) {
+      router.replace('/lock');
     }
   }, [isLoading, isAuthenticated]);
 
-  if (isLoading) {
+  useEffect(() => {
+    if (isAuthenticated) {
+      cleanOrphanedImages();
+    }
+  }, [isAuthenticated]);
+
+  if (isLoading || !isAuthenticated) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={colors.gold} />
