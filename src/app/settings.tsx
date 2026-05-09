@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useRouter } from 'expo-router';
 import { globalStyles, toggleStyles, colors } from '@/styles/global';
 import { Text, View, TextInput, TouchableOpacity, ScrollView, Alert, Linking, Switch, KeyboardAvoidingView, Platform, StyleSheet } from 'react-native';
@@ -28,21 +28,24 @@ export default function SettingsScreen() {
   const [isSaving, setIsSaving] = useState(false);
   const [hasStackItems, setHasStackItems] = useState(false);
 
+  const settingsRef = useRef(settings);
+  settingsRef.current = settings;
+
   useEffect(() => {
     loadSettings();
     checkStackItems();
   }, []);
 
-  async function checkStackItems() {
+  const checkStackItems = useCallback(async () => {
     try {
       const items = await getAllItems();
       setHasStackItems(items.length > 0);
     } catch (error) {
       console.error('Error checking stack items:', error);
     }
-  }
+  }, []);
 
-  async function loadSettings() {
+  const loadSettings = useCallback(async () => {
     try {
       const s = await getUserSettings();
       setSettings(s);
@@ -58,27 +61,29 @@ export default function SettingsScreen() {
     } finally {
       setIsLoading(false);
     }
-  }
+  }, []);
 
-  async function clearAllPrices() {
+  const clearAllPrices = useCallback(async () => {
+    const { currency, unit } = settingsRef.current;
     await Promise.all([
       updateManualPrice(null),
       updateManualSilverPrice(null),
       updateManualGoldPremium(null),
       updateManualSilverPremium(null),
-      saveGoldSpotPrice(0, 0, 0, 0, 0, 0, 0, settings.currency, settings.unit),
-      saveSilverSpotPrice(0, 0, 0, 0, 0, 0, 0, settings.currency, settings.unit),
+      saveGoldSpotPrice(0, 0, 0, 0, 0, 0, 0, currency, unit),
+      saveSilverSpotPrice(0, 0, 0, 0, 0, 0, 0, currency, unit),
     ]);
-  }
+  }, []);
 
-  async function handleSaveApiKey() {
-    if (!manualInputs.gold.trim()) {
+  const handleSaveApiKey = useCallback(async () => {
+    const key = manualInputs.gold.trim();
+    if (!key) {
       Alert.alert('Error', 'Please enter an API key');
       return;
     }
     setIsSaving(true);
     try {
-      await updateApiKey(manualInputs.gold.trim());
+      await updateApiKey(key);
       setSettings(prev => ({ ...prev, hasApiKey: true }));
       setManualInputs(prev => ({ ...prev, gold: '' }));
       Alert.alert('Success', 'API key saved successfully', [
@@ -89,9 +94,9 @@ export default function SettingsScreen() {
     } finally {
       setIsSaving(false);
     }
-  }
+  }, [manualInputs.gold, router]);
 
-  async function handleRemoveApiKey() {
+  const handleRemoveApiKey = useCallback(() => {
     if (hasPinSet && !isAuthenticated) {
       Alert.alert('Authentication Required', 'Please log in with your PIN to remove the API key.');
       return;
@@ -122,36 +127,36 @@ export default function SettingsScreen() {
         },
       ]
     );
-  }
+  }, [hasPinSet, isAuthenticated, offGridMode, clearAllPrices]);
 
-  async function handleCurrencyChange(currency: string) {
+  const handleCurrencyChange = useCallback(async (currency: string) => {
     try {
       await updatePreference('currency', currency);
       setSettings(prev => ({ ...prev, currency }));
     } catch (error) {
       Alert.alert('Error', 'Failed to update currency');
     }
-  }
+  }, []);
 
-  async function handleUnitChange(unit: string) {
+  const handleUnitChange = useCallback(async (unit: string) => {
     try {
       await updatePreference('unit', unit);
       setSettings(prev => ({ ...prev, unit }));
     } catch (error) {
       Alert.alert('Error', 'Failed to update unit');
     }
-  }
+  }, []);
 
-  async function handleDefaultMetalChange(metal: string) {
+  const handleDefaultMetalChange = useCallback(async (metal: string) => {
     try {
       await updatePreference('defaultMetal', metal);
       setSettings(prev => ({ ...prev, defaultMetal: metal as 'gold' | 'silver' }));
     } catch (error) {
       Alert.alert('Error', 'Failed to update default metal');
     }
-  }
+  }, []);
 
-  async function handleManualPriceSubmit() {
+  const handleManualPriceSubmit = useCallback(async () => {
     const goldPrice = parseFloat(manualInputs.gold);
     const silverPrice = parseFloat(manualInputs.silver);
     if (isNaN(goldPrice) || goldPrice <= 0) {
@@ -171,9 +176,9 @@ export default function SettingsScreen() {
     setSettings(prev => ({ ...prev, manualPrice: goldPrice, manualSilverPrice: silverPrice, manualGoldPremium: goldPremium ?? null, manualSilverPremium: silverPremium ?? null }));
     setOffGridMode(true);
     Alert.alert('Success', 'Both gold and silver prices have been saved.');
-  }
+  }, [manualInputs, setManualPriceCtx, setManualSilverPriceCtx]);
 
-  async function handleOffGridModeToggle(value: boolean) {
+  const handleOffGridModeToggle = useCallback(async (value: boolean) => {
     if (value && (!settings.manualPrice || settings.manualPrice <= 0 || !settings.manualSilverPrice || settings.manualSilverPrice <= 0)) {
       Alert.alert('Enter Prices First', 'Please enter both gold and silver prices and tap Submit Price for each before enabling off-grid mode.');
       return;
@@ -184,11 +189,14 @@ export default function SettingsScreen() {
       setSettings(prev => ({ ...prev, manualPrice: null, manualSilverPrice: null, manualGoldPremium: null, manualSilverPremium: null }));
       setManualInputs({ gold: '', silver: '', goldPremium: '', silverPremium: '' });
     }
-  }
+  }, [settings.manualPrice, settings.manualSilverPrice, clearAllPrices]);
 
-  function openMetalsDev() {
+  const openMetalsDev = useCallback(() => {
     Linking.openURL(METALS_DEV_URL);
-  }
+  }, []);
+
+  const hasGold = useMemo(() => !!manualInputs.gold.trim(), [manualInputs.gold]);
+  const hasSilver = useMemo(() => !!manualInputs.silver.trim(), [manualInputs.silver]);
 
   if (isLoading) {
     return (
@@ -197,9 +205,6 @@ export default function SettingsScreen() {
       </View>
     );
   }
-
-  const hasGold = !!manualInputs.gold.trim();
-  const hasSilver = !!manualInputs.silver.trim();
 
   return (
     <KeyboardAvoidingView
