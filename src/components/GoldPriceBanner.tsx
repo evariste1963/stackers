@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Text, View, TouchableOpacity, TextInput, Modal, Alert, ActivityIndicator, StyleSheet } from 'react-native';
+import { Text, View, TouchableOpacity, TextInput, Modal, Alert, ActivityIndicator } from 'react-native';
 import { colors } from '@/styles/global';
 import { type MetalPriceData, type MetalType } from '@/services/metalPriceService';
 import { type UserSettings } from '@/services/settingsService';
@@ -69,7 +69,7 @@ export default function GoldPriceBanner({ priceData, metal = 'gold', isLoading, 
         <View style={styles.left}>
           <Text style={styles.label}>{metalLabel} Price ({settings.currency}/{settings.unit})</Text>
           <View style={styles.priceRow}>
-            <Text style={[styles.price, { flex: 0.6 }]}>{formatPrice(priceData?.price, showRefresh, settings.currency)}</Text>
+            <Text style={styles.price}>{formatPrice(priceData?.price, showRefresh, settings.currency)}</Text>
             {priceData?.change !== undefined && priceData?.change !== null && (
               <View style={styles.changeBlockWrapper}>
                 <Text style={[styles.changeValue, { color: changeColor }]}>
@@ -145,7 +145,7 @@ export default function GoldPriceBanner({ priceData, metal = 'gold', isLoading, 
   );
 }
 
-const styles = StyleSheet.create({
+const styles = {
   container: {
     width: '100%',
     backgroundColor: colors.themeGrey,
@@ -166,13 +166,16 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: colors.grey,
     marginBottom: 4,
-  },
+  } as const,
   price: {
     fontSize: 26,
     color: colors.gold,
     fontWeight: 'bold',
     flexShrink: 1,
-  },
+    adjustsFontSizeToFit: true,
+    minimumFontScale: 0.7,
+    numberOfLines: 1,
+  } as const,
   priceRow: {
     flexDirection: 'row',
     gap: 8,
@@ -216,7 +219,7 @@ const styles = StyleSheet.create({
     color: colors.gold,
     fontSize: 12,
     fontWeight: '600',
-  },
+  } as const,
   right: {
     flex: 0,
   },
@@ -239,12 +242,12 @@ const styles = StyleSheet.create({
     color: colors.gold,
     marginBottom: 16,
     textAlign: 'center',
-  },
+  } as const,
   modalLabel: {
     fontSize: 14,
     color: colors.grey,
     marginBottom: 8,
-  },
+  } as const,
   modalInput: {
     backgroundColor: colors.background,
     borderRadius: 8,
@@ -271,7 +274,7 @@ const styles = StyleSheet.create({
     color: colors.grey,
     fontSize: 16,
     fontWeight: '600',
-  },
+  } as const,
   modalSaveBtn: {
     flex: 1,
     padding: 14,
@@ -283,5 +286,5 @@ const styles = StyleSheet.create({
     color: colors.white,
     fontSize: 16,
     fontWeight: '600',
-  },
-});
+  } as const,
+} as const;
