@@ -16,6 +16,8 @@ export interface MetalPriceData {
 
 type MetalType = 'gold' | 'silver';
 
+export type { MetalType };
+
 interface MetalPriceRow {
   price: number;
   ask: number;

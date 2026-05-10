@@ -8,6 +8,11 @@ export function getCurrencySymbol(currency: string): string {
   return currency === 'GBP' ? '£' : currency === 'USD' ? '$' : '€';
 }
 
+export function formatCurrency(price: number, currency: string): string {
+  const symbol = getCurrencySymbol(currency);
+  return `${symbol}${price.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+
 export function formatDate(dateStr: string): string {
   const date = new Date(dateStr);
   return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });

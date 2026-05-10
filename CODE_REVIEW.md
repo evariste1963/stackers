@@ -127,6 +127,30 @@ Added error boundary in `_layout.tsx` to catch UI crashes and prevent white scre
 - Added optional `onError` callback prop for error reporting integration
 - Log `errorInfo.componentStack` in `componentDidCatch` for debugging
 
+### 7. GoldPriceBanner Refactor - DONE
+
+**File**: `src/components/GoldPriceBanner.tsx`
+
+**Bug fixes:**
+- Modal label now dynamically shows "gold" or "silver" instead of hardcoded "gold"
+- Alert message updated to use correct metal name
+- Removed dead `onPriceUpdateStart` prop from interface
+
+**Performance:**
+- Moved `formatPrice`, `formatChange`, `formatChangePercent`, `getChangeColor` to module scope
+- Wrapped `changeColor` with `useMemo` to prevent recomputation on every render
+
+**Redundancy:**
+- Removed orphaned `manualInput` style block
+- Removed local `MetalType` duplication — imported from `metalPriceService.ts`
+- Inlined one-line `handleManualPriceChange` and `openModal` functions
+- Extracted `formatCurrency()` to `src/utils/formatters.ts` for reuse
+
+**Polish:**
+- ActivityIndicator size changed from `large` to `small`
+- Removed unnecessary `as const` casts from styles object
+- Dynamic placeholder in TextInput adapts to gold/silver
+
 ---
 
 ## Previously Fixed Items
