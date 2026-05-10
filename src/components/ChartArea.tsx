@@ -1,5 +1,5 @@
 import { View, useWindowDimensions, ScrollView, Text } from 'react-native';
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useState, useEffect, useMemo, useCallback } from 'react';
 import Svg, { Path, Line, Text as SvgText, G } from 'react-native-svg';
 import { useIsFocused } from 'expo-router';
 import { getHistory, type HistoryEntry, migrateStaticData, getHistoryLength } from '@/services/historyService';
@@ -42,108 +42,118 @@ export default function ChartArea({ history: propHistory, unit = 'toz', metal = 
   }, [propHistory, metal]);
 
   useEffect(() => {
-    if (!isLoading && scrollViewRef.current && hasTwelveMonths) {
+    if (!scrollViewRef.current || isLoading) return;
+
+    if (data.length < 2) return;
+
+    const timestamps = data.map(e => new Date(e.date).getTime());
+    const minDate = Math.min(...timestamps);
+    const maxDate = Math.max(...timestamps);
+    const twelveMonthsMs = 12 * 30 * 24 * 60 * 60 * 1000;
+    const hasTwelveMonths = (maxDate - minDate) >= twelveMonthsMs;
+
+    const shouldScroll = 
+      (propHistory && propHistory.length > 0) ||
+      isFocused ||
+      hasTwelveMonths;
+
+    if (shouldScroll) {
+      const animated = propHistory && propHistory.length > 0;
       setTimeout(() => {
-        scrollViewRef.current?.scrollToEnd({ animated: false });
+        scrollViewRef.current?.scrollToEnd({ animated });
       }, 100);
     }
-  }, [isLoading]);
-
-  useEffect(() => {
-    if (propHistory && propHistory.length > 0 && scrollViewRef.current) {
-      setTimeout(() => {
-        scrollViewRef.current?.scrollToEnd({ animated: true });
-      }, 100);
-    }
-  }, [propHistory]);
-
-  useEffect(() => {
-    if (isFocused && scrollViewRef.current && !isLoading) {
-      setTimeout(() => {
-        scrollViewRef.current?.scrollToEnd({ animated: true });
-      }, 100);
-    }
-  }, [isFocused, isLoading]);
-
-  if (isLoading || data.length === 0) {
-    return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', height: 150 }}>
-        <Svg width={screenWidth - 30} height={150} />
-      </View>
-    );
-  }
+  }, [propHistory, isFocused, isLoading, data]);
 
   const getPriceForUnit = (entry: HistoryEntry, unit: string) => {
     if (unit === 'toz') return entry.toz || entry.gms || entry.price;
     return entry.gms || entry.price;
   };
 
-  const chartData = data.map((entry) => ({
+  const chartData = useMemo(() => data.map((entry) => ({
     x: new Date(entry.date).getTime(),
     y: getPriceForUnit(entry, unit),
-  }));
+  })), [data, unit]);
 
-  const timestamps = chartData.map(d => d.x);
-  const allMinDate = Math.min(...timestamps);
-  const allMaxDate = Math.max(...timestamps);
+  const timestamps = useMemo(() => chartData.map(d => d.x), [chartData]);
+  const allMinDate = useMemo(() => Math.min(...timestamps), [timestamps]);
+  const allMaxDate = useMemo(() => Math.max(...timestamps), [timestamps]);
 
-  const twelveMonthsAgo = new Date();
-  twelveMonthsAgo.setMonth(twelveMonthsAgo.getMonth() - 12);
-  const twelveMonthsAgoTime = twelveMonthsAgo.getTime();
+  const twelveMonthsAgo = useMemo(() => {
+    const date = new Date();
+    date.setMonth(date.getMonth() - 12);
+    return date.getTime();
+  }, []);
 
-  const totalDataSpan = allMaxDate - allMinDate;
   const twelveMonthsMs = 12 * 30 * 24 * 60 * 60 * 1000;
+  const totalDataSpan = useMemo(() => allMaxDate - allMinDate, [allMaxDate, allMinDate]);
   const hasTwelveMonths = totalDataSpan >= twelveMonthsMs;
 
-  let visibleData = chartData;
-  let displayData = chartData;
-  
-  if (hasTwelveMonths) {
-    visibleData = chartData.filter(d => d.x >= twelveMonthsAgoTime);
+  const visibleData = useMemo(() => {
+    if (!hasTwelveMonths) return chartData;
+    return chartData.filter(d => d.x >= twelveMonthsAgo);
+  }, [chartData, hasTwelveMonths, twelveMonthsAgo]);
+
+  const displayData = useMemo(() => {
+    if (!hasTwelveMonths) return chartData;
     const visibleStart = Math.min(...visibleData.map(d => d.x));
     const visibleEnd = Math.max(...visibleData.map(d => d.x));
     const visibleSpan = visibleEnd - visibleStart;
-    
     if (visibleSpan > 0 && visibleSpan < totalDataSpan) {
       const ratio = totalDataSpan / visibleSpan;
-      displayData = visibleData.map(d => ({
+      return visibleData.map(d => ({
         ...d,
         x: allMinDate + (d.x - visibleStart) * ratio,
       }));
     }
-  }
+    return chartData;
+  }, [chartData, hasTwelveMonths, visibleData, totalDataSpan, allMinDate]);
 
-  const allPrices = chartData.map(d => d.y);
-  const maxPrice = Math.max(...allPrices);
-  const minPrice = Math.min(...allPrices);
+  const allPrices = useMemo(() => chartData.map(d => d.y), [chartData]);
+  const maxPrice = useMemo(() => Math.max(...allPrices), [allPrices]);
+  const minPrice = useMemo(() => Math.min(...allPrices), [allPrices]);
   const padding = (maxPrice - minPrice) * 0.1;
   const yMin = minPrice - padding;
   const yMax = maxPrice + padding;
 
   const chartHeight = 130;
-  const chartWidth = screenWidth - 85;
-
   const yAxisWidth = 40;
   const leftPadding = 0;
   const rightPadding = 20;
+
   const availableWidth = screenWidth - yAxisWidth - leftPadding - rightPadding;
-  
   const totalRange = allMaxDate - allMinDate;
-  const visibleRange = hasTwelveMonths ? (allMaxDate - twelveMonthsAgoTime) : totalRange;
-  
-  let svgWidth: number;
-  if (totalRange > visibleRange) {
-    svgWidth = availableWidth * (totalRange / visibleRange);
-  } else {
-    svgWidth = availableWidth;
-  }
-  
-  const generateMonthlyTicks = () => {
+  const visibleRange = hasTwelveMonths ? (allMaxDate - twelveMonthsAgo) : totalRange;
+  const svgWidth = totalRange > visibleRange
+    ? availableWidth * (totalRange / visibleRange)
+    : availableWidth;
+
+  const xScale = useCallback((timestamp: number) => {
+    const range = allMaxDate - allMinDate;
+    if (range === 0) return leftPadding;
+    return leftPadding + ((timestamp - allMinDate) / range) * (svgWidth - leftPadding - rightPadding);
+  }, [allMaxDate, allMinDate, svgWidth]);
+
+  const yScale = useCallback((price: number) => {
+    const range = yMax - yMin;
+    if (range === 0) return chartHeight / 2;
+    return chartHeight - ((price - yMin) / range) * chartHeight;
+  }, [yMax, yMin]);
+
+  const linePath = useMemo(() => {
+    if (displayData.length <= 1) return '';
+    return displayData.reduce((path, point, i) => {
+      const x = xScale(point.x);
+      const y = yScale(point.y);
+      return i === 0 ? `M ${x} ${y}` : `${path} L ${x} ${y}`;
+    }, '');
+  }, [displayData, xScale, yScale]);
+
+  const monthlyTicks = useMemo(() => {
     const ticks: { x: number; label: string }[] = [];
     const start = new Date(allMinDate);
     start.setDate(1);
     const end = new Date(allMaxDate);
-    
     while (start.getTime() <= end.getTime()) {
       ticks.push({
         x: start.getTime(),
@@ -152,27 +162,15 @@ export default function ChartArea({ history: propHistory, unit = 'toz', metal = 
       start.setMonth(start.getMonth() + 2);
     }
     return ticks;
-  };
-  
-  const xScale = (timestamp: number) => {
-    const range = allMaxDate - allMinDate;
-    if (range === 0) return leftPadding;
-    return leftPadding + ((timestamp - allMinDate) / range) * (svgWidth - leftPadding - rightPadding);
-  };
+  }, [allMinDate, allMaxDate]);
 
-  const yScale = (price: number) => {
-    const range = yMax - yMin;
-    if (range === 0) return chartHeight / 2;
-    return chartHeight - ((price - yMin) / range) * chartHeight;
-  };
-
-  const linePath = displayData.length > 1
-    ? displayData.reduce((path, point, i) => {
-        const x = xScale(point.x);
-        const y = yScale(point.y);
-        return i === 0 ? `M ${x} ${y}` : `${path} L ${x} ${y}`;
-      }, '')
-    : '';
+  if (isLoading || data.length === 0) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', height: 150 }}>
+        <Svg width={screenWidth - 30} height={150} />
+      </View>
+    );
+  }
 
   const yTicks = [yMax, (yMax + yMin) / 2, yMin];
 
@@ -193,7 +191,7 @@ export default function ChartArea({ history: propHistory, unit = 'toz', metal = 
           contentContainerStyle={{ width: svgWidth }}
         >
           <Svg width={svgWidth} height={150}>
-            {generateMonthlyTicks().map((tick, i) => {
+            {monthlyTicks.map((tick, i) => {
               const x = xScale(tick.x);
               return (
                 <SvgText
