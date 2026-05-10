@@ -17,10 +17,9 @@ type GoldPriceBannerProps = {
   showRefresh?: boolean;
   offGridMode?: boolean;
   onManualPriceChange?: (price: number) => Promise<void>;
-  onPriceUpdateStart?: () => void;
 };
 
-export default function GoldPriceBanner({ priceData, metal = 'gold', isLoading, error, refreshPrice, settings, showRefresh = true, offGridMode = false, onManualPriceChange, onPriceUpdateStart }: GoldPriceBannerProps) {
+export default function GoldPriceBanner({ priceData, metal = 'gold', isLoading, error, refreshPrice, settings, showRefresh = true, offGridMode = false, onManualPriceChange }: GoldPriceBannerProps) {
   const metalLabel = metal === 'gold' ? 'Gold' : 'Silver';
   const [modalVisible, setModalVisible] = useState(false);
   const [manualPriceInput, setManualPriceInput] = useState(priceData?.price?.toString() || '');
@@ -131,7 +130,7 @@ export default function GoldPriceBanner({ priceData, metal = 'gold', isLoading, 
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Update {metalLabel} Price</Text>
-            <Text style={styles.modalLabel}>Enter new gold price ({settings.currency}/{settings.unit})</Text>
+            <Text style={styles.modalLabel}>Enter new {metalLabel.toLowerCase()} price ({settings.currency}/{settings.unit})</Text>
             <TextInput
               style={styles.modalInput}
               value={manualPriceInput}
@@ -232,17 +231,6 @@ const styles = {
   } as const,
   right: {
     flex: 0,
-  } as const,
-  manualInput: {
-    backgroundColor: colors.themeBlue,
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 12,
-    fontSize: 14,
-    color: colors.gold,
-    fontWeight: '600' as const,
-    minWidth: 100,
-    textAlign: 'center' as const,
   } as const,
   modalOverlay: {
     flex: 1,
