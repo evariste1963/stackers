@@ -172,6 +172,7 @@ const styles = {
     color: colors.gold,
     fontWeight: 'bold',
     flexShrink: 1,
+    flex: 0.6,
     adjustsFontSizeToFit: true,
     minimumFontScale: 0.7,
     numberOfLines: 1,
