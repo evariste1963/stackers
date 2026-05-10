@@ -75,7 +75,7 @@ export default function GoldPriceBanner({ priceData, metal = 'gold', isLoading, 
                 <Text style={[styles.changeValue, { color: changeColor }]}>
                   {formatChange(priceData?.change)}
                 </Text>
-                <Text style={[styles.changePercent, { color: changeColor }]}>
+                <Text style={[styles.changeValue, { color: changeColor }]}>
                   {formatChangePercent(priceData?.changePercent)}
                 </Text>
               </View>
@@ -132,7 +132,7 @@ export default function GoldPriceBanner({ priceData, metal = 'gold', isLoading, 
             />
             <View style={styles.modalButtons}>
               <TouchableOpacity style={styles.modalCancelBtn} onPress={() => setModalVisible(false)}>
-                <Text style={styles.modalCancelText}>Cancel</Text>
+                <Text style={styles.buttonText}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.modalSaveBtn} onPress={handleUpdatePrice}>
                 <Text style={styles.modalSaveText}>Save Price</Text>
@@ -185,10 +185,6 @@ const styles = {
     alignItems: 'flex-start',
   },
   changeValue: {
-    fontSize: 12,
-    fontWeight: '500',
-  },
-  changePercent: {
     fontSize: 12,
     fontWeight: '500',
   },
@@ -255,7 +251,7 @@ const styles = {
     fontSize: 18,
     color: colors.white,
     borderWidth: 1,
-    borderColor: '#444',
+    borderColor: colors.borderMid,
     marginBottom: 20,
   },
   modalButtons: {
@@ -267,14 +263,9 @@ const styles = {
     padding: 14,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#444',
+    borderColor: colors.borderMid,
     alignItems: 'center',
   },
-  modalCancelText: {
-    color: colors.grey,
-    fontSize: 16,
-    fontWeight: '600',
-  } as const,
   modalSaveBtn: {
     flex: 1,
     padding: 14,
@@ -283,7 +274,7 @@ const styles = {
     alignItems: 'center',
   },
   modalSaveText: {
-    color: colors.white,
+    color: colors.borderDark,
     fontSize: 16,
     fontWeight: '600',
   } as const,
