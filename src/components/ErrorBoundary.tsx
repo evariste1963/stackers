@@ -4,6 +4,7 @@ import { colors } from '@/styles/global';
 
 interface Props {
   children: ReactNode;
+  onError?: (error: Error, errorInfo: ErrorInfo) => void;
 }
 
 interface State {
@@ -11,7 +12,7 @@ interface State {
   error: Error | null;
 }
 
-export class ErrorBoundary extends Component<Props, State> {
+class ErrorBoundaryInner extends Component<Props, State> {
   constructor(props: Props) {
     super(props);
     this.state = { hasError: false, error: null };
@@ -23,6 +24,10 @@ export class ErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error('ErrorBoundary caught:', error, errorInfo);
+    if (errorInfo.componentStack) {
+      console.error('Component stack:', errorInfo.componentStack);
+    }
+    this.props.onError?.(error, errorInfo);
   }
 
   handleReset = () => {
@@ -47,6 +52,8 @@ export class ErrorBoundary extends Component<Props, State> {
     return this.props.children;
   }
 }
+
+export const ErrorBoundary = React.memo(ErrorBoundaryInner);
 
 const styles = StyleSheet.create({
   container: {

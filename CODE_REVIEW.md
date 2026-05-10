@@ -118,9 +118,14 @@ const rows = await database.getAllAsync<StackItemRow>('SELECT * FROM stack_items
 
 ### 6. React Error Boundary - DONE
 
-**Created**: `src/components/ErrorBoundary.tsx`
+**File**: `src/components/ErrorBoundary.tsx`
 
 Added error boundary in `_layout.tsx` to catch UI crashes and prevent white screens.
+
+**Improvements made:**
+- Wrapped with `React.memo` to prevent unnecessary re-renders
+- Added optional `onError` callback prop for error reporting integration
+- Log `errorInfo.componentStack` in `componentDidCatch` for debugging
 
 ---
 
