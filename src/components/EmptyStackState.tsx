@@ -1,11 +1,23 @@
-import { StyleSheet, Text, View } from 'react-native';
-import { colors } from '@/styles/global';
+import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import { colors, spacing } from '@/styles/global';
+import { router } from 'expo-router';
 
-export default function EmptyStackState() {
+interface EmptyStackStateProps {
+  title?: string;
+  subtitle?: string;
+}
+
+export default function EmptyStackState({
+  title = 'Your Stack is Empty',
+  subtitle = 'Add items to start tracking your collection',
+}: EmptyStackStateProps) {
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Your Stack is Empty</Text>
-      <Text style={styles.subtitle}>Add items to start tracking your collection</Text>
+    <View style={styles.container} accessibilityRole="text" accessibilityLabel={`${title}. ${subtitle}`}>
+      <Text style={styles.title}>{title}</Text>
+      <Text style={styles.subtitle}>{subtitle}</Text>
+      <TouchableOpacity style={styles.button} onPress={() => router.push('/add2stack')}>
+        <Text style={styles.buttonText}>Add Your First Item</Text>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -15,16 +27,28 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 80,
+    paddingVertical: spacing.xl * 2,
   },
   title: {
-    fontSize: 22,
+    fontSize: spacing.font.lg,
     fontWeight: 'bold',
     color: colors.gold,
-    marginBottom: 8,
+    marginBottom: spacing.sm,
   },
   subtitle: {
-    fontSize: 14,
+    fontSize: spacing.font.md,
     color: colors.grey,
+    marginBottom: spacing.lg,
+  },
+  button: {
+    backgroundColor: colors.gold,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.xl,
+    borderRadius: 8,
+  },
+  buttonText: {
+    color: colors.background,
+    fontSize: spacing.font.md,
+    fontWeight: '600',
   },
 });

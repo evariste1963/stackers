@@ -1,5 +1,22 @@
 import { StyleSheet } from "react-native";
 
+export const spacing = {
+  xs: 4,
+  sm: 8,
+  md: 12,
+  lg: 16,
+  xl: 20,
+  xxl: 32,
+  xxxl: 48,
+  font: {
+    sm: 12,
+    md: 14,
+    lg: 18,
+    xl: 22,
+    xxl: 28,
+  },
+};
+
 export const colors = {
   background: "#000000",
   themeGrey: "#1a1a1a",

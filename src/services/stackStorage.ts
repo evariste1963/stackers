@@ -132,8 +132,8 @@ export async function cleanOrphanedImages(): Promise<number> {
     const database = await getDb();
     const rows = await database.getAllAsync<{ imageUri: string | null }>('SELECT imageUri FROM stack_items');
     const usedUris = new Set(rows.filter(r => r.imageUri).map(r => r.imageUri));
-
     const files = IMAGES_DIR.list();
+
     let cleaned = 0;
 
     for (const file of files) {
