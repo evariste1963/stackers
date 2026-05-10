@@ -76,7 +76,7 @@ export default function ChartArea({ history: propHistory, unit = 'toz', metal = 
     const twelveMonthsMs = TWELVE_MONTHS_MS;
     const hasTwelveMonths = (maxDate - minDate) >= twelveMonthsMs;
 
-    const shouldScroll = 
+    const shouldScroll =
       (propHistory && propHistory.length > 0) ||
       isFocused ||
       hasTwelveMonths;
@@ -90,7 +90,7 @@ export default function ChartArea({ history: propHistory, unit = 'toz', metal = 
   }, [propHistory, isFocused, isLoading, data]);
 
   const getPriceForUnit = (entry: HistoryEntry, unit: string) => {
-    const price = unit === 'toz' 
+    const price = unit === 'toz'
       ? (entry.toz ?? entry.gms ?? entry.price)
       : (entry.gms ?? entry.price);
     return price ?? 0;
@@ -175,6 +175,20 @@ export default function ChartArea({ history: propHistory, unit = 'toz', metal = 
     }, '');
   }, [displayData, xScale, yScale]);
 
+  const fillPath = useMemo(() => {
+    if (displayData.length <= 1) return '';
+    const bottomY = CHART_HEIGHT - YAXIS_PADDING_BOTTOM;
+    let path = displayData.reduce((acc, point, i) => {
+      const x = xScale(point.x);
+      const y = yScale(point.y);
+      return i === 0 ? `M ${x} ${y}` : `${acc} L ${x} ${y}`;
+    }, '');
+    const firstX = xScale(displayData[0].x);
+    const lastX = xScale(displayData[displayData.length - 1].x);
+    path += ` L ${lastX} ${bottomY} L ${firstX} ${bottomY} Z`;
+    return path;
+  }, [displayData, xScale, yScale]);
+
   const monthlyTicks = useMemo(() => {
     const ticks: { x: number; label: string }[] = [];
     const start = new Date(allMinDate);
@@ -210,9 +224,9 @@ export default function ChartArea({ history: propHistory, unit = 'toz', metal = 
             </Text>
           ))}
         </View>
-        <ScrollView 
+        <ScrollView
           ref={scrollViewRef}
-          horizontal 
+          horizontal
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={{ width: svgWidth }}
         >
@@ -233,9 +247,13 @@ export default function ChartArea({ history: propHistory, unit = 'toz', metal = 
               );
             })}
             <Path
+              d={fillPath}
+              fill={colors.themeBlue + '40'}
+            />
+            <Path
               d={linePath}
               stroke={colors.themeBlue}
-              strokeWidth={5}
+              strokeWidth={3}
               fill="none"
             />
           </Svg>
