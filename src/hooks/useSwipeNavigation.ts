@@ -52,11 +52,10 @@ export function useSwipeNavigation(currentTabName: string) {
       if (!isSwipeRight && !isSwipeLeft) {
         return;
       }
-
-      if (isSwipeRight && currentIndex > 0) {
-        scheduleOnRN(goToPreviousTab);
-      } else if (isSwipeLeft && currentIndex < tabs.length - 1 && currentIndex !== -1) {
+      if (isSwipeRight && currentIndex < tabs.length - 1 && currentIndex !== -1) {
         scheduleOnRN(goToNextTab);
+      } else if (isSwipeLeft && currentIndex > 0) {
+        scheduleOnRN(goToPreviousTab);
       }
     });
 
