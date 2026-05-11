@@ -1,3 +1,4 @@
+import React, { memo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { colors } from '@/styles/global';
 
@@ -8,7 +9,7 @@ type StackCardProps = {
   color: string;
 };
 
-export default function StackCard({
+function StackCard({
   label,
   value,
   goal,
@@ -23,12 +24,14 @@ export default function StackCard({
   );
 }
 
+export default memo(StackCard);
+
 const styles = StyleSheet.create({
   card: {
+    flex: 1,
     backgroundColor: colors.themeGrey,
     borderRadius: 12,
     padding: 10,
-    width: '49%',
     borderLeftWidth: 3,
   },
   label: {
