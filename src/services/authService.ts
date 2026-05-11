@@ -113,14 +113,6 @@ export async function verifyPin(pin: string): Promise<{ success: boolean; locked
   return { success: false };
 }
 
-export async function getRemainingLockout(): Promise<number> {
-  const lockoutEnd = await getLockoutEnd();
-  if (lockoutEnd > Date.now()) {
-    return Math.ceil((lockoutEnd - Date.now()) / 1000);
-  }
-  return 0;
-}
-
 export async function hasPin(): Promise<boolean> {
   const storedHash = await SecureStore.getItemAsync(PIN_KEY);
   return storedHash !== null;
