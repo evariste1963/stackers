@@ -8,6 +8,9 @@ export const spacing = {
   xl: 20,
   xxl: 32,
   xxxl: 48,
+};
+
+export const typography = {
   font: {
     sm: 12,
     md: 14,
@@ -17,7 +20,28 @@ export const spacing = {
   },
 };
 
-export const colors = {
+interface ThemeColors {
+  background: string;
+  themeGrey: string;
+  toggleBg: string;
+  gold: string;
+  goldTint: string;
+  silver: string;
+  darkGold: string;
+  themeBlue: string;
+  chartAxis: string;
+  green: string;
+  changeGreen: string;
+  grey: string;
+  lightGrey: string;
+  borderDark: string;
+  borderMid: string;
+  red: string;
+  orange: string;
+  white: string;
+}
+
+export const colors: ThemeColors = {
   background: "#000000",
   themeGrey: "#1a1a1a",
   toggleBg: "#2a2a2a",

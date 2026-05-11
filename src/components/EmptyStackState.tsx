@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
-import { colors, spacing } from '@/styles/global';
+import { colors, spacing, typography } from '@/styles/global';
 import { router } from 'expo-router';
 
 interface EmptyStackStateProps {
@@ -30,13 +30,13 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.xl * 2,
   },
   title: {
-    fontSize: spacing.font.lg,
+    fontSize: typography.font.lg,
     fontWeight: 'bold',
     color: colors.gold,
     marginBottom: spacing.sm,
   },
   subtitle: {
-    fontSize: spacing.font.md,
+    fontSize: typography.font.md,
     color: colors.grey,
     marginBottom: spacing.lg,
   },
@@ -48,7 +48,7 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: colors.background,
-    fontSize: spacing.font.md,
+    fontSize: typography.font.md,
     fontWeight: '600',
   },
 });
