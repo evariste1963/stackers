@@ -3,7 +3,7 @@ import { Text, View, TextInput, TouchableOpacity, Image, ScrollView, Modal, Styl
 import PageHeader from '@/components/PageHeader';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback } from 'react';
 import { GestureDetector } from 'react-native-gesture-handler';
 import { useSwipeNavigation } from '@/hooks/useSwipeNavigation';
 import * as ImagePicker from 'expo-image-picker';
