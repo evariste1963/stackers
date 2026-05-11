@@ -27,7 +27,7 @@ export default function StackGrid({ price, metal = 'gold' }: StackGridProps) {
   
   const displayBidPrice = adjustedBid > 0 ? adjustedBid : (priceData?.bid && priceData.bid > 0 ? priceData.bid : (priceData?.price ?? 0));
 
-  const { cards, rows } = useMemo(() => {
+  const { rows } = useMemo(() => {
     const cardData = [
       { label: 'ask-price', field: 'ask' as const },
       { label: 'bid-price', field: 'bid' as const, adjustedValue: displayBidPrice },

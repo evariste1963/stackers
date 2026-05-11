@@ -33,7 +33,7 @@ function StackItemCard({ item, latestPrice, currency, weightUnit = 'toz', onDele
     );
   };
 
-  const { weightNum, costPerToz, totalCost, currentValue, valueChange, valueChangePct, sym, isPositive, unitAbbrev } = useMemo(() => {
+  const { costPerToz, totalCost, currentValue, valueChange, valueChangePct, sym, isPositive, unitAbbrev } = useMemo(() => {
     const w = parseFloat(item.weight) || 0;
     const cost = parseFloat(item.purchasePrice) || 0;
     const total = cost * w;
