@@ -67,6 +67,8 @@ export async function saveToHistory(
   const entry: HistoryEntry = {
     date: targetDate,
     price,
+    gms: price,
+    toz: price,
     change,
     changePercent,
   };

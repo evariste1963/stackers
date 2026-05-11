@@ -31,6 +31,9 @@ export default function SecurityStatementScreen() {
         <Text style={styles.text}>
           Setting a PIN protects your stack data from casual access if your device is left unlocked.
         </Text>
+        <Text style={styles.text}>
+          After 5 failed PIN attempts, the app locks for 5 minutes with exponential backoff on subsequent lockouts.
+        </Text>
       </View>
 
       <View style={styles.section}>
@@ -62,17 +65,10 @@ export default function SecurityStatementScreen() {
         <Text style={styles.text}>
           While Stackers implements industry-standard security practices, be aware of the following:
         </Text>
-        <Text style={styles.stepNumber}>1</Text>
-        <Text style={styles.text}>Rooted/Jailbroken devices - On compromised devices, app data could potentially be accessed with elevated privileges.</Text>
-        
-        <Text style={styles.stepNumber}>2</Text>
-        <Text style={styles.text}>SQLite storage - Stack items and price history are stored in a local SQLite database. This data is not additionally encrypted.</Text>
-        
-        <Text style={styles.stepNumber}>3</Text>
-        <Text style={styles.text}>No biometric auth - Currently only PIN authentication is available. Consider using a strong, unique PIN.</Text>
-        
-        <Text style={styles.stepNumber}>4</Text>
-        <Text style={styles.text}>Device security - Stackers cannot protect against physical access if an attacker has your unlocked device and PIN.</Text>
+        <Text style={styles.listItem}>• Rooted/Jailbroken devices - On compromised devices, app data could potentially be accessed with elevated privileges.</Text>
+        <Text style={styles.listItem}>• SQLite storage - Stack items and price history are stored in a local SQLite database. This data is not additionally encrypted.</Text>
+        <Text style={styles.listItem}>• No biometric auth - Currently only PIN authentication is available. Consider using a strong, unique PIN.</Text>
+        <Text style={styles.listItem}>• Device security - Stackers cannot protect against physical access if an attacker has your unlocked device and PIN.</Text>
       </View>
 
       <View style={styles.section}>

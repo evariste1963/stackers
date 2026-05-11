@@ -19,9 +19,16 @@ export default function LockScreen() {
 
   const handlePinComplete = async (enteredPin: string) => {
     if (step === 'verify') {
-      const success = await login(enteredPin);
-      if (!success) {
-        Alert.alert('Error', 'Incorrect PIN');
+      const result = await login(enteredPin);
+      if (!result.success) {
+        if (result.lockedUntil) {
+          const remaining = Math.ceil((result.lockedUntil - Date.now()) / 1000);
+          const minutes = Math.floor(remaining / 60);
+          const seconds = remaining % 60;
+          Alert.alert('Locked Out', `Too many failed attempts. Try again in ${minutes}:${seconds.toString().padStart(2, '0')}`);
+        } else {
+          Alert.alert('Error', 'Incorrect PIN');
+        }
         setPin('');
       }
     } else if (step === 'enter') {
@@ -38,8 +45,8 @@ export default function LockScreen() {
         setConfirmPin('');
       }
     } else if (step === 'change') {
-      const success = await login(enteredPin);
-      if (success) {
+      const result = await login(enteredPin);
+      if (result.success) {
         setPin('');
         setStep('enter');
       } else {

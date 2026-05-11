@@ -55,47 +55,60 @@ export default function GuideScreen() {
       )}
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Getting Started</Text>
-        <Text style={styles.stepNumber}>1</Text>
-        <Text style={styles.text}>On first launch, the app will prompt you to set up an API key or use manual prices.</Text>
-
-        <Text style={styles.stepNumber}>2</Text>
-        <Text style={styles.text}>Option A: Get a free API key from <Text style={styles.link}>metals.dev</Text> for live gold/silver prices.</Text>
-
-        <Text style={styles.stepNumber}>3</Text>
-        <Text style={styles.text}>Option B: Toggle "Off Grid mode" to enter gold & silver prices and premiums manually instead.</Text>
-
-        <Text style={styles.stepNumber}>4</Text>
-        <Text style={styles.text}>Choose your preferred currency (GBP, USD, or EUR) and weight unit (troy ounces or grams).</Text>
+        <Text style={styles.sectionTitle}>Setup</Text>
+        <Text style={styles.listItem}>• Get a free API key from <Text style={styles.link}>metals.dev</Text> for live gold & silver prices</Text>
+        <Text style={styles.listItem}>• Or use Off Grid mode to enter prices and premiums manually</Text>
+        <Text style={styles.listItem}>• Choose currency (GBP, USD, EUR) and weight unit (troy oz or grams)</Text>
+        <Text style={styles.listItem}>• Set your default metal (Gold or Silver) for the Home screen</Text>
+        <Text style={styles.note}>Tip: Once you add items, currency and unit cannot be changed. Delete all items first to change them.</Text>
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Using Manual Prices</Text>
-        <Text style={styles.text}>If you choose Off Grid mode:</Text>
-        <Text style={styles.listItem}>• Enter both gold and silver prices and premiums in the Settings screen</Text>
-        <Text style={styles.listItem}>• Tap "Submit Prices" to save both and toggle mode</Text>
-        <Text style={styles.listItem}>• On the home screen, tap "Update Price" to enter new prices</Text>
-        <Text style={styles.listItem}>• The app automatically tracks day high/low and bid prices based on the premiums set on the settings page - high updates when you enter a higher price, low updates when you enter a lower price</Text>
-        <Text style={styles.listItem}>• Change and change % are calculated based on the previous vs new price</Text>
-        <Text style={styles.note}>Tip: If you switch between API and manual modes, the high/low prices sync automatically.</Text>
+        <Text style={styles.sectionTitle}>Adding Items</Text>
+        <Text style={styles.text}>In the Add-2-Stack tab:</Text>
+        <Text style={styles.listItem}>• Take Photo - capture an image of your item</Text>
+        <Text style={styles.listItem}>• Select Metal - Gold or Silver</Text>
+        <Text style={styles.listItem}>• Enter Item name (e.g. "Gold Sovereign Coin")</Text>
+        <Text style={styles.listItem}>• Enter Weight in your chosen unit</Text>
+        <Text style={styles.listItem}>• Enter Cost per unit OR Total amount paid</Text>
+        <Text style={styles.listItem}>• Tap Submit to save</Text>
+        <Text style={styles.note}>You can add another item or view your stack after saving.</Text>
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Setting Up Security (PIN)</Text>
-        <Text style={styles.stepNumber}>1</Text>
-        <Text style={styles.text}>Go to the Account tab.</Text>
+        <Text style={styles.sectionTitle}>Your Stack</Text>
+        <Text style={styles.text}>View all items in the Your Stack tab:</Text>
+        <Text style={styles.listItem}>• Tap any item card to edit it</Text>
+        <Text style={styles.listItem}>• Tap the X button to delete an item</Text>
+        <Text style={styles.listItem}>• See current value for each item (weight × bid price)</Text>
+        <Text style={styles.listItem}>• Total value and total cost displayed at bottom</Text>
+      </View>
 
-        <Text style={styles.stepNumber}>2</Text>
-        <Text style={styles.text}>Tap "Set PIN" to create a 4-digit PIN.</Text>
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Home Tab</Text>
+        <Text style={styles.text}>The Home screen shows:</Text>
+        <Text style={styles.listItem}>• Gold/Silver toggle - swipe or tap to switch</Text>
+        <Text style={styles.listItem}>• Price banner - live price (API) or your entered price (Off Grid)</Text>
+        <Text style={styles.listItem}>• Price history chart - rolling 12 months of data</Text>
+        <Text style={styles.listItem}>• Stack Value block - tap to go to Your Stack screen</Text>
+        <Text style={styles.note}>In Off Grid mode, tap "Update Price" on the banner to enter new manual prices.</Text>
+      </View>
 
-        <Text style={styles.stepNumber}>3</Text>
-        <Text style={styles.text}>Enter your PIN twice to confirm it.</Text>
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Portfolio Tab</Text>
+        <Text style={styles.text}>Detailed portfolio breakdown:</Text>
+        <Text style={styles.listItem}>• Total value with profit/loss calculation</Text>
+        <Text style={styles.listItem}>• Gold section - items, total weight, value, cost, profit</Text>
+        <Text style={styles.listItem}>• Silver section - items, total weight, value, cost, profit</Text>
+        <Text style={styles.listItem}>• Bid price and premium % for each metal</Text>
+      </View>
 
-        <Text style={styles.stepNumber}>4</Text>
-        <Text style={styles.text}>The app will now require your PIN every time you open it.</Text>
-
-        <Text style={styles.note}>Note: You can change or remove your PIN anytime from the Account tab.</Text>
-
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Security (PIN)</Text>
+        <Text style={styles.listItem}>• Go to Account tab, tap "Set PIN"</Text>
+        <Text style={styles.listItem}>• Enter a 4-digit PIN, then confirm it</Text>
+        <Text style={styles.listItem}>• App requires PIN on every launch</Text>
+        <Text style={styles.note}>You can Change or Remove PIN from the Account tab. PIN is required to remove API key.</Text>
         <Link href="/security-statement" asChild>
           <TouchableOpacity style={styles.linkButton}>
             <Text style={styles.linkButtonText}>View Security Statement →</Text>
@@ -104,79 +117,14 @@ export default function GuideScreen() {
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Adding Items to Your Stack</Text>
-        <Text style={styles.stepNumber}>1</Text>
-        <Text style={styles.text}>Navigate to the "Add-2-Stack" tab at the bottom of the screen.</Text>
-
-        <Text style={styles.stepNumber}>2</Text>
-        <Text style={styles.text}>Optionally, tap "Take Photo" to capture an image of your item (great for keeping records).</Text>
-
-        <Text style={styles.stepNumber}>3</Text>
-        <Text style={styles.text}>Enter the Item name (e.g., "American Gold Eagle 1oz").</Text>
-
-        <Text style={styles.stepNumber}>4</Text>
-        <Text style={styles.text}>Enter the weight of the item in your chosen unit.</Text>
-
-        <Text style={styles.stepNumber}>5</Text>
-        <Text style={styles.text}>Enter the cost. Choose ONE option:</Text>
-        <Text style={styles.listItem}>• Cost per unit: the price you paid per ounce/gram</Text>
-        <Text style={styles.listItem}>• Total amount: the total price you paid for the item</Text>
-
-        <Text style={styles.stepNumber}>6</Text>
-        <Text style={styles.text}>Tap "Submit" to save the item.</Text>
-
-        <Text style={styles.stepNumber}>7</Text>
-        <Text style={styles.text}>Choose to add another item or view your stack.</Text>
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Editing & Deleting Items</Text>
-        <Text style={styles.stepNumber}>1</Text>
-        <Text style={styles.text}>Navigate to the "Your Stack" tab.</Text>
-
-        <Text style={styles.stepNumber}>2</Text>
-        <Text style={styles.text}>Tap anywhere on an item card to edit it.</Text>
-
-        <Text style={styles.stepNumber}>3</Text>
-        <Text style={styles.text}>The Add to Stack screen will open with your item's details pre-filled. Tap "Update" to save your changes.</Text>
-
-        <Text style={styles.stepNumber}>4</Text>
-        <Text style={styles.text}>To delete an item, tap the "X" button in the top-right corner of the item card.</Text>
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Viewing Your Portfolio</Text>
-        <Text style={styles.text}>The Home tab displays:</Text>
-        <Text style={styles.listItem}>• Gold price banner with price and 24h change</Text>
-        <Text style={styles.listItem}>• In API mode: Live price from the API</Text>
-        <Text style={styles.listItem}>• In manual mode: Your entered price with calculated change</Text>
-        <Text style={styles.listItem}>• Price history chart</Text>
-        <Text style={styles.listItem}>• Grid showing all your items with current values is located on the Your Stack screen</Text>
-        <Text style={styles.listItem}>• Total stack value and total cost</Text>
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Swipe Between Tabs</Text>
-        <Text style={styles.text}>You can swipe left or right on any tab screen to navigate between tabs:</Text>
-        <Text style={styles.listItem}>• Swipe left = go to next tab</Text>
-        <Text style={styles.listItem}>• Swipe right = go to previous tab</Text>
-        <Text style={styles.note}>Tip: Swipe quickly or with enough distance for best results.</Text>
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Managing Settings</Text>
-        <Text style={styles.text}>From the Account tab, you can:</Text>
-        <Text style={styles.listItem}>• Access Settings to change currency, weight unit, metal prices and premiums, toggle between live and Off Grid mode, or update your API key</Text>
-        <Text style={styles.listItem}>• Change your PIN</Text>
-        <Text style={styles.listItem}>• Remove your PIN</Text>
-        <Text style={styles.listItem}>• Log out</Text>
-        <Text style={styles.note}>Note: To remove the API key, you must be logged in with your PIN if one is set.</Text>
-
-        <Text style={styles.note}>
-          Important: Once you add items to your stack, the currency and unit selectors become disabled
-          to prevent mismatched calculations. A message will show explaining this. To change currency or unit,
-          you must first remove all items from your stack (Your Stack tab, tap each item and delete).
-        </Text>
+        <Text style={styles.sectionTitle}>Navigation</Text>
+        <Text style={styles.text}>Tabs:</Text>
+        <Text style={styles.listItem}>• Home - price banner, chart, stack summary</Text>
+        <Text style={styles.listItem}>• Your Stack - all items with values</Text>
+        <Text style={styles.listItem}>• Portfolio - detailed profit/loss breakdown</Text>
+        <Text style={styles.listItem}>• Add-2-Stack - add new items</Text>
+        <Text style={styles.listItem}>• Account - settings, PIN, guide</Text>
+        <Text style={styles.note}>Tip: Swipe left/right on any tab to navigate between tabs.</Text>
       </View>
 
       <Text style={styles.credit}>coded by this.me</Text>
@@ -217,12 +165,6 @@ const styles = StyleSheet.create({
     color: colors.gold,
     marginBottom: 12,
     marginTop: 6,
-  },
-  stepNumber: {
-    fontSize: 12,
-    fontWeight: 'bold',
-    color: colors.darkGold,
-    marginTop: 10,
   },
   text: {
     fontSize: 14,

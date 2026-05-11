@@ -1,16 +1,17 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { hasPin, setPin, clearPin as removePin, verifyPin, changePin } from '@/services/authService';
+import { hasPin, setPin, clearPin as removePin, verifyPin, changePin, getRemainingLockout } from '@/services/authService';
 
 interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   hasPinSet: boolean;
-  login: (pin: string) => Promise<boolean>;
+  login: (pin: string) => Promise<{ success: boolean; lockedUntil?: number }>;
   logout: () => void;
   lock: () => void;
   userSetPin: (pin: string) => Promise<void>;
   userChangePin: (currentPin: string, newPin: string) => Promise<boolean>;
   userRemovePin: (currentPin: string) => Promise<boolean>;
+  getLockoutRemaining: () => Promise<number>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -28,6 +29,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const pinExists = await hasPin();
       setHasPinSet(pinExists);
+      
       if (!pinExists) {
         setIsAuthenticated(true);
       }
@@ -38,13 +40,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  async function login(pin: string): Promise<boolean> {
-    const isValid = await verifyPin(pin);
-    if (isValid) {
+  async function login(pin: string): Promise<{ success: boolean; lockedUntil?: number }> {
+    const result = await verifyPin(pin);
+    if (result.success) {
       setIsAuthenticated(true);
-      return true;
+      return { success: true };
     }
-    return false;
+    return { success: false, lockedUntil: result.lockedUntil };
   }
 
   function logout() {
@@ -67,13 +69,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   async function userRemovePin(currentPin: string): Promise<boolean> {
-    const isValid = await verifyPin(currentPin);
-    if (isValid) {
+    const result = await verifyPin(currentPin);
+    if (result.success) {
       await removePin();
       setHasPinSet(false);
       return true;
     }
     return false;
+  }
+
+  async function getLockoutRemaining(): Promise<number> {
+    return getRemainingLockout();
   }
 
   return (
@@ -88,6 +94,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         userSetPin,
         userChangePin,
         userRemovePin,
+        getLockoutRemaining,
       }}
     >
       {children}
