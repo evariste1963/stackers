@@ -1,11 +1,17 @@
 import { AVAILABLE_UNITS } from '@/config';
 
+const CURRENCY_SYMBOLS: Record<string, string> = {
+  GBP: '£',
+  USD: '$',
+  EUR: '€',
+};
+
 export function getUnitAbbrev(code: string): string {
   return AVAILABLE_UNITS.find(u => u.code === code)?.abbrev ?? code;
 }
 
 export function getCurrencySymbol(currency: string): string {
-  return currency === 'GBP' ? '£' : currency === 'USD' ? '$' : '€';
+  return CURRENCY_SYMBOLS[currency] ?? currency;
 }
 
 export function formatCurrency(price: number, currency: string): string {
