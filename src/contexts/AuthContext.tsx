@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { hasPin, setPin, clearPin as removePin, verifyPin, changePin, getRemainingLockout } from '@/services/authService';
+import { hasPin, setPin, clearPin as removePin, verifyPin, changePin } from '@/services/authService';
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -11,7 +11,6 @@ interface AuthContextType {
   userSetPin: (pin: string) => Promise<void>;
   userChangePin: (currentPin: string, newPin: string) => Promise<boolean>;
   userRemovePin: (currentPin: string) => Promise<boolean>;
-  getLockoutRemaining: () => Promise<number>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -78,10 +77,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return false;
   }
 
-  async function getLockoutRemaining(): Promise<number> {
-    return getRemainingLockout();
-  }
-
   return (
     <AuthContext.Provider
       value={{
@@ -94,7 +89,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         userSetPin,
         userChangePin,
         userRemovePin,
-        getLockoutRemaining,
       }}
     >
       {children}
