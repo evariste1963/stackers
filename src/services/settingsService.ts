@@ -55,10 +55,10 @@ interface SettingsRow {
 export async function getUserSettings(): Promise<UserSettings> {
   try {
     const database = await getDb();
-    const rows = await database.getAllAsync<SettingsRow>('SELECT * FROM user_settings WHERE id = 1');
+    const row = await database.getFirstAsync<SettingsRow>('SELECT * FROM user_settings WHERE id = 1');
     
-    if (rows.length > 0) {
-      return mapRowToUserSettings(rows[0]);
+    if (row) {
+      return mapRowToUserSettings(row);
     }
     return { ...DEFAULT_USER_SETTINGS };
   } catch (error) {
@@ -77,12 +77,12 @@ function mapRowToUserSettings(row: SettingsRow): UserSettings {
     manualHighPrice: row.manualHighPrice,
     manualLowPrice: row.manualLowPrice,
     previousManualPrice: row.previousManualPrice,
-    manualSilverPrice: row.manualSilverPrice ?? null,
-    manualSilverHighPrice: row.manualSilverHighPrice ?? null,
-    manualSilverLowPrice: row.manualSilverLowPrice ?? null,
-    previousManualSilverPrice: row.previousManualSilverPrice ?? null,
-    manualGoldPremium: row.manualGoldPremium ?? null,
-    manualSilverPremium: row.manualSilverPremium ?? null,
+    manualSilverPrice: row.manualSilverPrice,
+    manualSilverHighPrice: row.manualSilverHighPrice,
+    manualSilverLowPrice: row.manualSilverLowPrice,
+    previousManualSilverPrice: row.previousManualSilverPrice,
+    manualGoldPremium: row.manualGoldPremium,
+    manualSilverPremium: row.manualSilverPremium,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
   };
@@ -188,8 +188,8 @@ async function updateUserSetting(column: string, value: unknown): Promise<void> 
 
 export async function updateManualPrice(price: number | null): Promise<void> {
   const database = await getDb();
-  const rows = await database.getAllAsync<{ manualPrice: number | null }>('SELECT manualPrice FROM user_settings WHERE id = 1');
-  const previousPrice = rows.length > 0 ? rows[0].manualPrice : null;
+  const row = await database.getFirstAsync<{ manualPrice: number | null }>('SELECT manualPrice FROM user_settings WHERE id = 1');
+  const previousPrice = row?.manualPrice ?? null;
   await updateUserSettingBatch([
     ['manualPrice', price],
     ['previousManualPrice', previousPrice],
@@ -246,14 +246,8 @@ export async function clearUserSettings(): Promise<void> {
 
 export async function hasApiKey(): Promise<boolean> {
   try {
-    const database = await getDb();
-    const rows = await database.getAllAsync<{ hasApiKey: number }>(
-      'SELECT hasApiKey FROM user_settings WHERE id = 1'
-    );
-    if (rows.length > 0) {
-      return Boolean(rows[0].hasApiKey);
-    }
-    return false;
+    const key = await getApiKey();
+    return !!key;
   } catch (error) {
     console.error('Error checking API key:', error);
     return false;
