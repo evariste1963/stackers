@@ -1,3 +1,4 @@
+import React, { memo, useMemo } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View, Image, Alert } from 'react-native';
 import { colors } from '@/styles/global';
 import type { StackItem } from '@/services/stackStorage';
@@ -13,7 +14,7 @@ type StackItemCardProps = {
   onPress?: () => void;
 };
 
-export default function StackItemCard({ item, latestPrice, currency, weightUnit = 'toz', onDeleted, onPress }: StackItemCardProps) {
+function StackItemCard({ item, latestPrice, currency, weightUnit = 'toz', onDeleted, onPress }: StackItemCardProps) {
   const handleDelete = () => {
     Alert.alert(
       'Delete Item',
@@ -32,21 +33,33 @@ export default function StackItemCard({ item, latestPrice, currency, weightUnit 
     );
   };
 
-  const weightNum = parseFloat(item.weight) || 0;
-  const costPerToz = parseFloat(item.purchasePrice) || 0;
-  const totalCost = costPerToz * weightNum;
+  const { weightNum, costPerToz, totalCost, currentValue, valueChange, valueChangePct, sym, isPositive, unitAbbrev } = useMemo(() => {
+    const w = parseFloat(item.weight) || 0;
+    const cost = parseFloat(item.purchasePrice) || 0;
+    const total = cost * w;
 
-  let currentValue: number | null = null;
-  let valueChange: number | null = null;
-  let valueChangePct: number | null = null;
-  if (latestPrice !== null && weightNum > 0 && totalCost > 0) {
-    currentValue = weightNum * latestPrice;
-    valueChange = currentValue - totalCost;
-    valueChangePct = (valueChange / totalCost) * 100;
-  }
+    let currVal: number | null = null;
+    let valChange: number | null = null;
+    let valChangePct: number | null = null;
+    
+    if (latestPrice !== null && w > 0 && total > 0) {
+      currVal = w * latestPrice;
+      valChange = currVal - total;
+      valChangePct = (valChange / total) * 100;
+    }
 
-  const sym = getCurrencySymbol(currency);
-  const isPositive = (valueChange ?? 0) >= 0;
+    return {
+      weightNum: w,
+      costPerToz: cost,
+      totalCost: total,
+      currentValue: currVal,
+      valueChange: valChange,
+      valueChangePct: valChangePct,
+      sym: getCurrencySymbol(currency),
+      isPositive: (valChange ?? 0) >= 0,
+      unitAbbrev: getUnitAbbrev(weightUnit),
+    };
+  }, [item.weight, item.purchasePrice, latestPrice, currency, weightUnit]);
 
   return (
     <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.8} disabled={!onPress}>
@@ -55,7 +68,10 @@ export default function StackItemCard({ item, latestPrice, currency, weightUnit 
       </TouchableOpacity>
       <View style={styles.imageContainer}>
         {item.imageUri ? (
-          <Image source={{ uri: item.imageUri }} style={styles.image} />
+          <Image 
+            source={{ uri: item.imageUri, cache: 'force-cache' }} 
+            style={styles.image}
+          />
         ) : (
           <View style={styles.placeholder}>
             <Text style={styles.placeholderText}>{item.code}</Text>
@@ -64,8 +80,8 @@ export default function StackItemCard({ item, latestPrice, currency, weightUnit 
       </View>
       <View style={styles.info}>
         <Text style={styles.code}>{item.code}</Text>
-        <Text style={styles.detail}>Weight {getUnitAbbrev(weightUnit)}: {item.weight}</Text>
-        <Text style={styles.detail}>Cost/{getUnitAbbrev(weightUnit)}: {sym}{costPerToz.toFixed(2)}</Text>
+        <Text style={styles.detail}>Weight {unitAbbrev}: {item.weight}</Text>
+        <Text style={styles.detail}>Cost/{unitAbbrev}: {sym}{costPerToz.toFixed(2)}</Text>
         <Text style={styles.detail}>Total cost: {sym}{totalCost.toFixed(2)}</Text>
 
         <View style={styles.divider} />
@@ -90,6 +106,8 @@ export default function StackItemCard({ item, latestPrice, currency, weightUnit 
     </TouchableOpacity>
   );
 }
+
+export default memo(StackItemCard);
 
 const styles = StyleSheet.create({
   card: {
