@@ -6,7 +6,6 @@ import { useFocusEffect } from '@react-navigation/native';
 import { GestureDetector } from 'react-native-gesture-handler';
 import { useSwipeNavigation } from '@/hooks/useSwipeNavigation';
 import { getLatestGoldPrice, getLatestSilverPrice } from '@/services/metalPriceService';
-import { getUserSettings } from '@/services/settingsService';
 import { useStack } from '@/contexts/StackContext';
 import { usePrice } from '@/contexts/PriceContext';
 import { getCurrencySymbol, getUnitAbbrev } from '@/utils/formatters';
@@ -14,13 +13,12 @@ import { getCurrencySymbol, getUnitAbbrev } from '@/utils/formatters';
 export default function PortfolioScreen() {
   const { items, refresh } = useStack();
   const { swipeGesture } = useSwipeNavigation('portfolio');
-  const { getAdjustedBidPrice } = usePrice();
+  const { getAdjustedBidPrice, settings } = usePrice();
 
   const [goldBid, setGoldBid] = useState<number | null>(null);
   const [goldSpot, setGoldSpot] = useState<number | null>(null);
   const [silverBid, setSilverBid] = useState<number | null>(null);
   const [silverSpot, setSilverSpot] = useState<number | null>(null);
-  const [currency, setCurrency] = useState('GBP');
   const [unit, setUnit] = useState('toz');
   const [goldUserPremium, setGoldUserPremium] = useState<number | null>(null);
   const [silverUserPremium, setSilverUserPremium] = useState<number | null>(null);
@@ -37,19 +35,18 @@ export default function PortfolioScreen() {
     if (goldData) {
       setGoldBid(goldData.bid);
       setGoldSpot(goldData.price);
-      setCurrency(goldData.currency);
     }
     const silverData = await getLatestSilverPrice();
     if (silverData) {
       setSilverBid(silverData.bid);
       setSilverSpot(silverData.price);
     }
-    const settings = await getUserSettings();
-    setCurrency(settings.currency);
     setUnit(settings.unit);
     setGoldUserPremium(settings.manualGoldPremium ?? null);
     setSilverUserPremium(settings.manualSilverPremium ?? null);
   }
+
+  const currency = settings.currency;
 
   const goldItems = items.filter(i => i.metal === 'gold');
   const silverItems = items.filter(i => i.metal === 'silver');

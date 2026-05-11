@@ -40,7 +40,7 @@ export default function StackGrid({ price, metal = 'gold' }: StackGridProps) {
     };
   }, [displayBidPrice]);
 
-  const currency = priceData?.currency ?? settings.currency;
+  const currency = settings.currency;
 
   return (
     <View style={styles.container}>

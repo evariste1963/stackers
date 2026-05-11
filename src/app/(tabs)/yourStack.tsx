@@ -7,7 +7,6 @@ import { useFocusEffect } from '@react-navigation/native';
 import { GestureDetector } from 'react-native-gesture-handler';
 import { useSwipeNavigation } from '@/hooks/useSwipeNavigation';
 import { getLatestGoldPrice, getLatestSilverPrice } from '@/services/metalPriceService';
-import { getUserSettings } from '@/services/settingsService';
 import { useStack } from '@/contexts/StackContext';
 import { usePrice } from '@/contexts/PriceContext';
 import StackItemCard from '@/components/StackItemCard';
@@ -16,10 +15,9 @@ import EmptyStackState from '@/components/EmptyStackState';
 export default function YourStackScreen() {
   const { items, refresh } = useStack();
   const { swipeGesture } = useSwipeNavigation('yourStack');
-  const { getAdjustedBidPrice } = usePrice();
+  const { getAdjustedBidPrice, settings } = usePrice();
   const [latestGoldPrice, setLatestGoldPrice] = useState<number | null>(null);
   const [latestSilverPrice, setLatestSilverPrice] = useState<number | null>(null);
-  const [currency, setCurrency] = useState('GBP');
   const [weightUnit, setWeightUnit] = useState('toz');
   const [selectedMetal, setSelectedMetal] = useState<'gold' | 'silver'>('gold');
 
@@ -27,21 +25,15 @@ export default function YourStackScreen() {
     const goldPriceData = await getLatestGoldPrice();
     if (goldPriceData) {
       setLatestGoldPrice(goldPriceData.bid);
-      setCurrency(goldPriceData.currency);
     }
     const silverPriceData = await getLatestSilverPrice();
     if (silverPriceData) {
       setLatestSilverPrice(silverPriceData.bid);
     }
-    const settings = await getUserSettings();
-    if (settings.currency) {
-      setCurrency(settings.currency);
-    }
     if (settings.unit) {
       setWeightUnit(settings.unit);
     }
-    setSelectedMetal(settings.defaultMetal || 'gold');
-  }, []);
+  }, [settings.unit]);
 
   useFocusEffect(
     useCallback(() => {
@@ -61,6 +53,7 @@ export default function YourStackScreen() {
   const filteredItems = items.filter(item => item.metal === selectedMetal);
   const adjustedBidPrice = getAdjustedBidPrice(selectedMetal);
   const latestPrice = adjustedBidPrice > 0 ? adjustedBidPrice : (selectedMetal === 'gold' ? latestGoldPrice : latestSilverPrice);
+  const currency = settings.currency;
 
   const rows = [];
   for (let i = 0; i < filteredItems.length; i += 2) {
