@@ -1,4 +1,3 @@
-import * as SQLite from 'expo-sqlite';
 import { File, Directory, Paths } from 'expo-file-system';
 import { getDb } from './db';
 

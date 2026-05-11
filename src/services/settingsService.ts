@@ -1,7 +1,7 @@
 import * as SecureStore from 'expo-secure-store';
 import { getDb } from './db';
 import { saveGoldPrice, type MetalPriceData } from './metalPriceService';
-import { saveToHistory, type HistoryEntry } from './historyService';
+import type { HistoryEntry } from './historyService';
 import type { MetalType } from './stackStorage';
 
 export interface UserSettings {
