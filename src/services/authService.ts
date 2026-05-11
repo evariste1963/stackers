@@ -8,6 +8,7 @@ const LOCKOUT_KEY = 'pin_lockout_until';
 
 const MAX_ATTEMPTS = 5;
 const BASE_LOCKOUT_MS = 5 * 60 * 1000;
+const MAX_LOCKOUT_MS = 15 * 60 * 1000;
 
 interface FailedAttempts {
   count: number;
@@ -20,7 +21,9 @@ async function getFailedAttempts(): Promise<FailedAttempts> {
     if (data) {
       return JSON.parse(data);
     }
-  } catch {}
+  } catch (e) {
+    console.warn('getFailedAttempts: failed to read', e);
+  }
   return { count: 0, lastAttempt: 0 };
 }
 
@@ -37,13 +40,17 @@ async function getLockoutEnd(): Promise<number> {
   try {
     const data = await SecureStore.getItemAsync(LOCKOUT_KEY);
     return data ? parseInt(data, 10) : 0;
-  } catch {
+  } catch (e) {
+    console.warn('getLockoutEnd: failed to read', e);
     return 0;
   }
 }
 
 async function setLockoutEnd(attempts: number): Promise<number> {
-  const lockoutMs = BASE_LOCKOUT_MS * Math.pow(2, attempts - MAX_ATTEMPTS);
+  const lockoutMs = Math.min(
+    BASE_LOCKOUT_MS * Math.pow(2, attempts - MAX_ATTEMPTS),
+    MAX_LOCKOUT_MS
+  );
   const lockoutEnd = Date.now() + lockoutMs;
   await SecureStore.setItemAsync(LOCKOUT_KEY, lockoutEnd.toString());
   return lockoutEnd;
@@ -51,6 +58,15 @@ async function setLockoutEnd(attempts: number): Promise<number> {
 
 async function clearLockout(): Promise<void> {
   await SecureStore.deleteItemAsync(LOCKOUT_KEY);
+}
+
+function timingSafeEqual(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  let result = 0;
+  for (let i = 0; i < a.length; i++) {
+    result |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  }
+  return result === 0;
 }
 
 async function hashPin(pin: string, salt: string): Promise<string> {
@@ -64,12 +80,8 @@ async function hashPin(pin: string, salt: string): Promise<string> {
 }
 
 async function generateSalt(): Promise<string> {
-  const uuid = await Crypto.digestStringAsync(
-    Crypto.CryptoDigestAlgorithm.SHA256,
-    Math.random().toString() + Date.now().toString(),
-    { encoding: Crypto.CryptoEncoding.HEX }
-  );
-  return uuid;
+  const bytes = await Crypto.getRandomBytesAsync(32);
+  return Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
 export async function setPin(pin: string): Promise<void> {
@@ -93,7 +105,7 @@ export async function verifyPin(pin: string): Promise<{ success: boolean; locked
   if (!storedHash || !salt) return { success: false };
   
   const inputHash = await hashPin(pin, salt);
-  const isValid = storedHash === inputHash;
+  const isValid = timingSafeEqual(storedHash, inputHash);
   
   if (isValid) {
     await clearFailedAttempts();

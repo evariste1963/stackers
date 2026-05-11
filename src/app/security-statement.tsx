@@ -32,7 +32,7 @@ export default function SecurityStatementScreen() {
           Setting a PIN protects your stack data from casual access if your device is left unlocked.
         </Text>
         <Text style={styles.text}>
-          After 5 failed PIN attempts, the app locks for 5 minutes with exponential backoff on subsequent lockouts.
+          After 5 failed PIN attempts, the app locks for 5 minutes with exponential backoff on subsequent lockouts, capped at 15 minutes.
         </Text>
       </View>
 

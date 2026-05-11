@@ -17,6 +17,23 @@ export async function getDb(): Promise<SQLite.SQLiteDatabase> {
   return dbPromise;
 }
 
+async function addColumnIfMissing(
+  database: SQLite.SQLiteDatabase,
+  table: string,
+  column: string,
+  definition: string
+): Promise<void> {
+  try {
+    await database.getFirstAsync(`SELECT ${column} FROM ${table} WHERE id = 1`);
+  } catch {
+    try {
+      await database.execAsync(`ALTER TABLE ${table} ADD COLUMN ${column} ${definition}`);
+    } catch (e) {
+      console.warn(`Migration: failed to add ${table}.${column}`, e);
+    }
+  }
+}
+
 export async function initAllTables(): Promise<void> {
   const database = await getDb();
   
@@ -102,173 +119,34 @@ export async function initAllTables(): Promise<void> {
       updatedAt TEXT
     );
   `);
-  
-  {
-    const existingSettings = await database.getFirstAsync('SELECT id FROM user_settings WHERE id = 1');
-    if (!existingSettings) {
-      const now = new Date().toISOString();
-      await database.runAsync(
-        'INSERT INTO user_settings (id, currency, unit, hasApiKey, manualPrice, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?)',
-        [1, 'GBP', 'toz', 0, null, now, now]
-      );
-    }
-  }
-  
-  {
-    let hasColumn = false;
-    try {
-      await database.getFirstAsync('SELECT manualPrice FROM user_settings WHERE id = 1');
-      hasColumn = true;
-    } catch {}
-    if (!hasColumn) {
-      try {
-        await database.execAsync('ALTER TABLE user_settings ADD COLUMN manualPrice REAL');
-      } catch {}
-    }
-  }
-  
-  {
-    let hasColumn = false;
-    try {
-      await database.getFirstAsync('SELECT manualHighPrice FROM user_settings WHERE id = 1');
-      hasColumn = true;
-    } catch {}
-    if (!hasColumn) {
-      try {
-        await database.execAsync('ALTER TABLE user_settings ADD COLUMN manualHighPrice REAL');
-      } catch {}
-    }
-  }
-  
-  {
-    let hasColumn = false;
-    try {
-      await database.getFirstAsync('SELECT manualLowPrice FROM user_settings WHERE id = 1');
-      hasColumn = true;
-    } catch {}
-    if (!hasColumn) {
-      try {
-        await database.execAsync('ALTER TABLE user_settings ADD COLUMN manualLowPrice REAL');
-      } catch {}
-    }
-  }
-  
-  {
-    let hasColumn = false;
-    try {
-      await database.getFirstAsync('SELECT previousManualPrice FROM user_settings WHERE id = 1');
-      hasColumn = true;
-    } catch {}
-    if (!hasColumn) {
-      try {
-        await database.execAsync('ALTER TABLE user_settings ADD COLUMN previousManualPrice REAL');
-      } catch {}
-    }
-  }
-  
-  {
-    let hasColumn = false;
-    try {
-      await database.getFirstAsync('SELECT previousManualSilverPrice FROM user_settings WHERE id = 1');
-      hasColumn = true;
-    } catch {}
-    if (!hasColumn) {
-      try {
-        await database.execAsync('ALTER TABLE user_settings ADD COLUMN previousManualSilverPrice REAL');
-      } catch {}
-    }
-  }
-  
-  {
-    let hasColumn = false;
-    try {
-      await database.getFirstAsync('SELECT metal FROM stack_items WHERE id = 1');
-      hasColumn = true;
-    } catch {}
-    if (!hasColumn) {
-      try {
-        await database.execAsync('ALTER TABLE stack_items ADD COLUMN metal TEXT DEFAULT gold');
-      } catch {}
-    }
-  }
-  
-  {
-    let hasColumn = false;
-    try {
-      await database.getFirstAsync('SELECT manualSilverPrice FROM user_settings WHERE id = 1');
-      hasColumn = true;
-    } catch {}
-    if (!hasColumn) {
-      try {
-        await database.execAsync('ALTER TABLE user_settings ADD COLUMN manualSilverPrice REAL');
-      } catch {}
-    }
-  }
-  
-  {
-    let hasColumn = false;
-    try {
-      await database.getFirstAsync('SELECT manualSilverHighPrice FROM user_settings WHERE id = 1');
-      hasColumn = true;
-    } catch {}
-    if (!hasColumn) {
-      try {
-        await database.execAsync('ALTER TABLE user_settings ADD COLUMN manualSilverHighPrice REAL');
-      } catch {}
-    }
-  }
-  
-  {
-    let hasColumn = false;
-    try {
-      await database.getFirstAsync('SELECT manualSilverLowPrice FROM user_settings WHERE id = 1');
-      hasColumn = true;
-    } catch {}
-    if (!hasColumn) {
-      try {
-        await database.execAsync('ALTER TABLE user_settings ADD COLUMN manualSilverLowPrice REAL');
-      } catch {}
-    }
-  }
-  
-  {
-    let hasColumn = false;
-    try {
-      await database.getFirstAsync('SELECT defaultMetal FROM user_settings WHERE id = 1');
-      hasColumn = true;
-    } catch {}
-    if (!hasColumn) {
-      try {
-        await database.execAsync('ALTER TABLE user_settings ADD COLUMN defaultMetal TEXT DEFAULT gold');
-      } catch {}
-    }
+
+  await database.execAsync(`
+    CREATE INDEX IF NOT EXISTS idx_stack_items_metal ON stack_items(metal);
+    CREATE INDEX IF NOT EXISTS idx_gold_price_history_date ON gold_price_history(date);
+    CREATE INDEX IF NOT EXISTS idx_silver_price_history_date ON silver_price_history(date);
+  `);
+
+  const existingSettings = await database.getFirstAsync('SELECT id FROM user_settings WHERE id = 1');
+  if (!existingSettings) {
+    const now = new Date().toISOString();
+    await database.runAsync(
+      'INSERT INTO user_settings (id, currency, unit, hasApiKey, manualPrice, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      [1, 'GBP', 'toz', 0, null, now, now]
+    );
   }
 
-  {
-    let hasColumn = false;
-    try {
-      await database.getFirstAsync('SELECT manualGoldPremium FROM user_settings WHERE id = 1');
-      hasColumn = true;
-    } catch {}
-    if (!hasColumn) {
-      try {
-        await database.execAsync('ALTER TABLE user_settings ADD COLUMN manualGoldPremium REAL');
-      } catch {}
-    }
-  }
-
-  {
-    let hasColumn = false;
-    try {
-      await database.getFirstAsync('SELECT manualSilverPremium FROM user_settings WHERE id = 1');
-      hasColumn = true;
-    } catch {}
-    if (!hasColumn) {
-      try {
-        await database.execAsync('ALTER TABLE user_settings ADD COLUMN manualSilverPremium REAL');
-      } catch {}
-    }
-  }
+  await addColumnIfMissing(database, 'user_settings', 'manualPrice', 'REAL');
+  await addColumnIfMissing(database, 'user_settings', 'manualHighPrice', 'REAL');
+  await addColumnIfMissing(database, 'user_settings', 'manualLowPrice', 'REAL');
+  await addColumnIfMissing(database, 'user_settings', 'previousManualPrice', 'REAL');
+  await addColumnIfMissing(database, 'user_settings', 'previousManualSilverPrice', 'REAL');
+  await addColumnIfMissing(database, 'user_settings', 'manualSilverPrice', 'REAL');
+  await addColumnIfMissing(database, 'user_settings', 'manualSilverHighPrice', 'REAL');
+  await addColumnIfMissing(database, 'user_settings', 'manualSilverLowPrice', 'REAL');
+  await addColumnIfMissing(database, 'user_settings', 'defaultMetal', 'TEXT DEFAULT gold');
+  await addColumnIfMissing(database, 'user_settings', 'manualGoldPremium', 'REAL');
+  await addColumnIfMissing(database, 'user_settings', 'manualSilverPremium', 'REAL');
+  await addColumnIfMissing(database, 'stack_items', 'metal', 'TEXT DEFAULT gold');
 }
 
 export type { SQLiteDatabase } from 'expo-sqlite';
