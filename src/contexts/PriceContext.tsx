@@ -201,7 +201,7 @@ export function PriceProvider({ children }: { children: ReactNode }) {
     await saveManualSilverPrice(price);
     
     const currentSettings = settingsRef.current;
-    const previousPrice = currentSettings.manualSilverPrice;
+    const previousPrice = currentSettings.previousManualSilverPrice ?? currentSettings.manualSilverPrice;
     const change = previousPrice !== null && previousPrice !== undefined && previousPrice > 0 ? price - previousPrice : 0;
     const changePercent = previousPrice !== null && previousPrice !== undefined && previousPrice > 0 ? (change / previousPrice) * 100 : 0;
     
@@ -235,7 +235,7 @@ export function PriceProvider({ children }: { children: ReactNode }) {
     const fullHistory = await getHistory('silver');
     setSilverHistory(fullHistory);
     setSilverPriceData(savedData);
-    setSettings(prev => ({ ...prev, manualSilverPrice: price }));
+    setSettings(prev => ({ ...prev, manualSilverPrice: price, previousManualSilverPrice: previousPrice }));
   }, []);
 
   const updateManualHighLow = useCallback(async (high: number, low: number) => {
@@ -280,7 +280,7 @@ export function PriceProvider({ children }: { children: ReactNode }) {
     const init = async () => {
       const apiKey = await getApiKey();
 
-const cachedGold = await getLatestGoldPrice();
+      const cachedGold = await getLatestGoldPrice();
       if (mounted && cachedGold) {
         setGoldPriceData(cachedGold);
       }

@@ -169,6 +169,19 @@ export async function initAllTables(): Promise<void> {
   {
     let hasColumn = false;
     try {
+      await database.getFirstAsync('SELECT previousManualSilverPrice FROM user_settings WHERE id = 1');
+      hasColumn = true;
+    } catch {}
+    if (!hasColumn) {
+      try {
+        await database.execAsync('ALTER TABLE user_settings ADD COLUMN previousManualSilverPrice REAL');
+      } catch {}
+    }
+  }
+  
+  {
+    let hasColumn = false;
+    try {
       await database.getFirstAsync('SELECT metal FROM stack_items WHERE id = 1');
       hasColumn = true;
     } catch {}

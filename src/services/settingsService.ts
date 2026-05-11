@@ -16,6 +16,7 @@ export interface UserSettings {
   manualSilverPrice?: number | null;
   manualSilverHighPrice?: number | null;
   manualSilverLowPrice?: number | null;
+  previousManualSilverPrice?: number | null;
   manualGoldPremium?: number | null;
   manualSilverPremium?: number | null;
   createdAt: string;
@@ -44,6 +45,7 @@ interface SettingsRow {
   manualSilverPrice: number | null;
   manualSilverHighPrice: number | null;
   manualSilverLowPrice: number | null;
+  previousManualSilverPrice: number | null;
   manualGoldPremium: number | null;
   manualSilverPremium: number | null;
   createdAt: string;
@@ -78,6 +80,7 @@ function mapRowToUserSettings(row: SettingsRow): UserSettings {
     manualSilverPrice: row.manualSilverPrice ?? null,
     manualSilverHighPrice: row.manualSilverHighPrice ?? null,
     manualSilverLowPrice: row.manualSilverLowPrice ?? null,
+    previousManualSilverPrice: row.previousManualSilverPrice ?? null,
     manualGoldPremium: row.manualGoldPremium ?? null,
     manualSilverPremium: row.manualSilverPremium ?? null,
     createdAt: row.createdAt,
@@ -90,7 +93,7 @@ export async function saveUserSettings(settings: UserSettings): Promise<void> {
     const database = await getDb();
     await database.runAsync(`
       INSERT OR REPLACE INTO user_settings 
-      (id, currency, unit, hasApiKey, defaultMetal, manualPrice, manualHighPrice, manualLowPrice, previousManualPrice, manualSilverPrice, manualSilverHighPrice, manualSilverLowPrice, manualGoldPremium, manualSilverPremium, createdAt, updatedAt)
+      (id, currency, unit, hasApiKey, defaultMetal, manualPrice, manualHighPrice, manualLowPrice, previousManualPrice, manualSilverPrice, manualSilverHighPrice, manualSilverLowPrice, previousManualSilverPrice, manualGoldPremium, manualSilverPremium, createdAt, updatedAt)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `, [
       1,
@@ -105,6 +108,7 @@ export async function saveUserSettings(settings: UserSettings): Promise<void> {
       settings.manualSilverPrice ?? null,
       settings.manualSilverHighPrice ?? null,
       settings.manualSilverLowPrice ?? null,
+      settings.previousManualSilverPrice ?? null,
       settings.manualGoldPremium ?? null,
       settings.manualSilverPremium ?? null,
       settings.createdAt || new Date().toISOString(),
