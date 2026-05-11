@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback, ReactNode } from 'react';
+import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from 'react';
 import { getAllItems, type StackItem } from '@/services/stackStorage';
 
 interface StackContextType {
@@ -18,10 +18,16 @@ export function StackProvider({ children }: { children: ReactNode }) {
     try {
       const all = await getAllItems();
       setItems(all);
+    } catch (error) {
+      console.error('Error loading stack items:', error);
     } finally {
       setIsLoading(false);
     }
   }, []);
+
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
 
   return (
     <StackContext.Provider value={{ items, isLoading, refresh }}>
