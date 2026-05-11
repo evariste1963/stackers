@@ -1,4 +1,7 @@
 import { getDb } from './db';
+import { MetalType } from './metalPriceApi';
+
+export type { MetalType };
 
 export interface MetalPriceData {
   price: number;
@@ -13,10 +16,6 @@ export interface MetalPriceData {
   unit: string;
   fetchedAt: string;
 }
-
-type MetalType = 'gold' | 'silver';
-
-export type { MetalType };
 
 interface MetalPriceRow {
   price: number;
@@ -37,18 +36,13 @@ const TABLE_NAMES: Record<MetalType, string> = {
   silver: 'silver_price_latest',
 };
 
-function getTableName(metal: MetalType): string {
-  return TABLE_NAMES[metal];
-}
-
 export async function getLatestPrice(metal: MetalType): Promise<MetalPriceData | null> {
-  const tableName = getTableName(metal);
+  const tableName = TABLE_NAMES[metal];
   try {
     const database = await getDb();
-    const rows = await database.getAllAsync<MetalPriceRow>(`SELECT * FROM ${tableName} WHERE id = 1`);
+    const row = await database.getFirstAsync<MetalPriceRow>(`SELECT * FROM ${tableName} WHERE id = 1`);
     
-    if (rows.length > 0) {
-      const row = rows[0];
+    if (row) {
       return {
         price: row.price,
         ask: row.ask,
@@ -71,7 +65,20 @@ export async function getLatestPrice(metal: MetalType): Promise<MetalPriceData |
 }
 
 export async function savePrice(metal: MetalType, priceData: MetalPriceData): Promise<MetalPriceData> {
-  const tableName = getTableName(metal);
+  if (!priceData.date || typeof priceData.date !== 'string') {
+    throw new Error('Invalid priceData: date is required');
+  }
+  if (!priceData.currency || typeof priceData.currency !== 'string') {
+    throw new Error('Invalid priceData: currency is required');
+  }
+  if (!priceData.unit || typeof priceData.unit !== 'string') {
+    throw new Error('Invalid priceData: unit is required');
+  }
+  if (!priceData.fetchedAt || typeof priceData.fetchedAt !== 'string') {
+    throw new Error('Invalid priceData: fetchedAt is required');
+  }
+
+  const tableName = TABLE_NAMES[metal];
   try {
     const database = await getDb();
     
