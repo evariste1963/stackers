@@ -2,6 +2,12 @@ const METALS_DEV_BASE_URL = 'https://api.metals.dev/v1/metal/spot';
 
 export type MetalType = 'gold' | 'silver';
 
+const VALID_METALS: MetalType[] = ['gold', 'silver'];
+
+function isValidMetal(metal: string): metal is MetalType {
+  return VALID_METALS.includes(metal as MetalType);
+}
+
 export interface SpotMetalResponse {
   status: string;
   timestamp: string;
@@ -51,8 +57,11 @@ function validateResponse(data: unknown): asserts data is SpotMetalResponse {
   }
 
   const rate = response.rate as Record<string, unknown>;
-  if (typeof rate.price !== 'number') {
-    throw new Error('Invalid response: missing price in rate');
+  const requiredRateFields = ['price', 'ask', 'bid', 'high', 'low', 'change', 'change_percent'] as const;
+  for (const field of requiredRateFields) {
+    if (typeof rate[field] !== 'number') {
+      throw new Error(`Invalid response: missing ${field} in rate`);
+    }
   }
 }
 
@@ -60,16 +69,27 @@ export async function fetchMetalPrice(
   metal: MetalType,
   apiKey: string, 
   currency: string = 'GBP', 
-  unit: string = 'toz'
+  unit: string = 'toz',
+  timeoutMs: number = 10000
 ): Promise<MetalPriceResult> {
-  const url = `${METALS_DEV_BASE_URL}?api_key=${apiKey}&metal=${metal}&currency=${currency}&unit=${unit}`;
+  if (!isValidMetal(metal)) {
+    throw new Error(`Invalid metal: ${metal}. Must be one of: ${VALID_METALS.join(', ')}`);
+  }
+
+  const url = `${METALS_DEV_BASE_URL}?api_key=${encodeURIComponent(apiKey)}&metal=${encodeURIComponent(metal)}&currency=${encodeURIComponent(currency)}&unit=${encodeURIComponent(unit)}`;
   
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+
   const response = await fetch(url, {
     method: 'GET',
     headers: {
-      'Content-Type': 'application/json',
+      'Accept': 'application/json',
     },
+    signal: controller.signal,
   });
+
+  clearTimeout(timeout);
 
   if (!response.ok) {
     const errorText = await response.text();
@@ -94,15 +114,17 @@ export async function fetchMetalPrice(
 export async function fetchGoldPrice(
   apiKey: string, 
   currency: string = 'GBP', 
-  unit: string = 'toz'
+  unit: string = 'toz',
+  timeoutMs: number = 10000
 ): Promise<MetalPriceResult> {
-  return fetchMetalPrice('gold', apiKey, currency, unit);
+  return fetchMetalPrice('gold', apiKey, currency, unit, timeoutMs);
 }
 
 export async function fetchSilverPrice(
   apiKey: string, 
   currency: string = 'GBP', 
-  unit: string = 'toz'
+  unit: string = 'toz',
+  timeoutMs: number = 10000
 ): Promise<MetalPriceResult> {
-  return fetchMetalPrice('silver', apiKey, currency, unit);
+  return fetchMetalPrice('silver', apiKey, currency, unit, timeoutMs);
 }
