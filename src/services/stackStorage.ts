@@ -1,9 +1,10 @@
 import { File, Directory, Paths } from 'expo-file-system';
 import { getDb } from './db';
+import { MetalType } from './metalPriceApi';
+
+export type { MetalType } from './metalPriceApi';
 
 const IMAGES_DIR = new Directory(Paths.document, 'images');
-
-export type MetalType = 'gold' | 'silver';
 
 export interface StackItem {
   id: number;
@@ -54,8 +55,8 @@ export async function getItemsByMetal(metal: MetalType): Promise<StackItem[]> {
 
 export async function getItemById(id: number): Promise<StackItem | null> {
   const database = await getDb();
-  const rows = await database.getAllAsync<StackItemRow>('SELECT * FROM stack_items WHERE id = ?', [id]);
-  return rows.length > 0 ? mapRowToStackItem(rows[0]) : null;
+  const row = await database.getFirstAsync<StackItemRow>('SELECT * FROM stack_items WHERE id = ?', [id]);
+  return row ? mapRowToStackItem(row) : null;
 }
 
 export async function addItem(item: Omit<StackItem, 'id' | 'createdAt'>): Promise<StackItem> {
@@ -64,8 +65,12 @@ export async function addItem(item: Omit<StackItem, 'id' | 'createdAt'>): Promis
     'INSERT INTO stack_items (code, weight, purchasePrice, premium, imageUri, metal) VALUES (?, ?, ?, ?, ?, ?)',
     [item.code, item.weight, item.purchasePrice, item.premium || '', item.imageUri || null, item.metal || 'gold']
   );
+  const insertedId = result.lastInsertRowId;
+  if (insertedId === undefined || insertedId === null) {
+    throw new Error('Failed to insert item: no row ID returned');
+  }
   return {
-    id: Number(result.lastInsertRowId),
+    id: Number(insertedId),
     code: item.code,
     weight: item.weight,
     purchasePrice: item.purchasePrice,
@@ -82,18 +87,11 @@ export async function updateItem(id: number, item: Omit<StackItem, 'id' | 'creat
     'UPDATE stack_items SET code = ?, weight = ?, purchasePrice = ?, premium = ?, imageUri = ?, metal = ? WHERE id = ?',
     [item.code, item.weight, item.purchasePrice, item.premium || '', item.imageUri || null, item.metal || 'gold', id]
   );
-  const rows = await database.getAllAsync<StackItemRow>('SELECT * FROM stack_items WHERE id = ?', [id]);
-  const row = rows[0];
-  return {
-    id: Number(row.id),
-    code: row.code,
-    weight: row.weight,
-    purchasePrice: row.purchasePrice,
-    premium: row.premium || '',
-    imageUri: row.imageUri,
-    metal: (row.metal || 'gold') as MetalType,
-    createdAt: row.createdAt,
-  };
+  const row = await database.getFirstAsync<StackItemRow>('SELECT * FROM stack_items WHERE id = ?', [id]);
+  if (!row) {
+    throw new Error(`Item with id ${id} not found after update`);
+  }
+  return mapRowToStackItem(row);
 }
 
 export async function deleteItems(ids: number[]): Promise<void> {
