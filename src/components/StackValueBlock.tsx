@@ -1,4 +1,5 @@
-import { Text, View, TouchableOpacity } from 'react-native';
+import React, { memo, useMemo } from 'react';
+import { Text, View, TouchableOpacity, StyleSheet } from 'react-native';
 import { colors } from '@/styles/global';
 import { type UserSettings } from '@/services/settingsService';
 import { getCurrencySymbol } from '@/utils/formatters';
@@ -10,33 +11,38 @@ type StackValueBlockProps = {
   onPress?: () => void;
 };
 
-export default function StackValueBlock({ value, costValue, settings, onPress }: StackValueBlockProps) {
-  const formatValue = (val: string | number | undefined) => {
-    if (val === undefined || val === null || val === '') return '';
+function StackValueBlock({ value, costValue, settings, onPress }: StackValueBlockProps) {
+  const { formattedCost, formattedValue, formattedChange, formattedChangePct, isPositive, changeColor } = useMemo(() => {
     const symbol = getCurrencySymbol(settings.currency);
-    const numVal = typeof val === 'string' ? parseFloat(val) : val;
-    if (isNaN(numVal)) return '';
-    return `${symbol}${numVal.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-  };
 
-  const numValue = typeof value === 'number' ? value : parseFloat(value as string) || 0;
-  const numCost = typeof costValue === 'number' ? costValue : parseFloat(costValue as string) || 0;
-  const isPositive = numValue >= numCost;
+    const formatValue = (val: string | number | undefined): string => {
+      if (val === undefined || val === null || val === '') return '';
+      const numVal = typeof val === 'string' ? parseFloat(val) : val;
+      if (isNaN(numVal)) return '';
+      return `${symbol}${numVal.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    };
 
-  const valueChange = numValue - numCost;
-  const valueChangePct = numCost > 0 ? (valueChange / numCost) * 100 : 0;
-  const changeColor = valueChange >= 0 ? (colors.changeGreen || '#4caf50') : (colors.red || '#f44336');
+    const numValue = typeof value === 'number' ? value : parseFloat(value as string) || 0;
+    const numCost = typeof costValue === 'number' ? costValue : parseFloat(costValue as string) || 0;
+    const pos = numValue >= numCost;
 
-  const formatChange = (change: number) => {
-    const sign = change > 0 ? '+' : '';
-    const symbol = getCurrencySymbol(settings.currency);
-    return `${sign}${symbol}${Math.abs(change).toFixed(2)}`;
-  };
+    const valueChange = numValue - numCost;
+    const valueChangePct = numCost > 0 ? (valueChange / numCost) * 100 : 0;
+    const chgColor = valueChange >= 0 ? colors.changeGreen : colors.red;
 
-  const formatChangePercent = (changePct: number) => {
-    const sign = changePct > 0 ? '+' : '';
-    return `(${sign}${Math.abs(changePct).toFixed(2)}%)`;
-  };
+    const sign = valueChange > 0 ? '+' : '';
+    const changeStr = `${sign}${symbol}${Math.abs(valueChange).toFixed(2)}`;
+    const changePctStr = `(${sign}${Math.abs(valueChangePct).toFixed(2)}%)`;
+
+    return {
+      formattedCost: formatValue(costValue),
+      formattedValue: formatValue(value),
+      formattedChange: changeStr,
+      formattedChangePct: changePctStr,
+      isPositive: pos,
+      changeColor: chgColor,
+    };
+  }, [value, costValue, settings.currency]);
 
   return (
     <TouchableOpacity style={styles.container} onPress={onPress} activeOpacity={0.7}>
@@ -44,20 +50,20 @@ export default function StackValueBlock({ value, costValue, settings, onPress }:
       <View style={styles.row}>
         <View style={styles.columnLeft}>
           <Text style={[styles.label, styles.labelLeft]}>Total cost</Text>
-          <Text style={[styles.value, styles.valueLeft]}>{formatValue(costValue)}</Text>
+          <Text style={[styles.value, styles.valueLeft]}>{formattedCost}</Text>
         </View>
         <View style={styles.columnRight}>
           <Text style={[styles.label, styles.labelRight]}>Current value</Text>
-          <Text style={[styles.value, isPositive ? styles.valueGreen : styles.valueRed, styles.valueRight]}>{formatValue(value)}</Text>
+          <Text style={[styles.value, isPositive ? styles.valueGreen : styles.valueRed, styles.valueRight]}>{formattedValue}</Text>
         </View>
       </View>
       <View style={styles.changeContainer}>
         <View style={styles.changeRow}>
           <Text style={[styles.changeValue, { color: changeColor }]}>
-            {formatChange(valueChange)}
+            {formattedChange}
           </Text>
           <Text style={[styles.changePercent, { color: changeColor }]}>
-            {formatChangePercent(valueChangePct)}
+            {formattedChangePct}
           </Text>
         </View>
       </View>
@@ -65,7 +71,9 @@ export default function StackValueBlock({ value, costValue, settings, onPress }:
   );
 }
 
-const styles = {
+export default memo(StackValueBlock);
+
+const styles = StyleSheet.create({
   container: {
     width: '100%',
     backgroundColor: colors.themeGrey,
@@ -73,73 +81,70 @@ const styles = {
     padding: 10,
     marginBottom: 12,
     marginTop: 10,
-  } as const,
+  },
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-  } as const,
+  },
   columnLeft: {
     flex: 1,
     alignItems: 'flex-start',
-  } as const,
+  },
   columnRight: {
     flex: 1,
     alignItems: 'flex-end',
-  } as const,
+  },
   changeContainer: {
     alignItems: 'center',
     marginTop: 8,
-  } as const,
+  },
   title: {
     fontSize: 16,
     color: colors.gold,
     fontWeight: 'bold',
     marginBottom: 1,
     textAlign: 'center',
-  } as const,
+  },
   label: {
     fontSize: 12,
     color: colors.grey,
     marginBottom: 4,
-  } as const,
+  },
   labelLeft: {
     textAlign: 'left',
-  } as const,
-  labelCenter: {
-    textAlign: 'center',
-  } as const,
+  },
   labelRight: {
     textAlign: 'right',
-  } as const,
+  },
   value: {
     fontSize: 18,
     color: colors.gold,
     fontWeight: 'bold',
-  } as const,
+  },
   valueLeft: {
     textAlign: 'left',
-  } as const,
+  },
   valueRight: {
     textAlign: 'right',
-  } as const,
+  },
   valueGreen: {
-    color: colors.changeGreen || '#4caf50',
-  } as const,
+    color: colors.changeGreen,
+  },
   valueRed: {
-    color: colors.red || '#f44336',
-  } as const,
+    color: colors.red,
+  },
   changeRow: {
     flexDirection: 'row',
     justifyContent: 'center',
     gap: 4,
     marginTop: 2,
-  } as const,
+  },
   changeValue: {
     fontSize: 14,
     fontWeight: '600',
-  } as const,
+  },
   changePercent: {
     fontSize: 14,
     fontWeight: '500',
-  } as const,
-};
+  },
+});
