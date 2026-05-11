@@ -39,7 +39,9 @@ export async function getHistory(metal: MetalType = 'gold'): Promise<HistoryEntr
   try {
     const database = await getDb();
     const tableName = getHistoryTable(metal);
-    const rows = await database.getAllAsync<HistoryRow>(`SELECT * FROM ${tableName} ORDER BY date ASC`);
+    const rows = await database.getAllAsync<HistoryRow>(
+      `SELECT * FROM ${tableName} WHERE date >= date('now', '-13 months') ORDER BY date ASC`
+    );
     
     return rows.map(row => ({
       date: row.date,
@@ -77,25 +79,10 @@ export async function saveToHistory(
     const database = await getDb();
     const tableName = getHistoryTable(metal);
     
-    const existing = await database.getAllAsync<HistoryRow>(
-      `SELECT * FROM ${tableName} WHERE date = ?`,
-      [targetDate]
-    );
-    
-    if (existing.length > 0) {
-      if (price > existing[0].price) {
-        await database.runAsync(`
-          UPDATE ${tableName} 
-          SET price = ?, change = ?, changePercent = ?
-          WHERE date = ?
-        `, [price, change, changePercent, targetDate]);
-      }
-    } else {
-      await database.runAsync(`
-        INSERT INTO ${tableName} (date, price, change, changePercent)
-        VALUES (?, ?, ?, ?)
-      `, [targetDate, price, change, changePercent]);
-    }
+    await database.runAsync(`
+      INSERT OR REPLACE INTO ${tableName} (date, price, change, changePercent)
+      VALUES (?, ?, ?, ?)
+    `, [targetDate, price, change, changePercent]);
 
     await pruneOldHistory(metal);
     
@@ -113,7 +100,7 @@ export async function pruneOldHistory(metal: MetalType = 'gold'): Promise<void> 
     
     await database.runAsync(`
       DELETE FROM ${tableName}
-      WHERE date < date('now', '-18 months')
+      WHERE date < date('now', '-13 months')
     `);
   } catch (error) {
     console.error('Error pruning old history:', error);
@@ -139,12 +126,14 @@ export async function migrateStaticData(metal: MetalType = 'gold'): Promise<void
     }));
 
     if (staticEntries.length > 0) {
-      for (const entry of staticEntries) {
-        await database.runAsync(`
-          INSERT INTO ${tableName} (date, price, gms, toz, change, changePercent)
-          VALUES (?, ?, ?, ?, ?, ?)
-        `, [entry.date, entry.price, entry.gms, entry.toz, entry.change, entry.changePercent]);
-      }
+      await database.withTransactionAsync(async () => {
+        for (const entry of staticEntries) {
+          await database.runAsync(`
+            INSERT OR REPLACE INTO ${tableName} (date, price, gms, toz, change, changePercent)
+            VALUES (?, ?, ?, ?, ?, ?)
+          `, [entry.date, entry.price, entry.gms, entry.toz, entry.change, entry.changePercent]);
+        }
+      });
       console.log('Migrated', staticEntries.length, 'static price entries to SQLite for', metal);
     }
   } catch (error) {
