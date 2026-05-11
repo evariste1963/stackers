@@ -2,7 +2,7 @@ import { createContext, useContext, useState, useEffect, useCallback, useRef, Re
 import { getLatestGoldPrice, getLatestSilverPrice, saveGoldSpotPrice, saveSilverSpotPrice, type MetalPriceData } from '@/services/metalPriceService';
 import { getHistory, saveToHistory, migrateStaticData, getHistoryLength, type HistoryEntry } from '@/services/historyService';
 import { getApiKey, getUserSettings, migrateFromKVStore, updateManualPrice as saveManualPriceToSettings, updateManualHighLow as saveManualHighLow, updateManualSilverPrice as saveManualSilverPrice, updateManualSilverHighLow as saveManualSilverHighLow, updateManualGoldPremium as saveManualGoldPremium, updateManualSilverPremium as saveManualSilverPremium, type UserSettings } from '@/services/settingsService';
-import { fetchGoldPrice, fetchSilverPrice, type MetalType } from '@/services/metalPriceApi';
+import { fetchGoldPrice, fetchSilverPrice } from '@/services/metalPriceApi';
 
 interface PriceContextType {
   goldPriceData: MetalPriceData | null;
