@@ -8,7 +8,7 @@ import { GestureDetector } from 'react-native-gesture-handler';
 import { useSwipeNavigation } from '@/hooks/useSwipeNavigation';
 import * as ImagePicker from 'expo-image-picker';
 import { File, Directory, Paths } from 'expo-file-system';
-import { addItem, cleanOrphanedImages, getItemById, updateItem, type MetalType } from '@/services/stackStorage';
+import { addItem, cleanOrphanedImages, getItemById, updateItem, isAppOwnedImage, type MetalType } from '@/services/stackStorage';
 import { getUserSettings } from '@/services/settingsService';
 import { getUnitAbbrev } from '@/utils/formatters';
 import GoldPriceBanner from '@/components/GoldPriceBanner';
@@ -28,6 +28,7 @@ export default function AddToStackScreen() {
   const [totalAmount, setTotalAmount] = useState('');
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [originalImageUri, setOriginalImageUri] = useState<string | null>(null);
+  const [imageSource, setImageSource] = useState<'camera' | 'gallery' | 'existing'>('existing');
   const [submitting, setSubmitting] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [weightUnit, setWeightUnit] = useState('toz');
@@ -40,6 +41,7 @@ export default function AddToStackScreen() {
     setTotalAmount('');
     setImageUri(null);
     setOriginalImageUri(null);
+    setImageSource('existing');
     setMetal('gold');
   };
 
@@ -73,6 +75,7 @@ export default function AddToStackScreen() {
             setImageUri(item.imageUri);
             setOriginalImageUri(item.imageUri);
             setMetal(item.metal || 'gold');
+            setImageSource('existing');
           }
         });
       }
@@ -91,6 +94,25 @@ export default function AddToStackScreen() {
     });
     if (!result.canceled) {
       setImageUri(result.assets[0].uri);
+      setImageSource('camera');
+    }
+  };
+
+  const openGallery = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission needed', 'Gallery permission is required to select photos.');
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      quality: 0.7,
+      allowsEditing: false,
+      selectionLimit: 1,
+    });
+    if (!result.canceled) {
+      setImageUri(result.assets[0].uri);
+      setImageSource('gallery');
     }
   };
 
@@ -102,21 +124,26 @@ export default function AddToStackScreen() {
     const finalCost = totalAmount ? computedCostPerUnit : purchasePrice;
     setSubmitting(true);
     try {
-      let savedUri: string | null = imageUri;
+      let savedUri: string | null = null;
 
-      if (imageUri && imageUri !== originalImageUri) {
-        const imagesDir = new Directory(Paths.document, 'images');
-        if (!imagesDir.exists) {
-          imagesDir.create();
+      if (imageUri) {
+        if (imageSource === 'camera' && imageUri !== originalImageUri) {
+          const imagesDir = new Directory(Paths.document, 'images');
+          if (!imagesDir.exists) {
+            imagesDir.create();
+          }
+          const filename = `${Date.now()}.jpg`;
+          const destFile = new File(imagesDir, filename);
+          const sourceFile = new File(imageUri);
+          sourceFile.copy(destFile);
+          savedUri = destFile.uri;
+        } else {
+          savedUri = imageUri;
         }
-        const filename = `${Date.now()}.jpg`;
-        const destFile = new File(imagesDir, filename);
-        const sourceFile = new File(imageUri);
-        sourceFile.copy(destFile);
-        savedUri = destFile.uri;
       }
 
       if (isEditing && editId) {
+        const oldUri = imageUri !== originalImageUri ? originalImageUri : null;
         await updateItem(editId, {
           code,
           weight,
@@ -124,7 +151,7 @@ export default function AddToStackScreen() {
           premium: '',
           imageUri: savedUri,
           metal,
-        });
+        }, oldUri);
         await cleanOrphanedImages();
         clearForm();
         router.setParams({ editId: undefined });
@@ -190,14 +217,27 @@ export default function AddToStackScreen() {
         </View>
         <KeyboardAvoidingView style={styles.keyboardView} behavior="padding" keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}>
           <ScrollView style={styles.form} contentContainerStyle={styles.formContent} keyboardShouldPersistTaps="handled">
-            <TouchableOpacity style={styles.cameraBtn} onPress={openCamera}>
-              <View style={styles.cameraBtnContent}>
-                <Ionicons name="camera" size={20} color={colors.gold} style={styles.cameraIcon} />
-                <Text style={styles.cameraBtnText}>{imageUri ? 'Retake Photo' : 'Take Photo'}</Text>
-              </View>
-            </TouchableOpacity>
+            <View style={styles.imageBtnRow}>
+              <TouchableOpacity style={styles.imageBtn} onPress={openCamera}>
+                <View style={styles.imageBtnContent}>
+                  <Ionicons name="camera" size={18} color={colors.gold} style={styles.imageBtnIcon} />
+                  <Text style={styles.imageBtnText}>Camera</Text>
+                </View>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.imageBtn} onPress={openGallery}>
+                <View style={styles.imageBtnContent}>
+                  <Ionicons name="images" size={18} color={colors.gold} style={styles.imageBtnIcon} />
+                  <Text style={styles.imageBtnText}>Gallery</Text>
+                </View>
+              </TouchableOpacity>
+            </View>
             {imageUri && (
-              <Image source={{ uri: imageUri }} style={styles.preview} />
+              <View style={styles.previewContainer}>
+                <Image source={{ uri: imageUri }} style={styles.preview} />
+                <TouchableOpacity style={styles.removeImageBtn} onPress={() => { setImageUri(null); setImageSource('existing'); }}>
+                  <Ionicons name="close-circle" size={24} color={colors.red} />
+                </TouchableOpacity>
+              </View>
             )}
             <View style={styles.metalSelector}>
               <Text style={styles.label}>Metal Type</Text>
@@ -331,22 +371,47 @@ const styles = StyleSheet.create({
   metalOptionTextActive: {
     color: colors.gold,
   },
-  cameraBtnContent: {
+  imageBtnRow: {
     flexDirection: 'row',
+    gap: 12,
+    marginBottom: 12,
+  },
+  imageBtn: {
+    flex: 1,
+    backgroundColor: colors.themeBlue,
+    padding: 14,
+    borderRadius: 8,
     alignItems: 'center',
   },
-  cameraBtnText: {
+  imageBtnContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  imageBtnIcon: {
+    marginRight: 6,
+  },
+  imageBtnText: {
     color: colors.gold,
-    fontSize: 18,
-    fontWeight: 'bold',
-    textAlign: 'left',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  previewContainer: {
+    position: 'relative',
+    marginBottom: 12,
   },
   preview: {
     width: '100%',
     height: 200,
     borderRadius: 8,
-    marginBottom: 16,
     resizeMode: 'cover',
+  },
+  removeImageBtn: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    borderRadius: 12,
   },
   row: {
     flexDirection: 'row',

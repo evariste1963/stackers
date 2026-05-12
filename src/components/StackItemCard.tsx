@@ -1,4 +1,4 @@
-import React, { memo, useMemo } from 'react';
+import React, { memo, useMemo, useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View, Image, Alert } from 'react-native';
 import { colors } from '@/styles/global';
 import type { StackItem } from '@/services/stackStorage';
@@ -15,6 +15,8 @@ type StackItemCardProps = {
 };
 
 function StackItemCard({ item, latestPrice, currency, weightUnit = 'toz', onDeleted, onPress }: StackItemCardProps) {
+  const [imageError, setImageError] = useState(false);
+
   const handleDelete = () => {
     Alert.alert(
       'Delete Item',
@@ -67,10 +69,11 @@ function StackItemCard({ item, latestPrice, currency, weightUnit = 'toz', onDele
         <Text style={styles.deleteIcon}>✕</Text>
       </TouchableOpacity>
       <View style={styles.imageContainer}>
-        {item.imageUri ? (
-          <Image 
-            source={{ uri: item.imageUri, cache: 'force-cache' }} 
+        {item.imageUri && !imageError ? (
+          <Image
+            source={{ uri: item.imageUri, cache: 'force-cache' }}
             style={styles.image}
+            onError={() => setImageError(true)}
           />
         ) : (
           <View style={styles.placeholder}>

@@ -6,6 +6,12 @@ export type { MetalType } from './metalPriceApi';
 
 const IMAGES_DIR = new Directory(Paths.document, 'images');
 
+export function isAppOwnedImage(uri: string): boolean {
+  if (!uri) return false;
+  const lower = uri.toLowerCase();
+  return lower.startsWith('file://') && (lower.includes('document') || lower.includes('images'));
+}
+
 export interface StackItem {
   id: number;
   code: string;
@@ -81,8 +87,20 @@ export async function addItem(item: Omit<StackItem, 'id' | 'createdAt'>): Promis
   };
 }
 
-export async function updateItem(id: number, item: Omit<StackItem, 'id' | 'createdAt'>): Promise<StackItem> {
+export async function updateItem(id: number, item: Omit<StackItem, 'id' | 'createdAt'>, oldImageUri?: string | null): Promise<StackItem> {
   const database = await getDb();
+
+  if (oldImageUri && item.imageUri !== oldImageUri && isAppOwnedImage(oldImageUri)) {
+    try {
+      const file = new File(oldImageUri);
+      if (file.exists) {
+        await file.delete();
+      }
+    } catch (err) {
+      console.warn('Failed to delete old image file:', oldImageUri, err);
+    }
+  }
+
   await database.runAsync(
     'UPDATE stack_items SET code = ?, weight = ?, purchasePrice = ?, premium = ?, imageUri = ?, metal = ? WHERE id = ?',
     [item.code, item.weight, item.purchasePrice, item.premium || '', item.imageUri || null, item.metal || 'gold', id]
@@ -105,7 +123,7 @@ export async function deleteItems(ids: number[]): Promise<void> {
   );
 
   for (const row of rows) {
-    if (row.imageUri) {
+    if (row.imageUri && isAppOwnedImage(row.imageUri)) {
       try {
         const file = new File(row.imageUri);
         if (file.exists) {
