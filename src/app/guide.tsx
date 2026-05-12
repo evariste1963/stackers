@@ -57,7 +57,7 @@ export default function GuideScreen() {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Setup</Text>
         <Text style={styles.listItem}>• Get a free API key from <Text style={styles.link}>metals.dev</Text> for live gold & silver prices</Text>
-        <Text style={styles.listItem}>• Or use Off Grid mode to enter prices and premiums manually</Text>
+        <Text style={styles.listItem}>• Or use Off Grid mode to enter Gold and Silver prices manually</Text>
         <Text style={styles.listItem}>• Choose currency (GBP, USD, EUR) and weight unit (troy oz or grams)</Text>
         <Text style={styles.listItem}>• Set your default metal (Gold or Silver) for the Home screen</Text>
         <Text style={styles.note}>Tip: Once you add items, currency and unit cannot be changed. Delete all items first to change them.</Text>
@@ -66,8 +66,9 @@ export default function GuideScreen() {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Adding Items</Text>
         <Text style={styles.text}>In the Add-2-Stack tab:</Text>
-        <Text style={styles.listItem}>• Take Photo - capture an image of your item</Text>
-        <Text style={styles.listItem}>• Select Metal - Gold or Silver</Text>
+        <Text style={styles.listItem}>• Take Photo - capture an image with camera</Text>
+        <Text style={styles.listItem}>• Select from Gallery - choose existing photos</Text>
+        <Text style={styles.listItem}>• Select Metal - Gold or Silver for this item</Text>
         <Text style={styles.listItem}>• Enter Item name (e.g. "Gold Sovereign Coin")</Text>
         <Text style={styles.listItem}>• Enter Weight in your chosen unit</Text>
         <Text style={styles.listItem}>• Enter Cost per unit OR Total amount paid</Text>
@@ -78,6 +79,7 @@ export default function GuideScreen() {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Your Stack</Text>
         <Text style={styles.text}>View all items in the Your Stack tab:</Text>
+        <Text style={styles.listItem}>• Toggle Gold/Silver to filter items by metal</Text>
         <Text style={styles.listItem}>• Tap any item card to edit it</Text>
         <Text style={styles.listItem}>• Tap the X button to delete an item</Text>
         <Text style={styles.listItem}>• See current value for each item (weight × bid price)</Text>
@@ -91,7 +93,7 @@ export default function GuideScreen() {
         <Text style={styles.listItem}>• Price banner - live price (API) or your entered price (Off Grid)</Text>
         <Text style={styles.listItem}>• Price history chart - rolling 12 months of data</Text>
         <Text style={styles.listItem}>• Stack Value block - tap to go to Your Stack screen</Text>
-        <Text style={styles.note}>In Off Grid mode, tap "Update Price" on the banner to enter new manual prices.</Text>
+        <Text style={styles.note}>In Off Grid mode, tap "Update Price" on the banner to enter new manual prices for Gold and Silver separately.</Text>
       </View>
 
       <View style={styles.section}>
@@ -108,6 +110,7 @@ export default function GuideScreen() {
         <Text style={styles.listItem}>• Go to Account tab, tap "Set PIN"</Text>
         <Text style={styles.listItem}>• Enter a 4-digit PIN, then confirm it</Text>
         <Text style={styles.listItem}>• App requires PIN on every launch</Text>
+        <Text style={styles.listItem}>• After 5 failed attempts, app locks for 5 minutes with increasing lockout times</Text>
         <Text style={styles.note}>You can Change or Remove PIN from the Account tab. PIN is required to remove API key.</Text>
         <Link href="/security-statement" asChild>
           <TouchableOpacity style={styles.linkButton}>

@@ -1,4 +1,4 @@
-import { colors, toggleStyles, globalStyles } from "@/styles/global";
+import { toggleStyles, globalStyles } from "@/styles/global";
 import { Text, View, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
 import PageHeader from '@/components/PageHeader';
 import { router } from 'expo-router';

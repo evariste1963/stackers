@@ -29,6 +29,9 @@ export default function SecurityStatementScreen() {
           When enabled, your 4-digit PIN is required to access the app. The PIN is never stored in plain text - it is hashed using SHA-256 with a unique cryptographic salt generated for your device. Both the hash and salt are stored in encrypted secure storage (expo-secure-store).
         </Text>
         <Text style={styles.text}>
+          PIN comparison uses timing-safe algorithms to prevent timing attacks. The salt is generated using cryptographically secure random number generation.
+        </Text>
+        <Text style={styles.text}>
           Setting a PIN protects your stack data from casual access if your device is left unlocked.
         </Text>
         <Text style={styles.text}>
@@ -43,7 +46,7 @@ export default function SecurityStatementScreen() {
         </Text>
         <Text style={styles.listItem}>• No network requests are made</Text>
         <Text style={styles.listItem}>• No API key is required or used</Text>
-        <Text style={styles.listItem}>• You enter gold prices manually</Text>
+        <Text style={styles.listItem}>• You enter gold and silver prices manually, separately</Text>
         <Text style={styles.listItem}>• All data stays entirely on your device</Text>
         <Text style={styles.text}>
           This mode is ideal for users who want complete offline operation and maximum privacy.
@@ -86,7 +89,7 @@ export default function SecurityStatementScreen() {
           MIT License
         </Text>
         <Text style={styles.text}>
-          Copyright (c) 2024 Stackers
+          Copyright (c) 2026 Stackers
         </Text>
         <Text style={styles.text}>
           Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
@@ -109,7 +112,8 @@ export default function SecurityStatementScreen() {
         <Text style={styles.listItem}>• expo-secure-store - Encrypted key-value storage</Text>
         <Text style={styles.listItem}>• expo-crypto - Cryptographic functions</Text>
         <Text style={styles.listItem}>• expo-file-system - Local file management</Text>
-        <Text style={styles.listItem}>• react-native-gesture-handle - Touch handling</Text>
+        <Text style={styles.listItem}>• expo-image-picker - Camera and gallery access</Text>
+        <Text style={styles.listItem}>• react-native-gesture-handler - Touch handling</Text>
       </View>
 
       <Text style={styles.credit}>coded by this.me</Text>
