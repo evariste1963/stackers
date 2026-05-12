@@ -8,7 +8,7 @@ import { GestureDetector } from 'react-native-gesture-handler';
 import { useSwipeNavigation } from '@/hooks/useSwipeNavigation';
 import * as ImagePicker from 'expo-image-picker';
 import { File, Directory, Paths } from 'expo-file-system';
-import { addItem, cleanOrphanedImages, getItemById, updateItem, isAppOwnedImage, type MetalType } from '@/services/stackStorage';
+import { addItem, cleanOrphanedImages, getItemById, updateItem, type MetalType } from '@/services/stackStorage';
 import { getUserSettings } from '@/services/settingsService';
 import { getUnitAbbrev } from '@/utils/formatters';
 import GoldPriceBanner from '@/components/GoldPriceBanner';
@@ -29,12 +29,23 @@ export default function AddToStackScreen() {
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [originalImageUri, setOriginalImageUri] = useState<string | null>(null);
   const [imageSource, setImageSource] = useState<'camera' | 'gallery' | 'existing'>('existing');
+  const [isNewCameraImage, setIsNewCameraImage] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [weightUnit, setWeightUnit] = useState('toz');
   const [metal, setMetal] = useState<MetalType>('gold');
 
-  const clearForm = () => {
+  const clearForm = async () => {
+    if (isNewCameraImage && imageUri) {
+      try {
+        const file = new File(imageUri);
+        if (file.exists) {
+          await file.delete();
+        }
+      } catch (err) {
+        console.warn('Failed to delete temp camera image:', err);
+      }
+    }
     setCode('');
     setWeight('');
     setPurchasePrice('');
@@ -42,6 +53,7 @@ export default function AddToStackScreen() {
     setImageUri(null);
     setOriginalImageUri(null);
     setImageSource('existing');
+    setIsNewCameraImage(false);
     setMetal('gold');
   };
 
@@ -88,6 +100,16 @@ export default function AddToStackScreen() {
       Alert.alert('Permission needed', 'Camera permission is required to take photos.');
       return;
     }
+    if (isNewCameraImage && imageUri) {
+      try {
+        const file = new File(imageUri);
+        if (file.exists) {
+          await file.delete();
+        }
+      } catch (err) {
+        console.warn('Failed to delete previous temp camera image:', err);
+      }
+    }
     const result = await ImagePicker.launchCameraAsync({
       quality: 0.7,
       allowsEditing: false,
@@ -95,6 +117,7 @@ export default function AddToStackScreen() {
     if (!result.canceled) {
       setImageUri(result.assets[0].uri);
       setImageSource('camera');
+      setIsNewCameraImage(true);
     }
   };
 
@@ -113,6 +136,7 @@ export default function AddToStackScreen() {
     if (!result.canceled) {
       setImageUri(result.assets[0].uri);
       setImageSource('gallery');
+      setIsNewCameraImage(false);
     }
   };
 
@@ -234,7 +258,21 @@ export default function AddToStackScreen() {
             {imageUri && (
               <View style={styles.previewContainer}>
                 <Image source={{ uri: imageUri }} style={styles.preview} />
-                <TouchableOpacity style={styles.removeImageBtn} onPress={() => { setImageUri(null); setImageSource('existing'); }}>
+                <TouchableOpacity style={styles.removeImageBtn} onPress={async () => {
+                  if (isNewCameraImage && imageUri) {
+                    try {
+                      const file = new File(imageUri);
+                      if (file.exists) {
+                        await file.delete();
+                      }
+                    } catch (err) {
+                      console.warn('Failed to delete temp camera image:', err);
+                    }
+                  }
+                  setImageUri(null);
+                  setImageSource('existing');
+                  setIsNewCameraImage(false);
+                }}>
                   <Ionicons name="close-circle" size={24} color={colors.red} />
                 </TouchableOpacity>
               </View>
