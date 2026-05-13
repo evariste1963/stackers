@@ -69,7 +69,7 @@ export default function GoldPriceBanner({ priceData, metal = 'gold', isLoading, 
         <View style={styles.left}>
           <Text style={styles.label}>{metalLabel} Price ({settings.currency}/{settings.unit})</Text>
           <View style={styles.priceRow}>
-            <Text style={styles.price}>{formatPrice(priceData?.price, showRefresh, settings.currency)}</Text>
+            <Text style={[styles.price, { color: metal === 'silver' ? colors.silver : colors.gold }]}>{formatPrice(priceData?.price, showRefresh, settings.currency)}</Text>
             {priceData?.change !== undefined && priceData?.change !== null && (
               <View style={styles.changeBlockWrapper}>
                 <Text style={[styles.changeValue, { color: changeColor }]}>
@@ -169,7 +169,6 @@ const styles = {
   } as const,
   price: {
     fontSize: 26,
-    color: colors.gold,
     fontWeight: 'bold',
     flexShrink: 1,
     flex: 0.6,

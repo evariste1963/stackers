@@ -1,4 +1,4 @@
-import { colors, globalStyles } from "@/styles/global";
+import { colors, globalStyles, toggleStyles } from "@/styles/global";
 import { Text, View, TextInput, TouchableOpacity, Image, ScrollView, Modal, StyleSheet, Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import PageHeader from '@/components/PageHeader';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -279,18 +279,18 @@ export default function AddToStackScreen() {
             )}
             <View style={styles.metalSelector}>
               <Text style={styles.label}>Metal Type</Text>
-              <View style={styles.metalOptions}>
+              <View style={toggleStyles.container}>
                 <TouchableOpacity
-                  style={[styles.metalOption, metal === 'gold' && styles.metalOptionActive]}
+                  style={[toggleStyles.option, metal === 'gold' && { backgroundColor: colors.gold }]}
                   onPress={() => setMetal('gold')}
                 >
-                  <Text style={[styles.metalOptionText, metal === 'gold' && styles.metalOptionTextActive]}>Gold</Text>
+                  <Text style={[toggleStyles.optionText, metal === 'gold' && toggleStyles.optionTextActive]}>Gold</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  style={[styles.metalOption, metal === 'silver' && styles.metalOptionActive]}
+                  style={[toggleStyles.option, metal === 'silver' && { backgroundColor: colors.silver }]}
                   onPress={() => setMetal('silver')}
                 >
-                  <Text style={[styles.metalOptionText, metal === 'silver' && styles.metalOptionTextActive]}>Silver</Text>
+                  <Text style={[toggleStyles.optionText, metal === 'silver' && toggleStyles.optionTextActive]}>Silver</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -382,32 +382,6 @@ const styles = StyleSheet.create({
   },
   metalSelector: {
     marginBottom: 16,
-  },
-  metalOptions: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  metalOption: {
-    flex: 1,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#444',
-    backgroundColor: colors.themeGrey,
-    alignItems: 'center',
-  },
-  metalOptionActive: {
-    borderColor: colors.gold,
-    backgroundColor: colors.gold + '20',
-  },
-  metalOptionText: {
-    fontSize: 16,
-    color: colors.grey,
-    fontWeight: '600',
-  },
-  metalOptionTextActive: {
-    color: colors.gold,
   },
   imageBtnRow: {
     flexDirection: 'row',

@@ -12,9 +12,10 @@ type StackItemCardProps = {
   weightUnit?: string;
   onDeleted: () => void;
   onPress?: () => void;
+  metal?: 'gold' | 'silver';
 };
 
-function StackItemCard({ item, latestPrice, currency, weightUnit = 'toz', onDeleted, onPress }: StackItemCardProps) {
+function StackItemCard({ item, latestPrice, currency, weightUnit = 'toz', onDeleted, onPress, metal = 'gold' }: StackItemCardProps) {
   const [imageError, setImageError] = useState(false);
 
   const handleDelete = () => {
@@ -77,12 +78,12 @@ function StackItemCard({ item, latestPrice, currency, weightUnit = 'toz', onDele
           />
         ) : (
           <View style={styles.placeholder}>
-            <Text style={styles.placeholderText}>{item.code}</Text>
+            <Text style={[styles.placeholderText, { color: metal === 'silver' ? colors.silver : colors.gold }]}>{item.code}</Text>
           </View>
         )}
       </View>
       <View style={styles.info}>
-        <Text style={styles.code}>{item.code}</Text>
+        <Text style={[styles.code, { color: metal === 'silver' ? colors.silver : colors.gold }]}>{item.code}</Text>
         <Text style={styles.detail}>Weight {unitAbbrev}: {item.weight}</Text>
         <Text style={styles.detail}>Cost/{unitAbbrev}: {sym}{costPerToz.toFixed(2)}</Text>
         <Text style={styles.detail}>Total cost: {sym}{totalCost.toFixed(2)}</Text>
@@ -92,7 +93,7 @@ function StackItemCard({ item, latestPrice, currency, weightUnit = 'toz', onDele
         {latestPrice !== null && currentValue !== null ? (
           <>
             <Text style={styles.valueLabel}>Current value</Text>
-            <Text style={styles.valueAmount}>{sym}{currentValue.toFixed(2)}</Text>
+            <Text style={[styles.valueAmount, { color: metal === 'silver' ? colors.silver : colors.gold }]}>{sym}{currentValue.toFixed(2)}</Text>
             <View style={styles.changeRow}>
               <Text style={[styles.changePct, isPositive ? styles.positive : styles.negative]}>
                 {isPositive ? '+' : ''}{valueChangePct?.toFixed(1)}%

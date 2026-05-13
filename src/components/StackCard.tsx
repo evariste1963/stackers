@@ -18,7 +18,7 @@ function StackCard({
   return (
     <View style={[styles.card, { borderLeftColor: color }]}>
       <Text style={styles.label}>{label}</Text>
-      <Text style={styles.value}>{value}</Text>
+      <Text style={[styles.value, { color }]}>{value}</Text>
       <Text style={styles.goal}> {goal}</Text>
     </View>
   );
@@ -41,7 +41,6 @@ const styles = StyleSheet.create({
   value: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: colors.gold,
     marginTop: 4,
   },
   goal: {

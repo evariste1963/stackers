@@ -139,7 +139,7 @@ export default function PortfolioScreen() {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Silver</Text>
+          <Text style={[styles.sectionTitle, { color: colors.silver }]}>Silver</Text>
           <View style={styles.statsRow}>
             <View style={styles.stat}>
               <Text style={styles.statLabel}>Items</Text>

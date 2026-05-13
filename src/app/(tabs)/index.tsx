@@ -133,7 +133,7 @@ export default function HomeScreen() {
             <ChartArea history={history} unit={settings.unit} metal={selectedMetal} />
           </View>
           <StackGrid price={priceData ?? undefined} metal={selectedMetal} />
-          <StackValueBlock value={totalStackValue || undefined} costValue={totalCostValue || undefined} settings={settings} onPress={() => router.push('/yourStack')} />
+          <StackValueBlock value={totalStackValue || undefined} costValue={totalCostValue || undefined} settings={settings} onPress={() => router.push('/yourStack')} metal={selectedMetal} />
         </ScrollView >
       </View>
     </GestureDetector>

@@ -9,9 +9,10 @@ type StackValueBlockProps = {
   costValue?: string | number | undefined;
   settings: UserSettings;
   onPress?: () => void;
+  metal?: 'gold' | 'silver';
 };
 
-function StackValueBlock({ value, costValue, settings, onPress }: StackValueBlockProps) {
+function StackValueBlock({ value, costValue, settings, onPress, metal = 'gold' }: StackValueBlockProps) {
   const { formattedCost, formattedValue, formattedChange, formattedChangePct, isPositive, changeColor } = useMemo(() => {
     const symbol = getCurrencySymbol(settings.currency);
 
@@ -46,15 +47,15 @@ function StackValueBlock({ value, costValue, settings, onPress }: StackValueBloc
 
   return (
     <TouchableOpacity style={styles.container} onPress={onPress} activeOpacity={0.7}>
-      <Text style={styles.title}>Stack Value</Text>
+      <Text style={[styles.title, { color: metal === 'silver' ? colors.silver : colors.gold }]}>Stack Value</Text>
       <View style={styles.row}>
         <View style={styles.columnLeft}>
           <Text style={[styles.label, styles.labelLeft]}>Total cost</Text>
-          <Text style={[styles.value, styles.valueLeft]}>{formattedCost}</Text>
+          <Text style={[styles.value, styles.valueLeft, { color: metal === 'silver' ? colors.silver : colors.gold }]}>{formattedCost}</Text>
         </View>
         <View style={styles.columnRight}>
           <Text style={[styles.label, styles.labelRight]}>Current value</Text>
-          <Text style={[styles.value, isPositive ? styles.valueGreen : styles.valueRed, styles.valueRight]}>{formattedValue}</Text>
+          <Text style={[styles.value, isPositive ? styles.valueGreen : styles.valueRed, styles.valueRight, { color: metal === 'silver' ? colors.silver : colors.gold }]}>{formattedValue}</Text>
         </View>
       </View>
       <View style={styles.changeContainer}>
@@ -118,7 +119,6 @@ const styles = StyleSheet.create({
   },
   value: {
     fontSize: 18,
-    color: colors.gold,
     fontWeight: 'bold',
   },
   valueLeft: {

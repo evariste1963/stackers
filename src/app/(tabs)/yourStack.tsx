@@ -1,4 +1,4 @@
-import { toggleStyles, globalStyles } from "@/styles/global";
+import { toggleStyles, globalStyles, colors } from "@/styles/global";
 import { Text, View, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
 import PageHeader from '@/components/PageHeader';
 import { router } from 'expo-router';
@@ -67,13 +67,13 @@ export default function YourStackScreen() {
 
         <View style={toggleStyles.container}>
           <TouchableOpacity
-            style={[toggleStyles.option, selectedMetal === 'gold' && toggleStyles.optionActive]}
+            style={[toggleStyles.option, selectedMetal === 'gold' && { backgroundColor: colors.gold }]}
             onPress={() => setSelectedMetal('gold')}
           >
             <Text style={[toggleStyles.optionText, selectedMetal === 'gold' && toggleStyles.optionTextActive]}>Gold</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[toggleStyles.option, selectedMetal === 'silver' && toggleStyles.optionActive]}
+            style={[toggleStyles.option, selectedMetal === 'silver' && { backgroundColor: colors.silver }]}
             onPress={() => setSelectedMetal('silver')}
           >
             <Text style={[toggleStyles.optionText, selectedMetal === 'silver' && toggleStyles.optionTextActive]}>Silver</Text>
@@ -96,6 +96,7 @@ export default function YourStackScreen() {
                       weightUnit={weightUnit}
                       onDeleted={handleDeleted}
                       onPress={() => handleEdit(item.id)}
+                      metal={selectedMetal}
                     />
                   ))}
                 </View>
