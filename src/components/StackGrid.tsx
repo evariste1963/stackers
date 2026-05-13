@@ -52,7 +52,7 @@ export default function StackGrid({ price, metal = 'gold' }: StackGridProps) {
               label={label}
               value={field === 'bid' && adjustedValue ? adjustedValue.toFixed(2) : (priceData ? (priceData[field] as number).toFixed(2) : '')}
               goal={currency}
-              color={colors.darkGold}
+              color={metal === 'gold' ? colors.darkGold : colors.silver}
             />
           ))}
         </View>

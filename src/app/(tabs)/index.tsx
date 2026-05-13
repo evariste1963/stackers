@@ -98,13 +98,19 @@ export default function HomeScreen() {
         <View style={styles.toggleWrapper}>
           <View style={toggleStyles.container}>
             <TouchableOpacity
-              style={[toggleStyles.option, selectedMetal === 'gold' && toggleStyles.optionActive]}
+              style={[
+                toggleStyles.option,
+                selectedMetal === 'gold' && { backgroundColor: colors.gold }
+              ]}
               onPress={() => setSelectedMetal('gold')}
             >
               <Text style={[toggleStyles.optionText, selectedMetal === 'gold' && toggleStyles.optionTextActive]}>Gold</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[toggleStyles.option, selectedMetal === 'silver' && toggleStyles.optionActive]}
+              style={[
+                toggleStyles.option,
+                selectedMetal === 'silver' && { backgroundColor: colors.silver }
+              ]}
               onPress={() => setSelectedMetal('silver')}
             >
               <Text style={[toggleStyles.optionText, selectedMetal === 'silver' && toggleStyles.optionTextActive]}>Silver</Text>
