@@ -4,10 +4,11 @@ import StackCard from './StackCard';
 import { getLatestGoldPrice, getLatestSilverPrice, type MetalPriceData } from '@/services/metalPriceService';
 import { colors } from '@/styles/global';
 import { usePrice } from '@/contexts/PriceContext';
+import { ThemeColors, type MetalType } from '@/styles/themeColors';
 
 interface StackGridProps {
   price?: MetalPriceData;
-  metal?: 'gold' | 'silver';
+  metal?: MetalType;
 }
 
 export default function StackGrid({ price, metal = 'gold' }: StackGridProps) {
@@ -52,7 +53,7 @@ export default function StackGrid({ price, metal = 'gold' }: StackGridProps) {
               label={label}
               value={field === 'bid' && adjustedValue ? adjustedValue.toFixed(2) : (priceData ? (priceData[field] as number).toFixed(2) : '')}
               goal={currency}
-              color={metal === 'gold' ? colors.darkGold : colors.silver}
+              color={ThemeColors[metal].emphasis}
             />
           ))}
         </View>

@@ -1,7 +1,8 @@
 import { useState, useMemo } from 'react';
 import { Text, View, TouchableOpacity, TextInput, Modal, Alert, ActivityIndicator } from 'react-native';
 import { colors } from '@/styles/global';
-import { type MetalPriceData, type MetalType } from '@/services/metalPriceService';
+import { type MetalPriceData } from '@/services/metalPriceService';
+import { ThemeColors, type MetalType } from '@/styles/themeColors';
 import { type UserSettings } from '@/services/settingsService';
 import { formatCurrency, formatDate } from '@/utils/formatters';
 
@@ -69,7 +70,7 @@ export default function GoldPriceBanner({ priceData, metal = 'gold', isLoading, 
         <View style={styles.left}>
           <Text style={styles.label}>{metalLabel} Price ({settings.currency}/{settings.unit})</Text>
           <View style={styles.priceRow}>
-            <Text style={[styles.price, { color: metal === 'silver' ? colors.silver : colors.gold }]}>{formatPrice(priceData?.price, showRefresh, settings.currency)}</Text>
+            <Text style={[styles.price, { color: ThemeColors[metal].primary }]}>{formatPrice(priceData?.price, showRefresh, settings.currency)}</Text>
             {priceData?.change !== undefined && priceData?.change !== null && (
               <View style={styles.changeBlockWrapper}>
                 <Text style={[styles.changeValue, { color: changeColor }]}>

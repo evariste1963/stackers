@@ -27,6 +27,7 @@ interface ThemeColors {
   gold: string;
   goldTint: string;
   silver: string;
+  silverTint: string;
   darkGold: string;
   themeBlue: string;
   chartAxis: string;
@@ -48,6 +49,7 @@ export const colors: ThemeColors = {
   gold: "#D4AF37",
   goldTint: "rgba(212, 175, 55, 0.13)",
   silver: "#C0C0C0",
+  silverTint: "rgba(192, 192, 192, 0.13)",
   darkGold: "#B8860B",
   themeBlue: "#13336f",
   chartAxis: "#D4AF37",

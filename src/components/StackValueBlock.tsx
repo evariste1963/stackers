@@ -1,6 +1,7 @@
 import React, { memo, useMemo } from 'react';
 import { Text, View, TouchableOpacity, StyleSheet } from 'react-native';
 import { colors } from '@/styles/global';
+import { ThemeColors, type MetalType } from '@/styles/themeColors';
 import { type UserSettings } from '@/services/settingsService';
 import { getCurrencySymbol } from '@/utils/formatters';
 
@@ -9,7 +10,7 @@ type StackValueBlockProps = {
   costValue?: string | number | undefined;
   settings: UserSettings;
   onPress?: () => void;
-  metal?: 'gold' | 'silver';
+  metal?: MetalType;
 };
 
 function StackValueBlock({ value, costValue, settings, onPress, metal = 'gold' }: StackValueBlockProps) {
@@ -47,15 +48,15 @@ function StackValueBlock({ value, costValue, settings, onPress, metal = 'gold' }
 
   return (
     <TouchableOpacity style={styles.container} onPress={onPress} activeOpacity={0.7}>
-      <Text style={[styles.title, { color: metal === 'silver' ? colors.silver : colors.gold }]}>Stack Value</Text>
+      <Text style={[styles.title, { color: ThemeColors[metal].primary }]}>Stack Value</Text>
       <View style={styles.row}>
         <View style={styles.columnLeft}>
           <Text style={[styles.label, styles.labelLeft]}>Total cost</Text>
-          <Text style={[styles.value, styles.valueLeft, { color: metal === 'silver' ? colors.silver : colors.gold }]}>{formattedCost}</Text>
+          <Text style={[styles.value, styles.valueLeft, { color: ThemeColors[metal].primary }]}>{formattedCost}</Text>
         </View>
         <View style={styles.columnRight}>
           <Text style={[styles.label, styles.labelRight]}>Current value</Text>
-          <Text style={[styles.value, isPositive ? styles.valueGreen : styles.valueRed, styles.valueRight, { color: metal === 'silver' ? colors.silver : colors.gold }]}>{formattedValue}</Text>
+          <Text style={[styles.value, isPositive ? styles.valueGreen : styles.valueRed, styles.valueRight, { color: ThemeColors[metal].primary }]}>{formattedValue}</Text>
         </View>
       </View>
       <View style={styles.changeContainer}>

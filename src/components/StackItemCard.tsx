@@ -4,6 +4,7 @@ import { colors } from '@/styles/global';
 import type { StackItem } from '@/services/stackStorage';
 import { deleteItems } from '@/services/stackStorage';
 import { getUnitAbbrev, getCurrencySymbol } from '@/utils/formatters';
+import { ThemeColors, type MetalType } from '@/styles/themeColors';
 
 type StackItemCardProps = {
   item: StackItem;
@@ -12,7 +13,7 @@ type StackItemCardProps = {
   weightUnit?: string;
   onDeleted: () => void;
   onPress?: () => void;
-  metal?: 'gold' | 'silver';
+  metal?: MetalType;
 };
 
 function StackItemCard({ item, latestPrice, currency, weightUnit = 'toz', onDeleted, onPress, metal = 'gold' }: StackItemCardProps) {
@@ -78,12 +79,12 @@ function StackItemCard({ item, latestPrice, currency, weightUnit = 'toz', onDele
           />
         ) : (
           <View style={styles.placeholder}>
-            <Text style={[styles.placeholderText, { color: metal === 'silver' ? colors.silver : colors.gold }]}>{item.code}</Text>
+            <Text style={[styles.placeholderText, { color: ThemeColors[metal].primary }]}>{item.code}</Text>
           </View>
         )}
       </View>
       <View style={styles.info}>
-        <Text style={[styles.code, { color: metal === 'silver' ? colors.silver : colors.gold }]}>{item.code}</Text>
+        <Text style={[styles.code, { color: ThemeColors[metal].primary }]}>{item.code}</Text>
         <Text style={styles.detail}>Weight {unitAbbrev}: {item.weight}</Text>
         <Text style={styles.detail}>Cost/{unitAbbrev}: {sym}{costPerToz.toFixed(2)}</Text>
         <Text style={styles.detail}>Total cost: {sym}{totalCost.toFixed(2)}</Text>
@@ -93,7 +94,7 @@ function StackItemCard({ item, latestPrice, currency, weightUnit = 'toz', onDele
         {latestPrice !== null && currentValue !== null ? (
           <>
             <Text style={styles.valueLabel}>Current value</Text>
-            <Text style={[styles.valueAmount, { color: metal === 'silver' ? colors.silver : colors.gold }]}>{sym}{currentValue.toFixed(2)}</Text>
+            <Text style={[styles.valueAmount, { color: ThemeColors[metal].primary }]}>{sym}{currentValue.toFixed(2)}</Text>
             <View style={styles.changeRow}>
               <Text style={[styles.changePct, isPositive ? styles.positive : styles.negative]}>
                 {isPositive ? '+' : ''}{valueChangePct?.toFixed(1)}%

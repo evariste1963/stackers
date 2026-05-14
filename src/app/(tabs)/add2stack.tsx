@@ -14,6 +14,7 @@ import { getUnitAbbrev } from '@/utils/formatters';
 import GoldPriceBanner from '@/components/GoldPriceBanner';
 import { usePrice } from '@/contexts/PriceContext';
 import { Ionicons } from '@expo/vector-icons';
+import { ThemeColors } from '@/styles/themeColors';
 
 export default function AddToStackScreen() {
   const { goldPriceData, silverPriceData, isLoading, settings, offGridMode, silverOffGridMode, refreshGoldPrice, refreshSilverPrice, updateManualPrice, updateManualSilverPrice } = usePrice();
@@ -244,13 +245,13 @@ export default function AddToStackScreen() {
             <View style={styles.imageBtnRow}>
               <TouchableOpacity style={styles.imageBtn} onPress={openCamera}>
                 <View style={styles.imageBtnContent}>
-                  <Ionicons name="camera" size={18} color={colors.gold} style={styles.imageBtnIcon} />
+                  <Ionicons name="camera" size={18} color={ThemeColors[metal].primary} style={styles.imageBtnIcon} />
                   <Text style={styles.imageBtnText}>Camera</Text>
                 </View>
               </TouchableOpacity>
               <TouchableOpacity style={styles.imageBtn} onPress={openGallery}>
                 <View style={styles.imageBtnContent}>
-                  <Ionicons name="images" size={18} color={colors.gold} style={styles.imageBtnIcon} />
+                  <Ionicons name="images" size={18} color={ThemeColors[metal].primary} style={styles.imageBtnIcon} />
                   <Text style={styles.imageBtnText}>Gallery</Text>
                 </View>
               </TouchableOpacity>
@@ -278,7 +279,7 @@ export default function AddToStackScreen() {
               </View>
             )}
             <View style={styles.metalSelector}>
-              <Text style={styles.label}>Metal Type</Text>
+              <Text style={[styles.label, { color: ThemeColors[metal].primary }]}>Metal Type</Text>
               <View style={toggleStyles.container}>
                 <TouchableOpacity
                   style={[toggleStyles.option, metal === 'gold' && { backgroundColor: colors.gold }]}
@@ -296,15 +297,15 @@ export default function AddToStackScreen() {
             </View>
             <View style={styles.row}>
               <View style={styles.col}>
-                <Text style={styles.label}>Item</Text>
-                <TextInput style={styles.input} placeholder="Coin" placeholderTextColor="#666" value={code} onChangeText={setCode} />
+                <Text style={[styles.label, { color: ThemeColors[metal].primary }]}>Item</Text>
+                <TextInput style={[styles.input, { color: ThemeColors[metal].primary, borderColor: ThemeColors[metal].primary }]} placeholder="Coin" placeholderTextColor="#444" value={code} onChangeText={setCode} />
               </View>
               <View style={styles.col}>
-                <Text style={styles.labelRight}>Weight ({getUnitAbbrev(weightUnit)})</Text>
+                <Text style={[styles.label, styles.labelRight, { color: ThemeColors[metal].primary }]}>Weight ({getUnitAbbrev(weightUnit)})</Text>
                 <TextInput
-                  style={styles.input}
+                  style={[styles.input, { color: ThemeColors[metal].primary, borderColor: ThemeColors[metal].primary }]}
                   placeholder={`Weight (${getUnitAbbrev(weightUnit)})`}
-                  placeholderTextColor="#666"
+                  placeholderTextColor="#444"
                   value={weight}
                   onChangeText={setWeight}
                 />
@@ -312,27 +313,27 @@ export default function AddToStackScreen() {
             </View>
             <View style={styles.row}>
               <View style={styles.col}>
-                <Text style={styles.label}>Cost/{getUnitAbbrev(weightUnit)}</Text>
+                <Text style={[styles.label, { color: ThemeColors[metal].primary }]}>Cost/{getUnitAbbrev(weightUnit)}</Text>
                 <TextInput
-                  style={[styles.input, totalAmount ? styles.disabledInput : null]}
+                  style={[styles.input, totalAmount ? styles.disabledInput : null, { color: ThemeColors[metal].primary, borderColor: ThemeColors[metal].primary }]}
                   placeholder={`Cost/${getUnitAbbrev(weightUnit)}`}
-                  placeholderTextColor="#666"
+                  placeholderTextColor="#444"
                   value={costPerUnit}
                   onChangeText={setPurchasePrice}
                   editable={!totalAmount}
                 />
               </View>
-              <Text style={styles.orText}>OR</Text>
+              <Text style={[styles.orText, { color: ThemeColors[metal].primary }]}>OR</Text>
               <View style={styles.col}>
-                <Text style={styles.labelRight}>Total Amount</Text>
-                <TextInput style={styles.input} placeholder="Total" placeholderTextColor="#666" value={totalAmount} onChangeText={setTotalAmount} />
+                <Text style={[styles.label, styles.labelRight, { color: ThemeColors[metal].primary }]}>Total Amount</Text>
+                <TextInput style={[styles.input, { color: ThemeColors[metal].primary, borderColor: ThemeColors[metal].primary }]} placeholder="1234" placeholderTextColor="#444" value={totalAmount} onChangeText={setTotalAmount} />
               </View>
             </View>
             <TouchableOpacity style={styles.submitBtn} onPress={handleSubmit} disabled={submitting}>
-              <Text style={styles.submitBtnText}>{submitting ? (isEditing ? 'Updating...' : 'Saving...') : (isEditing ? 'Update' : 'Submit')}</Text>
+              <Text style={[styles.submitBtnText, { color: ThemeColors[metal].primary }]}>{submitting ? (isEditing ? 'Updating...' : 'Saving...') : (isEditing ? 'Update' : 'Submit')}</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.cancelBtn} onPress={handleCancel}>
-              <Text style={styles.cancelBtnText}>Cancel</Text>
+              <Text style={[styles.cancelBtnText, { color: ThemeColors[metal].primary }]}>Cancel</Text>
             </TouchableOpacity>
           </ScrollView>
         </KeyboardAvoidingView>
@@ -343,15 +344,15 @@ export default function AddToStackScreen() {
           onRequestClose={() => setModalVisible(false)}
         >
           <View style={styles.modalOverlay}>
-            <View style={styles.modalContent}>
-              <Text style={styles.modalTitle}>Success!</Text>
+            <View style={[styles.modalContent, { borderColor: ThemeColors[metal].primary }]}>
+              <Text style={[styles.modalTitle, { color: ThemeColors[metal].primary }]}>Success!</Text>
               <Text style={styles.modalMessage}>Submit Something Else?</Text>
               <View style={styles.modalButtons}>
                 <TouchableOpacity style={styles.yesBtn} onPress={handleModalYes}>
-                  <Text style={styles.modalBtnText}>Yes</Text>
+                  <Text style={[styles.modalBtnText, { color: ThemeColors[metal].primary }]}>Yes</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.noBtn} onPress={handleModalNo}>
-                  <Text style={styles.modalBtnText}>No</Text>
+                  <Text style={[styles.modalBtnText, { color: ThemeColors[metal].primary }]}>No</Text>
                 </TouchableOpacity>
               </View>
             </View>
