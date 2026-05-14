@@ -11,15 +11,16 @@ import { useStack } from '@/contexts/StackContext';
 import { usePrice } from '@/contexts/PriceContext';
 import StackItemCard from '@/components/StackItemCard';
 import EmptyStackState from '@/components/EmptyStackState';
+import { useMetal } from '@/contexts/MetalContext';
 
 export default function YourStackScreen() {
   const { items, refresh } = useStack();
   const { swipeGesture } = useSwipeNavigation('yourStack');
   const { getAdjustedBidPrice, settings } = usePrice();
+  const { selectedMetal, setSelectedMetal } = useMetal();
   const [latestGoldPrice, setLatestGoldPrice] = useState<number | null>(null);
   const [latestSilverPrice, setLatestSilverPrice] = useState<number | null>(null);
   const [weightUnit, setWeightUnit] = useState('toz');
-  const [selectedMetal, setSelectedMetal] = useState<'gold' | 'silver'>('gold');
 
   const loadPriceAndSettings = useCallback(async () => {
     const goldPriceData = await getLatestGoldPrice();

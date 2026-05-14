@@ -4,6 +4,7 @@ import { StyleSheet } from "react-native";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { StackProvider } from "@/contexts/StackContext";
 import { PriceProvider } from "@/contexts/PriceContext";
+import { MetalProvider } from "@/contexts/MetalContext";
 import { View, ActivityIndicator } from "react-native";
 import { colors } from "@/styles/global";
 import { useEffect, useState } from "react";
@@ -76,7 +77,9 @@ export default function RootLayout() {
           <AuthProvider>
             <StackProvider>
               <PriceProvider>
-                <AuthRouter />
+                <MetalProvider>
+                  <AuthRouter />
+                </MetalProvider>
               </PriceProvider>
             </StackProvider>
           </AuthProvider>

@@ -8,13 +8,14 @@ import { GestureDetector } from 'react-native-gesture-handler';
 import { useSwipeNavigation } from '@/hooks/useSwipeNavigation';
 import * as ImagePicker from 'expo-image-picker';
 import { File, Directory, Paths } from 'expo-file-system';
-import { addItem, cleanOrphanedImages, getItemById, updateItem, type MetalType } from '@/services/stackStorage';
+import { addItem, cleanOrphanedImages, getItemById, updateItem } from '@/services/stackStorage';
 import { getUserSettings } from '@/services/settingsService';
 import { getUnitAbbrev } from '@/utils/formatters';
 import GoldPriceBanner from '@/components/GoldPriceBanner';
 import { usePrice } from '@/contexts/PriceContext';
 import { Ionicons } from '@expo/vector-icons';
 import { ThemeColors } from '@/styles/themeColors';
+import { useMetal } from '@/contexts/MetalContext';
 
 export default function AddToStackScreen() {
   const { goldPriceData, silverPriceData, isLoading, settings, offGridMode, silverOffGridMode, refreshGoldPrice, refreshSilverPrice, updateManualPrice, updateManualSilverPrice } = usePrice();
@@ -22,6 +23,8 @@ export default function AddToStackScreen() {
   const params = useLocalSearchParams<{ editId?: string }>();
   const editId = params.editId ? parseInt(params.editId, 10) : null;
   const isEditing = editId !== null;
+  const { selectedMetal, setSelectedMetal: setMetal } = useMetal();
+  const metal = selectedMetal;
 
   const [code, setCode] = useState('');
   const [weight, setWeight] = useState('');
@@ -34,7 +37,6 @@ export default function AddToStackScreen() {
   const [submitting, setSubmitting] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [weightUnit, setWeightUnit] = useState('toz');
-  const [metal, setMetal] = useState<MetalType>('gold');
 
   const clearForm = async () => {
     if (isNewCameraImage && imageUri) {

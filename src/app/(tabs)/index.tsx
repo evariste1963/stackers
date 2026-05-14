@@ -1,7 +1,7 @@
 import { Text, ScrollView, View, TouchableOpacity, StyleSheet } from 'react-native';
 import { GestureDetector } from 'react-native-gesture-handler';
 import { router } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useSwipeNavigation } from '@/hooks/useSwipeNavigation';
 import { colors, globalStyles, toggleStyles } from '@/styles/global';
 import StackGrid from '@/components/StackGrid';
@@ -11,6 +11,7 @@ import StackValueBlock from '@/components/StackValueBlock';
 import PageHeader from '@/components/PageHeader';
 import { usePrice } from '@/contexts/PriceContext';
 import { useStack } from '@/contexts/StackContext';
+import { useMetal } from '@/contexts/MetalContext';
 
 export default function HomeScreen() {
   const {
@@ -34,17 +35,13 @@ export default function HomeScreen() {
   } = usePrice();
   const { items, refresh } = useStack();
   const { swipeGesture } = useSwipeNavigation('');
-  const [selectedMetal, setSelectedMetal] = useState<'gold' | 'silver'>('gold');
+  const { selectedMetal, setSelectedMetal } = useMetal();
 
   useEffect(() => {
     refresh();
     refreshSettings();
     refreshPricesFromDb();
   }, []);
-
-  useEffect(() => {
-    setSelectedMetal(settings.defaultMetal || 'gold');
-  }, [settings.defaultMetal]);
 
   const priceData = selectedMetal === 'gold' ? goldPriceData : silverPriceData;
   const history = selectedMetal === 'gold' ? goldHistory : silverHistory;
