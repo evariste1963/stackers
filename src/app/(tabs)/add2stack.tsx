@@ -57,7 +57,6 @@ export default function AddToStackScreen() {
     setOriginalImageUri(null);
     setImageSource('existing');
     setIsNewCameraImage(false);
-    setMetal('gold');
   };
 
   const computedCostPerUnit = (() => {
@@ -72,11 +71,10 @@ export default function AddToStackScreen() {
 
   const costPerUnit = totalAmount ? computedCostPerUnit : purchasePrice;
 
-  useFocusEffect(
+useFocusEffect(
     useCallback(() => {
       getUserSettings().then(settings => {
         setWeightUnit(settings.unit || 'toz');
-        setMetal(settings.defaultMetal || 'gold');
       });
 
       clearForm();
@@ -89,7 +87,6 @@ export default function AddToStackScreen() {
             setPurchasePrice(item.purchasePrice);
             setImageUri(item.imageUri);
             setOriginalImageUri(item.imageUri);
-            setMetal(item.metal || 'gold');
             setImageSource('existing');
           }
         });
