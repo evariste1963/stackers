@@ -169,14 +169,26 @@ export default function SettingsScreen() {
     }
     const goldPremium = manualInputs.goldPremium ? parseFloat(manualInputs.goldPremium) : null;
     const silverPremium = manualInputs.silverPremium ? parseFloat(manualInputs.silverPremium) : null;
-    if (goldPremium != null && !isNaN(goldPremium) && goldPremium >= 0) await updateManualGoldPremium(goldPremium);
-    if (silverPremium != null && !isNaN(silverPremium) && silverPremium >= 0) await updateManualSilverPremium(silverPremium);
-    await setManualPriceCtx(goldPrice);
-    await setManualSilverPriceCtx(silverPrice);
-    setSettings(prev => ({ ...prev, manualPrice: goldPrice, manualSilverPrice: silverPrice, manualGoldPremium: goldPremium ?? null, manualSilverPremium: silverPremium ?? null }));
-    setOffGridMode(true);
-    Alert.alert('Success', 'Both gold and silver prices have been saved.');
-  }, [manualInputs, setManualPriceCtx, setManualSilverPriceCtx]);
+    Alert.alert(
+      'Confirm Prices',
+      `Gold: ${goldPrice} ${settings.currency}/${settings.unit}\nSilver: ${silverPrice} ${settings.currency}/${settings.unit}${goldPremium != null ? `\nGold Premium: ${goldPremium}%` : ''}${silverPremium != null ? `\nSilver Premium: ${silverPremium}%` : ''}\n\nEnable Off Grid Mode with these prices?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Confirm',
+          onPress: async () => {
+            if (goldPremium != null && !isNaN(goldPremium) && goldPremium >= 0) await updateManualGoldPremium(goldPremium);
+            if (silverPremium != null && !isNaN(silverPremium) && silverPremium >= 0) await updateManualSilverPremium(silverPremium);
+            await setManualPriceCtx(goldPrice);
+            await setManualSilverPriceCtx(silverPrice);
+            setSettings(prev => ({ ...prev, manualPrice: goldPrice, manualSilverPrice: silverPrice, manualGoldPremium: goldPremium ?? null, manualSilverPremium: silverPremium ?? null }));
+            setOffGridMode(true);
+            Alert.alert('Success', 'Both gold and silver prices have been saved.');
+          },
+        },
+      ]
+    );
+  }, [manualInputs, settings.currency, settings.unit, setManualPriceCtx, setManualSilverPriceCtx]);
 
   const handleOffGridModeToggle = useCallback(async (value: boolean) => {
     if (value && (!settings.manualPrice || settings.manualPrice <= 0 || !settings.manualSilverPrice || settings.manualSilverPrice <= 0)) {

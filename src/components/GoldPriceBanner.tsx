@@ -56,12 +56,24 @@ export default function GoldPriceBanner({ priceData, metal = 'gold', isLoading, 
       return;
     }
     const priceToSave = price;
-    setModalVisible(false);
-    setTimeout(() => {
-      if (onManualPriceChange) {
-        onManualPriceChange(priceToSave);
-      }
-    }, 500);
+    Alert.alert(
+      'Confirm Price',
+      `Update ${metalLabel} price to ${formatCurrency(priceToSave, settings.currency)}?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Confirm',
+          onPress: () => {
+            setModalVisible(false);
+            setTimeout(() => {
+              if (onManualPriceChange) {
+                onManualPriceChange(priceToSave);
+              }
+            }, 500);
+          },
+        },
+      ]
+    );
   };
 
   return (
