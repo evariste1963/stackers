@@ -126,7 +126,7 @@ export default function HomeScreen() {
             offGridMode={metalOffGridMode}
             onManualPriceChange={updateManualPriceFn}
           />
-          <View style={globalStyles.chart}>
+          <View style={[globalStyles.chart, { marginLeft: -10, marginRight: -10 }]}>
             <ChartArea history={history} unit={settings.unit} metal={selectedMetal} />
           </View>
           <StackGrid price={priceData ?? undefined} metal={selectedMetal} />
@@ -151,7 +151,7 @@ const styles = StyleSheet.create({
     color: colors.gold,
     fontSize: 16,
   },
-toggleWrapper: {
+  toggleWrapper: {
     marginBottom: 0,
   },
   scrollView: {
