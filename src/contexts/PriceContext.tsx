@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback, useRef, ReactNode } from 'react';
 import { getLatestGoldPrice, getLatestSilverPrice, saveGoldSpotPrice, saveSilverSpotPrice, type MetalPriceData } from '@/services/metalPriceService';
-import { getHistory, saveToHistory, migrateStaticData, getHistoryLength, type HistoryEntry } from '@/services/historyService';
+import { getHistory, saveToHistory, migrateStaticData, getHistoryLength, seedYahooHistory, type HistoryEntry } from '@/services/historyService';
 import { getApiKey, getUserSettings, migrateFromKVStore, updateManualPrice as saveManualPriceToSettings, updateManualHighLow as saveManualHighLow, updateManualSilverPrice as saveManualSilverPrice, updateManualSilverHighLow as saveManualSilverHighLow, updateManualGoldPremium as saveManualGoldPremium, updateManualSilverPremium as saveManualSilverPremium, type UserSettings } from '@/services/settingsService';
 import { fetchGoldPrice, fetchSilverPrice } from '@/services/metalPriceApi';
 
@@ -294,7 +294,10 @@ export function PriceProvider({ children }: { children: ReactNode }) {
       
       const goldHistoryLength = await getHistoryLength('gold');
       if (mounted && goldHistoryLength === 0) {
-        await migrateStaticData('gold');
+        const yahooSeeded = await seedYahooHistory('gold');
+        if (!yahooSeeded) {
+          await migrateStaticData('gold');
+        }
       }
       const goldHistoryData = await getHistory('gold');
       if (mounted) {
@@ -303,7 +306,10 @@ export function PriceProvider({ children }: { children: ReactNode }) {
       
       const silverHistoryLength = await getHistoryLength('silver');
       if (mounted && silverHistoryLength === 0) {
-        await migrateStaticData('silver');
+        const yahooSeeded = await seedYahooHistory('silver');
+        if (!yahooSeeded) {
+          await migrateStaticData('silver');
+        }
       }
       const silverHistoryData = await getHistory('silver');
       if (mounted) {

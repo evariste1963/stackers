@@ -1,6 +1,7 @@
 import { getDb } from './db';
 import { goldData } from '../../assets/goldData.js';
 import { silverData } from '../../assets/silverData.js';
+import { fetchYahooHistory, fetchGbpUsdRate } from './yahooFinanceApi';
 
 const staticDataMap = {
   gold: goldData,
@@ -150,5 +151,37 @@ export async function getHistoryLength(metal: MetalType = 'gold'): Promise<numbe
   } catch (error) {
     console.error('Error getting history length:', error);
     return 0;
+  }
+}
+
+export async function seedYahooHistory(metal: MetalType = 'gold'): Promise<boolean> {
+  try {
+    const [entries, rate] = await Promise.all([
+      fetchYahooHistory(metal),
+      fetchGbpUsdRate(),
+    ]);
+
+    if (entries.length === 0) return false;
+
+    const database = await getDb();
+    const tableName = getHistoryTable(metal);
+
+    await database.withTransactionAsync(async () => {
+      for (const entry of entries) {
+        const gbpPrice = entry.close * rate;
+        const gmsPrice = gbpPrice / 31.1035;
+        await database.runAsync(
+          `INSERT OR REPLACE INTO ${tableName} (date, price, gms, toz, change, changePercent)
+           VALUES (?, ?, ?, ?, ?, ?)`,
+          [entry.date, gbpPrice, gmsPrice, gbpPrice, 0, 0]
+        );
+      }
+    });
+
+    console.log(`Seeded ${entries.length} Yahoo Finance entries for ${metal} (rate: ${rate})`);
+    return true;
+  } catch (error) {
+    console.error(`Error seeding Yahoo history for ${metal}:`, error);
+    return false;
   }
 }
