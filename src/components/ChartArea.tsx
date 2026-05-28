@@ -1,4 +1,4 @@
-import { View, useWindowDimensions, Text } from 'react-native';
+import { View, useWindowDimensions } from 'react-native';
 import { useRef, useState, useEffect, useMemo, useCallback } from 'react';
 import Svg, { Path, Text as SvgText } from 'react-native-svg';
 import { getHistory, type HistoryEntry, migrateStaticData, getHistoryLength } from '@/services/historyService';
@@ -6,16 +6,15 @@ import { colors } from '../styles/global';
 
 const TWELVE_MONTHS_MS = 12 * 30 * 24 * 60 * 60 * 1000;
 const PRICE_PADDING_RATIO = 0.1;
-const CONTAINER_HEIGHT = 150;
-const CHART_HEIGHT = CONTAINER_HEIGHT;
-const YAXIS_WIDTH = 55;
-const LEFT_PADDING = 4;
-const RIGHT_PADDING = 5;
-const SCREEN_WIDTH_MARGIN = 30;
+const CONTAINER_HEIGHT = 160;
+const CHART_HEIGHT = CONTAINER_HEIGHT - 10;
+const LEFT_PADDING = 34;
+const RIGHT_PADDING = 10;
+const YAXIS_LABEL_X = 28;
 const YAXIS_PADDING_TOP = 10;
 const YAXIS_PADDING_BOTTOM = 10;
 const MONTH_STEP = 2;
-const XAXIS_LABEL_Y = 140;
+const XAXIS_LABEL_Y = 150;
 
 type ChartAreaProps = {
   history?: HistoryEntry[];
@@ -28,6 +27,10 @@ export default function ChartArea({ history: propHistory, unit = 'toz', metal = 
   const [data, setData] = useState<HistoryEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const isMountedRef = useRef(true);
+
+  const chartTotalWidth = screenWidth - 40;
+  const svgWidth = chartTotalWidth;
+  const availableWidth = svgWidth - LEFT_PADDING - RIGHT_PADDING;
 
   useEffect(() => {
     isMountedRef.current = true;
@@ -103,23 +106,16 @@ export default function ChartArea({ history: propHistory, unit = 'toz', metal = 
   const yMin = minPrice - padding;
   const yMax = maxPrice + padding;
 
-  const chartHeight = CHART_HEIGHT;
-  const yAxisWidth = YAXIS_WIDTH;
-  const leftPadding = LEFT_PADDING;
-  const rightPadding = RIGHT_PADDING;
-
-  const availableWidth = screenWidth - yAxisWidth - leftPadding - rightPadding;
-
   const xScale = useCallback((timestamp: number) => {
     const range = displayMaxDate - displayMinDate;
-    if (range === 0) return leftPadding;
-    return leftPadding + ((timestamp - displayMinDate) / range) * (availableWidth - leftPadding - rightPadding);
+    if (range === 0) return LEFT_PADDING;
+    return LEFT_PADDING + ((timestamp - displayMinDate) / range) * availableWidth;
   }, [displayMaxDate, displayMinDate, availableWidth]);
 
   const yScale = useCallback((price: number) => {
     const range = yMax - yMin;
-    if (range === 0) return chartHeight / 2;
-    const availableHeight = chartHeight - YAXIS_PADDING_TOP - YAXIS_PADDING_BOTTOM;
+    if (range === 0) return CHART_HEIGHT / 2;
+    const availableHeight = CHART_HEIGHT - YAXIS_PADDING_TOP - YAXIS_PADDING_BOTTOM;
     return YAXIS_PADDING_TOP + availableHeight - ((price - yMin) / range) * availableHeight;
   }, [yMax, yMin]);
 
@@ -163,8 +159,8 @@ export default function ChartArea({ history: propHistory, unit = 'toz', metal = 
 
   if (isLoading || data.length === 0) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', height: CONTAINER_HEIGHT }}>
-        <Svg width={screenWidth - SCREEN_WIDTH_MARGIN} height={CONTAINER_HEIGHT} />
+      <View style={{ width: chartTotalWidth, height: CONTAINER_HEIGHT, justifyContent: 'center', alignItems: 'center' }}>
+        <Svg width={svgWidth} height={CONTAINER_HEIGHT} />
       </View>
     );
   }
@@ -172,43 +168,47 @@ export default function ChartArea({ history: propHistory, unit = 'toz', metal = 
   const yTicks = [maxPrice, (maxPrice + minPrice) / 2, minPrice];
 
   return (
-    <View style={{ flex: 1 }}>
-      <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}>
-        <View style={{ width: yAxisWidth, height: CONTAINER_HEIGHT, justifyContent: 'space-between', paddingTop: YAXIS_PADDING_TOP, paddingBottom: YAXIS_PADDING_BOTTOM }}>
-          {yTicks.map((tick, i) => (
-            <Text key={i} style={{ fontSize: 10, color: colors.chartAxis, textAlign: 'right' }}>
-              {Math.round(tick)}
-            </Text>
-          ))}
-        </View>
-        <Svg width={availableWidth} height={CONTAINER_HEIGHT}>
-          {monthlyTicks.map((tick, i) => {
-            const x = xScale(tick.x);
-            return (
-              <SvgText
-                key={i}
-                x={x}
-                y={XAXIS_LABEL_Y}
-                fontSize={10}
-                fill={colors.chartAxis}
-                textAnchor="middle"
-              >
-                {tick.label}
-              </SvgText>
-            );
-          })}
-          <Path
-            d={fillPath}
-            fill={colors.themeBlue + '40'}
-          />
-          <Path
-            d={linePath}
-            stroke={colors.themeBlue}
-            strokeWidth={3}
-            fill="none"
-          />
-        </Svg>
-      </View>
+    <View style={{ width: chartTotalWidth }}>
+      <Svg width={svgWidth} height={CONTAINER_HEIGHT}>
+        {yTicks.map((tick, i) => (
+          <SvgText
+            key={i}
+            x={YAXIS_LABEL_X}
+            y={yScale(tick)}
+            fontSize={10}
+            fill={colors.chartAxis}
+            textAnchor="end"
+          >
+            {Math.round(tick)}
+          </SvgText>
+        ))}
+        {monthlyTicks.map((tick, i) => {
+          const x = xScale(tick.x);
+          if (x < LEFT_PADDING) return null;
+          return (
+            <SvgText
+              key={i}
+              x={x}
+              y={XAXIS_LABEL_Y}
+              fontSize={10}
+              fill={colors.chartAxis}
+              textAnchor="middle"
+            >
+              {tick.label}
+            </SvgText>
+          );
+        })}
+        <Path
+          d={fillPath}
+          fill={colors.themeBlue + '40'}
+        />
+        <Path
+          d={linePath}
+          stroke={colors.themeBlue}
+          strokeWidth={3}
+          fill="none"
+        />
+      </Svg>
     </View>
   );
 }

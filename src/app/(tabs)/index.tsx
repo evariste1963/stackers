@@ -126,7 +126,7 @@ export default function HomeScreen() {
             offGridMode={metalOffGridMode}
             onManualPriceChange={updateManualPriceFn}
           />
-          <View style={[globalStyles.chart, { marginLeft: -10, marginRight: -10 }]}>
+          <View style={globalStyles.chart}>
             <ChartArea history={history} unit={settings.unit} metal={selectedMetal} />
           </View>
           <StackGrid price={priceData ?? undefined} metal={selectedMetal} />

@@ -97,7 +97,6 @@ export const globalStyles = StyleSheet.create({
     height: 160,
     width: '100%',
     backgroundColor: colors.background,
-    alignItems: 'center',
   },
   empty: {
     color: colors.gold,
