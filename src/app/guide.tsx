@@ -1,9 +1,41 @@
-import { globalStyles, colors } from "@/styles/global";
-import { Text, View, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
+import { Text, View, ScrollView, Image, TouchableOpacity } from 'react-native';
 import { Link, useRouter } from 'expo-router';
 import { useState, useEffect } from 'react';
 import { getUserSettings } from '@/services/settingsService';
 import { usePrice } from '@/contexts/PriceContext';
+import { colors } from '@/styles/global';
+
+function SectionHeader({ title, color }: { title: string; color: string }) {
+  return (
+    <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 24, marginBottom: 10 }}>
+      <View style={{ flex: 1, height: 1, backgroundColor: color, opacity: 0.3 }} />
+      <Text style={{ fontSize: 15, fontWeight: '600', color, marginHorizontal: 12, letterSpacing: 0.5 }}>
+        {title.toUpperCase()}
+      </Text>
+      <View style={{ flex: 1, height: 1, backgroundColor: color, opacity: 0.3 }} />
+    </View>
+  );
+}
+
+function FeatureCard({ icon, title, desc, iconColor, titleColor, descColor }: { icon: string; title: string; desc: string; iconColor?: string; titleColor?: string; descColor?: string }) {
+  return (
+    <View style={{
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      paddingVertical: 10,
+      paddingHorizontal: 14,
+      marginBottom: 6,
+      backgroundColor: colors.themeGrey,
+      borderRadius: 10,
+    }}>
+      <Text style={{ fontSize: 18, marginRight: 12, marginTop: 1, color: iconColor }}>{icon}</Text>
+      <View style={{ flex: 1 }}>
+        <Text style={{ fontSize: 14, fontWeight: '600', color: titleColor || colors.white, marginBottom: 2 }}>{title}</Text>
+        <Text style={{ fontSize: 13, lineHeight: 18, color: descColor || colors.lightGrey }}>{desc}</Text>
+      </View>
+    </View>
+  );
+}
 
 export default function GuideScreen() {
   const router = useRouter();
@@ -29,303 +61,101 @@ export default function GuideScreen() {
   const showContinue = hasApiKey || offGridMode;
 
   return (
-    <ScrollView style={globalStyles.container} contentContainerStyle={{ paddingBottom: 100 }}>
+    <ScrollView style={{ flex: 1, backgroundColor: colors.background }} contentContainerStyle={{ padding: 20, paddingBottom: 100, paddingTop: 60 }}>
       {showSetupApiKey && (
-        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-          <Text style={styles.backText}>Back</Text>
+        <TouchableOpacity style={{ alignSelf: 'flex-start', paddingVertical: 10, paddingHorizontal: 16, marginBottom: 10 }} onPress={() => router.back()}>
+          <Text style={{ color: colors.gold, fontSize: 16 }}>Back</Text>
         </TouchableOpacity>
       )}
 
-      <View style={styles.header}>
-        <Text style={styles.title}>How to Use Stackers</Text>
+      <View style={{ flexDirection: 'row', alignItems: 'center', paddingTop: 8, paddingBottom: 4 }}>
+        <Image source={require('../../assets/images/stackers-logo.png')} style={{ width: 90, height: 40 }} resizeMode="contain" />
+        <Text style={{ flex: 1, fontSize: 22, fontWeight: 'bold', color: colors.white, textAlign: 'center', marginRight: 90 }}>Guide</Text>
       </View>
 
       {showSetupApiKey && (
         <Link href="/settings" asChild>
-          <TouchableOpacity style={styles.apiButton}>
-            <Text style={globalStyles.buttonText}>Set up Options</Text>
+          <TouchableOpacity style={{ backgroundColor: colors.green, padding: 16, borderRadius: 8, marginBottom: 12, alignItems: 'center' }}>
+            <Text style={{ color: colors.gold, fontSize: 18, fontWeight: '600' }}>Set up Options</Text>
           </TouchableOpacity>
         </Link>
       )}
 
       {showContinue && (
-        <TouchableOpacity style={styles.apiButton} onPress={handleContinue}>
-          <Text style={globalStyles.buttonText}>Continue to App</Text>
+        <TouchableOpacity style={{ backgroundColor: colors.green, padding: 16, borderRadius: 8, marginBottom: 12, alignItems: 'center' }} onPress={handleContinue}>
+          <Text style={{ color: colors.gold, fontSize: 18, fontWeight: '600' }}>Continue to App</Text>
         </TouchableOpacity>
       )}
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Setup</Text>
-        <View style={styles.listItemRow}>
-          <Text style={styles.bullet}>•</Text>
-          <Text style={styles.listItemText}>Get a free API key from <Text style={styles.link}>metals.dev</Text> for live gold & silver prices</Text>
-        </View>
-        <View style={styles.listItemRow}>
-          <Text style={styles.bullet}>•</Text>
-          <Text style={styles.listItemText}>Or use Off Grid mode to enter Gold and Silver prices manually</Text>
-        </View>
-        <View style={styles.listItemRow}>
-          <Text style={styles.bullet}>•</Text>
-          <Text style={styles.listItemText}>Choose currency (GBP, USD, EUR) and weight unit (troy oz or grams)</Text>
-        </View>
-        <View style={styles.listItemRow}>
-          <Text style={styles.bullet}>•</Text>
-          <Text style={styles.listItemText}>Chart data: 12 months of daily price history from Yahoo Finance (GC=F / SI=F), converted to your chosen currency via live Frankfurter exchange rates. Re-fetches when currency is changed. Falls back to bundled data if offline.</Text>
-        </View>
-        <View style={styles.listItemRow}>
-          <Text style={styles.bullet}>•</Text>
-          <Text style={styles.listItemText}>Set your default metal (Gold or Silver) for the Home screen</Text>
-        </View>
-        <Text style={styles.note}>Tip: Once you add items, currency and unit cannot be changed. Delete all items first to change them.</Text>
-      </View>
+      <SectionHeader title="Getting Started" color={colors.gold} />
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Adding Items</Text>
-        <Text style={styles.text}>In the Add-2-Stack tab:</Text>
-        <View style={styles.listItemRow}>
-          <Text style={styles.bullet}>•</Text>
-          <Text style={styles.listItemText}>Take Photo - capture an image with camera</Text>
-        </View>
-        <View style={styles.listItemRow}>
-          <Text style={styles.bullet}>•</Text>
-          <Text style={styles.listItemText}>Select from Gallery - choose existing photos</Text>
-        </View>
-        <View style={styles.listItemRow}>
-          <Text style={styles.bullet}>•</Text>
-          <Text style={styles.listItemText}>Select Metal - Gold or Silver for this item</Text>
-        </View>
-        <View style={styles.listItemRow}>
-          <Text style={styles.bullet}>•</Text>
-          <Text style={styles.listItemText}>Enter Item name (e.g. "Gold Sovereign Coin")</Text>
-        </View>
-        <View style={styles.listItemRow}>
-          <Text style={styles.bullet}>•</Text>
-          <Text style={styles.listItemText}>Enter Weight in your chosen unit</Text>
-        </View>
-        <View style={styles.listItemRow}>
-          <Text style={styles.bullet}>•</Text>
-          <Text style={styles.listItemText}>Enter Cost per unit OR Total amount paid</Text>
-        </View>
-        <View style={styles.listItemRow}>
-          <Text style={styles.bullet}>•</Text>
-          <Text style={styles.listItemText}>Tap Submit to save</Text>
-        </View>
-        <Text style={styles.note}>You can add another item or view your stack after saving.</Text>
-      </View>
+      <FeatureCard icon="🏠" title="Home Tab" desc="Price banner, chart, and stack summary. Swipe or tap to switch between gold and silver." />
+      <FeatureCard icon="📦" title="Your Stack" desc="All items with current values. Filter by gold or silver, edit or delete items." />
+      <FeatureCard icon="📊" title="Portfolio" desc="Detailed breakdown with total value, profit/loss, and premium percentages." />
+      <FeatureCard icon="➕" title="Add-2-Stack" desc="Add new items via camera, gallery, or manual entry with photo." />
+      <FeatureCard icon="⚙️" title="Account" desc="Settings, PIN management, and this guide." />
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Your Stack</Text>
-        <Text style={styles.text}>View all items in the Your Stack tab:</Text>
-        <View style={styles.listItemRow}>
-          <Text style={styles.bullet}>•</Text>
-          <Text style={styles.listItemText}>Toggle Gold/Silver to filter items by metal</Text>
-        </View>
-        <View style={styles.listItemRow}>
-          <Text style={styles.bullet}>•</Text>
-          <Text style={styles.listItemText}>Tap any item card to edit it</Text>
-        </View>
-        <View style={styles.listItemRow}>
-          <Text style={styles.bullet}>•</Text>
-          <Text style={styles.listItemText}>Tap the X button to delete an item</Text>
-        </View>
-        <View style={styles.listItemRow}>
-          <Text style={styles.bullet}>•</Text>
-          <Text style={styles.listItemText}>See current value for each item (weight × bid price)</Text>
-        </View>
-        <View style={styles.listItemRow}>
-          <Text style={styles.bullet}>•</Text>
-          <Text style={styles.listItemText}>Total value and total cost displayed at bottom</Text>
-        </View>
-      </View>
+      <SectionHeader title="Setup" color={colors.gold} />
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Home Tab</Text>
-        <Text style={styles.text}>The Home screen shows:</Text>
-        <View style={styles.listItemRow}>
-          <Text style={styles.bullet}>•</Text>
-          <Text style={styles.listItemText}>Gold/Silver toggle - swipe or tap to switch</Text>
-        </View>
-        <View style={styles.listItemRow}>
-          <Text style={styles.bullet}>•</Text>
-          <Text style={styles.listItemText}>Price banner - live price (API) or your entered price (Off Grid)</Text>
-        </View>
-        <View style={styles.listItemRow}>
-          <Text style={styles.bullet}>•</Text>
-          <Text style={styles.listItemText}>Price history chart - rolling 12 months of data</Text>
-        </View>
-        <View style={styles.listItemRow}>
-          <Text style={styles.bullet}>•</Text>
-          <Text style={styles.listItemText}>Stack Value block - tap to go to Your Stack screen</Text>
-        </View>
-        <Text style={styles.note}>In Off Grid mode, tap "Update Price" on the banner to enter new manual prices for Gold and Silver separately.</Text>
-      </View>
+      <FeatureCard icon="🔑" title="API Key" desc="Get a free key from metals.dev for live gold and silver prices." />
+      <FeatureCard icon="📡" title="Off Grid Mode" desc="Enter gold and silver prices manually without an API key." />
+      <FeatureCard icon="💱" title="Currency & Unit" desc="Choose GBP, USD, or EUR and troy ounces or grams." />
+      <FeatureCard icon="📈" title="Chart Data" desc="12-month price history from Yahoo Finance, converted via Frankfurter exchange rates. Falls back to bundled data if offline." />
+      <FeatureCard icon="🏷️" title="Default Metal" desc="Set your preferred metal (gold or silver) for the Home screen." />
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Portfolio Tab</Text>
-        <Text style={styles.text}>Detailed portfolio breakdown:</Text>
-        <View style={styles.listItemRow}>
-          <Text style={styles.bullet}>•</Text>
-          <Text style={styles.listItemText}>Total value with profit/loss calculation</Text>
-        </View>
-        <View style={styles.listItemRow}>
-          <Text style={styles.bullet}>•</Text>
-          <Text style={styles.listItemText}>Gold section - items, total weight, value, cost, profit</Text>
-        </View>
-        <View style={styles.listItemRow}>
-          <Text style={styles.bullet}>•</Text>
-          <Text style={styles.listItemText}>Silver section - items, total weight, value, cost, profit</Text>
-        </View>
-        <View style={styles.listItemRow}>
-          <Text style={styles.bullet}>•</Text>
-          <Text style={styles.listItemText}>Bid price and premium % for each metal</Text>
-        </View>
-      </View>
+      <SectionHeader title="Adding Items" color={colors.gold} />
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Security (PIN)</Text>
-        <View style={styles.listItemRow}>
-          <Text style={styles.bullet}>•</Text>
-          <Text style={styles.listItemText}>Go to Account tab, tap "Set PIN"</Text>
-        </View>
-        <View style={styles.listItemRow}>
-          <Text style={styles.bullet}>•</Text>
-          <Text style={styles.listItemText}>Enter a 4-digit PIN, then confirm it</Text>
-        </View>
-        <View style={styles.listItemRow}>
-          <Text style={styles.bullet}>•</Text>
-          <Text style={styles.listItemText}>App requires PIN on every launch</Text>
-        </View>
-        <View style={styles.listItemRow}>
-          <Text style={styles.bullet}>•</Text>
-          <Text style={styles.listItemText}>After 5 failed attempts, app locks for 5 minutes with increasing lockout times</Text>
-        </View>
-        <Text style={styles.note}>You can Change or Remove PIN from the Account tab. PIN is required to remove API key.</Text>
-        <Link href="/security-statement" asChild>
-          <TouchableOpacity style={styles.linkButton}>
-            <Text style={styles.linkButtonText}>View Security Statement →</Text>
-          </TouchableOpacity>
-        </Link>
-      </View>
+      <FeatureCard icon="📸" title="Take Photo" desc="Capture an image of your item with the camera." />
+      <FeatureCard icon="🖼️" title="From Gallery" desc="Select existing photos from your gallery." />
+      <FeatureCard icon="🪙" title="Select Metal" desc="Choose gold or silver for the item you are adding." />
+      <FeatureCard icon="✏️" title="Item Details" desc="Enter name, weight, and cost per unit or total amount paid." />
+      <FeatureCard icon="✅" title="Submit" desc="Tap to save your item. Add another or view your stack after saving." />
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Navigation</Text>
-        <Text style={styles.text}>Tabs:</Text>
-        <View style={styles.listItemRow}>
-          <Text style={styles.bullet}>•</Text>
-          <Text style={styles.listItemText}>Home - price banner, chart, stack summary</Text>
-        </View>
-        <View style={styles.listItemRow}>
-          <Text style={styles.bullet}>•</Text>
-          <Text style={styles.listItemText}>Your Stack - all items with values</Text>
-        </View>
-        <View style={styles.listItemRow}>
-          <Text style={styles.bullet}>•</Text>
-          <Text style={styles.listItemText}>Portfolio - detailed profit/loss breakdown</Text>
-        </View>
-        <View style={styles.listItemRow}>
-          <Text style={styles.bullet}>•</Text>
-          <Text style={styles.listItemText}>Add-2-Stack - add new items</Text>
-        </View>
-        <View style={styles.listItemRow}>
-          <Text style={styles.bullet}>•</Text>
-          <Text style={styles.listItemText}>Account - settings, PIN, guide</Text>
-        </View>
-        <Text style={styles.note}>Tip: Swipe left/right on any tab to navigate between tabs.</Text>
-      </View>
+      <SectionHeader title="Your Stack" color={colors.gold} />
 
-      <Text style={styles.credit}>coded by this.me</Text>
+      <FeatureCard icon="🔍" title="Filter" desc="Toggle gold or silver to filter items by metal type." />
+      <FeatureCard icon="✏️" title="Edit" desc="Tap any item card to edit its details." />
+      <FeatureCard icon="🗑️" title="Delete" desc="Tap the X button to remove an item from your stack." />
+      <FeatureCard icon="💰" title="Current Value" desc="Each item shows its value calculated as weight × bid price." />
+      <FeatureCard icon="📊" title="Totals" desc="Total value and total cost displayed at the bottom of the list." />
+
+      <SectionHeader title="Home Tab" color={colors.gold} />
+
+      <FeatureCard icon="🔄" title="Metal Toggle" desc="Swipe or tap to switch between gold and silver views." />
+      <FeatureCard icon="💵" title="Price Banner" desc="Live price from API or your entered manual price in Off Grid mode." />
+      <FeatureCard icon="📉" title="Price Chart" desc="Rolling 12-month price history chart with daily data." />
+      <FeatureCard icon="💎" title="Stack Value" desc="Tap the stack value block to navigate to Your Stack screen." />
+
+      <SectionHeader title="Portfolio Tab" color={colors.gold} />
+
+      <FeatureCard icon="💹" title="Total Value" desc="Overall portfolio value with profit and loss calculation." />
+      <FeatureCard icon="🥇" title="Gold Section" desc="Items, total weight, value, cost, and profit for gold holdings." />
+      <FeatureCard icon="🥈" title="Silver Section" desc="Items, total weight, value, cost, and profit for silver holdings." />
+      <FeatureCard icon="💲" title="Premium" desc="Bid price and premium percentage displayed for each metal." />
+
+      <SectionHeader title="Security (PIN)" color={colors.gold} />
+
+      <FeatureCard icon="🔐" title="Set PIN" desc="Go to Account tab and tap Set PIN to create a 4-digit PIN." />
+      <FeatureCard icon="🔒" title="App Lock" desc="PIN is required every time the app launches." />
+      <FeatureCard icon="⏱️" title="Lockout" desc="After 5 failed attempts, the app locks with increasing lockout times." />
+      <FeatureCard icon="🔄" title="Manage PIN" desc="Change or remove PIN from Account. PIN required to remove API key." />
+      <Link href="/security-statement" asChild>
+        <TouchableOpacity style={{ marginTop: 4, paddingVertical: 8 }}>
+          <Text style={{ fontSize: 14, color: colors.gold, textDecorationLine: 'underline' }}>View Security Statement →</Text>
+        </TouchableOpacity>
+      </Link>
+
+      <SectionHeader title="Navigation" color={colors.gold} />
+
+      <FeatureCard icon="📱" title="Tab Bar" desc="Five tabs: Home, Your Stack, Portfolio, Add-2-Stack, and Account." />
+      <FeatureCard icon="👆" title="Swipe" desc="Swipe left or right on any tab to navigate between screens." />
+
+      <View style={{ marginTop: 32, paddingTop: 16, borderTopWidth: 1, borderTopColor: colors.borderDark, alignItems: 'center' }}>
+        <Text style={{ fontSize: 12, color: colors.grey, marginBottom: 4 }}>coded by this.me</Text>
+        <Text style={{ fontSize: 11, color: colors.grey }}>© {new Date().getFullYear()} — MIT License</Text>
+      </View>
 
       <View style={{ height: 60 }} />
     </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  backButton: {
-    alignSelf: 'flex-start',
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    marginBottom: 10,
-  },
-  backText: {
-    color: colors.gold,
-    fontSize: 16,
-  },
-  header: {
-    marginBottom: 10,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: colors.gold,
-  },
-  section: {
-    backgroundColor: colors.themeGrey,
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 20,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: colors.gold,
-    marginBottom: 12,
-    marginTop: 6,
-  },
-  text: {
-    fontSize: 14,
-    color: colors.white,
-    lineHeight: 20,
-    marginBottom: 4,
-  },
-  listItemRow: {
-    flexDirection: 'row',
-    marginBottom: 4,
-  },
-  bullet: {
-    width: 16,
-    fontSize: 14,
-    color: colors.white,
-    lineHeight: 20,
-  },
-  listItemText: {
-    flex: 1,
-    fontSize: 14,
-    color: colors.white,
-    lineHeight: 20,
-  },
-  note: {
-    fontSize: 12,
-    color: colors.grey,
-    fontStyle: 'italic',
-    marginTop: 10,
-    marginBottom: 6,
-  },
-  link: {
-    color: colors.white,
-    textDecorationLine: 'underline',
-  },
-  credit: {
-    fontSize: 14,
-    color: colors.grey,
-    fontStyle: 'italic',
-    textAlign: 'center',
-    marginBottom: 20,
-  },
-  apiButton: {
-    backgroundColor: colors.green,
-    padding: 16,
-    borderRadius: 8,
-    marginBottom: 12,
-    alignItems: 'center',
-  },
-  linkButton: {
-    marginTop: 16,
-    paddingVertical: 8,
-  },
-  linkButtonText: {
-    fontSize: 14,
-    color: colors.gold,
-    textDecorationLine: 'underline',
-  },
-});
