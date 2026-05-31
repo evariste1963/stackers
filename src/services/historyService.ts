@@ -1,7 +1,7 @@
 import { getDb } from './db';
 import { goldData } from '../../assets/goldData.js';
 import { silverData } from '../../assets/silverData.js';
-import { fetchYahooHistory, fetchGbpUsdRate } from './yahooFinanceApi';
+import { fetchYahooHistory, fetchCurrencyRate } from './yahooFinanceApi';
 
 const staticDataMap = {
   gold: goldData,
@@ -154,11 +154,11 @@ export async function getHistoryLength(metal: MetalType = 'gold'): Promise<numbe
   }
 }
 
-export async function seedYahooHistory(metal: MetalType = 'gold'): Promise<boolean> {
+export async function seedYahooHistory(metal: MetalType = 'gold', currency: string = 'GBP'): Promise<boolean> {
   try {
     const [entries, rate] = await Promise.all([
       fetchYahooHistory(metal),
-      fetchGbpUsdRate(),
+      fetchCurrencyRate(currency),
     ]);
 
     if (entries.length === 0) return false;
@@ -168,20 +168,41 @@ export async function seedYahooHistory(metal: MetalType = 'gold'): Promise<boole
 
     await database.withTransactionAsync(async () => {
       for (const entry of entries) {
-        const gbpPrice = entry.close * rate;
-        const gmsPrice = gbpPrice / 31.1035;
+        const convertedPrice = entry.close * rate;
+        const gmsPrice = convertedPrice / 31.1035;
         await database.runAsync(
           `INSERT OR REPLACE INTO ${tableName} (date, price, gms, toz, change, changePercent)
            VALUES (?, ?, ?, ?, ?, ?)`,
-          [entry.date, gbpPrice, gmsPrice, gbpPrice, 0, 0]
+          [entry.date, convertedPrice, gmsPrice, convertedPrice, 0, 0]
         );
       }
     });
 
-    console.log(`Seeded ${entries.length} Yahoo Finance entries for ${metal} (rate: ${rate})`);
+    console.log(`Seeded ${entries.length} Yahoo Finance entries for ${metal} (currency: ${currency}, rate: ${rate})`);
     return true;
   } catch (error) {
     console.error(`Error seeding Yahoo history for ${metal}:`, error);
     return false;
+  }
+}
+
+export async function clearAndReseedHistory(currency: string = 'GBP'): Promise<{ gold: HistoryEntry[]; silver: HistoryEntry[] }> {
+  try {
+    const database = await getDb();
+    await database.execAsync('DELETE FROM gold_price_history');
+    await database.execAsync('DELETE FROM silver_price_history');
+
+    const goldSeeded = await seedYahooHistory('gold', currency);
+    if (!goldSeeded) await migrateStaticData('gold');
+
+    const silverSeeded = await seedYahooHistory('silver', currency);
+    if (!silverSeeded) await migrateStaticData('silver');
+
+    const gold = await getHistory('gold');
+    const silver = await getHistory('silver');
+    return { gold, silver };
+  } catch (error) {
+    console.error('Error clearing and reseeding history:', error);
+    return { gold: [], silver: [] };
   }
 }

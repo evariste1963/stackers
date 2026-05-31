@@ -12,7 +12,7 @@ import { usePrice } from '@/contexts/PriceContext';
 export default function SettingsScreen() {
   const router = useRouter();
   const { isAuthenticated, hasPinSet } = useAuth();
-  const { updateManualPrice: setManualPriceCtx, updateManualSilverPrice: setManualSilverPriceCtx } = usePrice();
+  const { updateManualPrice: setManualPriceCtx, updateManualSilverPrice: setManualSilverPriceCtx, refreshHistoryForCurrency } = usePrice();
   const [settings, setSettings] = useState<UserSettings>({
     currency: 'GBP',
     unit: 'toz',
@@ -133,10 +133,11 @@ export default function SettingsScreen() {
     try {
       await updatePreference('currency', currency);
       setSettings(prev => ({ ...prev, currency }));
+      refreshHistoryForCurrency(currency);
     } catch (error) {
       Alert.alert('Error', 'Failed to update currency');
     }
-  }, []);
+  }, [refreshHistoryForCurrency]);
 
   const handleUnitChange = useCallback(async (unit: string) => {
     try {

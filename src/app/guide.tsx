@@ -7,7 +7,7 @@ import { usePrice } from '@/contexts/PriceContext';
 
 export default function GuideScreen() {
   const router = useRouter();
-  const { isSettingsLoading, refreshSettings } = usePrice();
+  const { isSettingsLoading } = usePrice();
   const [hasApiKey, setHasApiKey] = useState(false);
   const [offGridMode, setOffGridMode] = useState(false);
 
@@ -59,6 +59,7 @@ export default function GuideScreen() {
         <Text style={styles.listItem}>• Get a free API key from <Text style={styles.link}>metals.dev</Text> for live gold & silver prices</Text>
         <Text style={styles.listItem}>• Or use Off Grid mode to enter Gold and Silver prices manually</Text>
         <Text style={styles.listItem}>• Choose currency (GBP, USD, EUR) and weight unit (troy oz or grams)</Text>
+        <Text style={styles.listItem}>• Chart data: 12 months of daily price history from Yahoo Finance (GC=F / SI=F), converted to your chosen currency via live Frankfurter exchange rates. Re-fetches when currency is changed. Falls back to bundled data if offline.</Text>
         <Text style={styles.listItem}>• Set your default metal (Gold or Silver) for the Home screen</Text>
         <Text style={styles.note}>Tip: Once you add items, currency and unit cannot be changed. Delete all items first to change them.</Text>
       </View>

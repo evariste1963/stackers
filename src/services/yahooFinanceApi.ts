@@ -19,7 +19,7 @@ export interface YahooPriceEntry {
 }
 
 const YAHOO_BASE = 'https://query1.finance.yahoo.com/v8/finance/chart';
-const FX_API = 'https://api.frankfurter.dev/latest?from=USD&to=GBP';
+const FX_BASE = 'https://api.frankfurter.app/latest';
 
 const SYMBOL_MAP: Record<string, string> = {
   gold: 'GC=F',
@@ -79,25 +79,30 @@ function parseYahooResponse(data: YahooChartResponse): YahooPriceEntry[] {
   return entries;
 }
 
-export async function fetchGbpUsdRate(timeoutMs = 5000): Promise<number> {
+export async function fetchCurrencyRate(
+  targetCurrency: string,
+  timeoutMs = 5000
+): Promise<number> {
+  if (targetCurrency === 'USD') return 1.0;
+
   try {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
-    const response = await fetch(FX_API, {
+    const response = await fetch(`${FX_BASE}?from=USD&to=${targetCurrency}`, {
       signal: controller.signal,
       headers: { 'Accept': 'application/json' },
     });
 
     clearTimeout(timeout);
 
-    if (!response.ok) return 0.75;
+    if (!response.ok) return 1.0;
 
     const data = await response.json();
-    const rate = data?.rates?.GBP;
-    return typeof rate === 'number' && rate > 0 ? rate : 0.75;
+    const rate = data?.rates?.[targetCurrency];
+    return typeof rate === 'number' && rate > 0 ? rate : 1.0;
   } catch {
-    return 0.75;
+    return 1.0;
   }
 }
 

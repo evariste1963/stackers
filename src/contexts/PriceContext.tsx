@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback, useRef, ReactNode } from 'react';
 import { getLatestGoldPrice, getLatestSilverPrice, saveGoldSpotPrice, saveSilverSpotPrice, type MetalPriceData } from '@/services/metalPriceService';
-import { getHistory, saveToHistory, migrateStaticData, getHistoryLength, seedYahooHistory, type HistoryEntry } from '@/services/historyService';
+import { getHistory, saveToHistory, migrateStaticData, getHistoryLength, seedYahooHistory, clearAndReseedHistory, type HistoryEntry } from '@/services/historyService';
 import { getApiKey, getUserSettings, migrateFromKVStore, updateManualPrice as saveManualPriceToSettings, updateManualHighLow as saveManualHighLow, updateManualSilverPrice as saveManualSilverPrice, updateManualSilverHighLow as saveManualSilverHighLow, updateManualGoldPremium as saveManualGoldPremium, updateManualSilverPremium as saveManualSilverPremium, type UserSettings } from '@/services/settingsService';
 import { fetchGoldPrice, fetchSilverPrice } from '@/services/metalPriceApi';
 
@@ -27,6 +27,7 @@ interface PriceContextType {
   updateManualGoldPremium: (premium: number) => Promise<void>;
   updateManualSilverPremium: (premium: number) => Promise<void>;
   getAdjustedBidPrice: (metal: 'gold' | 'silver') => number;
+  refreshHistoryForCurrency: (currency: string) => Promise<void>;
 }
 
 const PriceContext = createContext<PriceContextType | undefined>(undefined);
@@ -258,6 +259,12 @@ export function PriceProvider({ children }: { children: ReactNode }) {
     setSettings(prev => ({ ...prev, manualSilverPremium: premium }));
   }, []);
 
+  const refreshHistoryForCurrency = useCallback(async (currency: string) => {
+    const result = await clearAndReseedHistory(currency);
+    if (result.gold.length > 0) setGoldHistory(result.gold);
+    if (result.silver.length > 0) setSilverHistory(result.silver);
+  }, []);
+
   const getAdjustedBidPrice = useCallback((metal: 'gold' | 'silver'): number => {
     const priceData = metal === 'gold' ? goldPriceData : silverPriceData;
     const premium = metal === 'gold' ? settings.manualGoldPremium : settings.manualSilverPremium;
@@ -292,9 +299,11 @@ export function PriceProvider({ children }: { children: ReactNode }) {
       
       await migrateFromKVStore();
       
+      const s = await getUserSettings();
+      
       const goldHistoryLength = await getHistoryLength('gold');
       if (mounted && goldHistoryLength === 0) {
-        const yahooSeeded = await seedYahooHistory('gold');
+        const yahooSeeded = await seedYahooHistory('gold', s.currency);
         if (!yahooSeeded) {
           await migrateStaticData('gold');
         }
@@ -306,7 +315,7 @@ export function PriceProvider({ children }: { children: ReactNode }) {
       
       const silverHistoryLength = await getHistoryLength('silver');
       if (mounted && silverHistoryLength === 0) {
-        const yahooSeeded = await seedYahooHistory('silver');
+        const yahooSeeded = await seedYahooHistory('silver', s.currency);
         if (!yahooSeeded) {
           await migrateStaticData('silver');
         }
@@ -316,7 +325,6 @@ export function PriceProvider({ children }: { children: ReactNode }) {
         setSilverHistory(silverHistoryData);
       }
       
-      const s = await getUserSettings();
       if (mounted) {
         const existingGold = await getLatestGoldPrice();
         const existingSilver = await getLatestSilverPrice();
@@ -385,6 +393,7 @@ export function PriceProvider({ children }: { children: ReactNode }) {
       updateManualGoldPremium,
       updateManualSilverPremium,
       getAdjustedBidPrice,
+      refreshHistoryForCurrency,
     }}>
       {children}
     </PriceContext.Provider>
