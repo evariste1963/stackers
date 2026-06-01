@@ -117,7 +117,7 @@
   ```
 - [x] Upload AAB to Play Console **Internal testing** track
 - [x] Add yourself as internal tester
-- [ ] Install on test device(s) and verify app works
+- [x] Install on test device(s) and verify app works
 - [ ] Fix any issues found in testing
 
 ---
