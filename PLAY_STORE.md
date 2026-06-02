@@ -38,11 +38,11 @@
 
 - [x] Create privacy policy (`PRIVACY_POLICY.md` in project root)
   - Covers: local-only storage, camera access, API key storage, no third-party sharing
-- [ ] Host policy at publicly accessible URL:
+- [x] Host policy at publicly accessible URL:
   1. Push `PRIVACY_POLICY.md` to GitHub repo
-  2. Go to repo Settings → Pages → set source to main branch
-  3. URL will be: `https://thisme.github.io/stackers/PRIVACY_POLICY`
-- [ ] Host privacy policy at public URL via GitHub Pages
+  2. Set repo Settings → Pages → source to main branch via `gh`
+  3. URL: `https://evariste1963.github.io/stackers/PRIVACY_POLICY`
+- [x] Host privacy policy at public URL via GitHub Pages
 - [ ] Add policy URL to Play Console store listing
 - [ ] Add link to privacy policy from within the app (e.g., in Account/Settings or Guide screen)
 
