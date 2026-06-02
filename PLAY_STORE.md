@@ -44,7 +44,7 @@
   3. URL: `https://evariste1963.github.io/stackers/PRIVACY_POLICY`
 - [x] Host privacy policy at public URL via GitHub Pages
 - [ ] Add policy URL to Play Console store listing
-- [ ] Add link to privacy policy from within the app (e.g., in Account/Settings or Guide screen)
+- [x] Add link to privacy policy from within the app (Account screen)
 
 ### 2.4 Permissions
 
@@ -73,7 +73,7 @@
 
 ## Phase 3: Store Listing Assets
 
-- [ ] **Screenshots** (2-8, 1080×1920 or 1080×2160 PNG/JPEG)
+- [x] **Screenshots** (2-8, 1080×1920 or 1080×2160 PNG/JPEG)
   - Home (price banner)
   - Portfolio
   - Your Stack
