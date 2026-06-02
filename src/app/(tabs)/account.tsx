@@ -1,11 +1,13 @@
 import { globalStyles, colors } from "@/styles/global";
-import { Text, View, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
+import { Text, View, ScrollView, TouchableOpacity, StyleSheet, Linking } from 'react-native';
 import { Link } from 'expo-router';
 import PageHeader from '@/components/PageHeader';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'expo-router';
 import { GestureDetector } from 'react-native-gesture-handler';
 import { useSwipeNavigation } from '@/hooks/useSwipeNavigation';
+
+const PRIVACY_POLICY_URL = 'https://evariste1963.github.io/stackers/PRIVACY_POLICY';
 
 export default function AccountScreen() {
   const { hasPinSet, lock } = useAuth();
@@ -26,6 +28,13 @@ export default function AccountScreen() {
               <Text style={globalStyles.buttonText}>Guide</Text>
             </TouchableOpacity>
           </Link>
+
+          <TouchableOpacity
+            style={globalStyles.button}
+            onPress={() => Linking.openURL(PRIVACY_POLICY_URL)}
+          >
+            <Text style={globalStyles.buttonText}>Privacy Policy</Text>
+          </TouchableOpacity>
 
           <Link href="/settings" asChild>
             <TouchableOpacity style={globalStyles.button}>
