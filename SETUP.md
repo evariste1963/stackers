@@ -1,205 +1,92 @@
-# Stackers - Setup & Development Guide
-
-This guide covers setup, development, and building instructions. For app usage info, see README.md.
+# Stackers - Setup & Build Guide
 
 ## Prerequisites
 
-### Required on All Platforms
+- **Node.js** (v20.x or v22.x LTS) - https://nodejs.org
+- **Android Studio** (for Android emulator) - https://developer.android.com/studio
+- **EAS CLI** - `npx eas-cli` (included in devDependencies)
 
-- **Node.js** (v20.x or v22.x LTS recommended) - https://nodejs.org
-
-### For iOS Development (Mac only)
-
-- **Xcode** - From Mac App Store (free)
-- **CocoaPods** - Usually installed automatically via `pod install`
-
-### For Android Development (Windows/Mac/Linux)
-
-- **Android Studio** - https://developer.android.com/studio
-- **Java JDK 17** - Usually included with Android Studio
-- **Android SDK** - Install via Android Studio SDK Manager
-
-## Setup
-
-1. Install dependencies
-
-   ```bash
-   npm install
-   ```
-
-2. For iOS only, install CocoaPods:
-
-   ```bash
-   cd ios && pod install && cd ..
-   ```
-
-3. Start the app
-
-   ```bash
-   npx expo start
-   ```
-
-### Running on Specific Platforms
-
-- **Web**: `npx expo start --web`
-- **iOS Simulator** (Mac): `npx expo run:ios`
-- **Android Emulator**: `npx expo run:android`
-- **Physical Device**: Use Expo Go app on your phone and scan QR code from `npx expo start`
-
-## Building
-
-### Android
+## Development Setup
 
 ```bash
+npm install
+npx expo start
+```
+
+### Running on device/emulator for testing
+
+| Platform | Command |
+|----------|---------|
+| Android emulator | `npx expo run:android` |
+| iOS simulator (Mac) | `npx expo run:ios` |
+| Physical device (Expo Go) | Scan QR from `npx expo start` |
+| Web | `npx expo start --web` |
+
+---
+
+## ⚠️ CRITICAL: Build Procedures
+
+**The upload keystore is managed by Expo EAS servers. Never use `./gradlew assembleRelease` for production builds — it will sign with the wrong key and be rejected by Play Store.**
+
+---
+
+### 1. Building for Local Testing (Install Direct to Device)
+
+For testing changes on your phone without publishing:
+
+```bash
+# Build debug APK via Expo
 npx expo run:android
+
+# Install via ADB (USB debugging required)
+adb install -r android/app/build/outputs/apk/debug/app-debug.apk
 ```
 
-### iOS (Mac only)
-
-```bash
-cd ios && pod install
-npx expo run:ios
-```
-
-### Web
-
-```bash
-npx expo start --web
-```
+Or scan QR code with Expo Go app for instant reload during development.
 
 ---
 
-## Building APKs for Distribution
+### 2. Building for Upload to Play Store
 
-### Prerequisites
+**Always use EAS Build.** This ensures the correct upload key (managed by Expo servers) signs your AAB.
 
-Before building for Android, ensure you have:
-
-1. **Node.js** (already installed for development)
-2. **Android Studio** - Download from https://developer.android.com/studio
-3. **Java JDK 17** - Usually included with Android Studio, or download from https://adoptium.net
-
-#### Android Studio Setup
-
-1. Open Android Studio after installation
-2. Go to **More Actions → SDK Manager**
-3. Under **SDK Platforms**, ensure these are checked:
-   - Android SDK (latest version)
-4. Under **SDK Tools**, ensure these are checked:
-   - Android SDK Build-Tools
-   - Android SDK Platform-Tools
-   - Android Emulator
-
-#### Set JAVA_HOME Environment Variable
-
-**Windows:**
-```cmd
-setx JAVA_HOME "C:\Program Files\Android\Android Studio\jbr"
-```
-
-**Mac/Linux:**
-Add to your `~/.bashrc` or `~/.zshrc`:
 ```bash
-export JAVA_HOME="/Applications/Android Studio.app/Contents/jbr"
+# Build production AAB
+npx eas build --platform android --profile production
 ```
+
+This uploads to Expo cloud and returns a download URL for the signed `.aab`.
+
+#### Submit to Play Store
+
+**Option A — Auto-submit (recommended):**
+```bash
+npx eas build --platform android --profile production --auto-submit
+```
+
+**Option B — Manual upload:**
+1. Download the AAB from the URL `eas build` returns
+2. Go to https://play.google.com/console
+3. **Release → Production → Create new release**
+4. Drag the AAB in
+5. Fill release notes → Review → Start rollout
 
 ---
 
-### Building an APK
+### Quick Reference
 
-The built APK includes the bundled JavaScript, so it works **without** needing a development server.
-
-#### Step 1: Generate Android Project
-
-```bash
-npx expo prebuild --platform android
-```
-
-This creates the `android/` folder with native Android code.
-
-#### Step 2: Build the Release APK
-
-```bash
-cd android && ./gradlew assembleRelease
-```
-
-#### Step 3: Locate the APK
-
-Your APK will be at:
-```
-android/app/build/outputs/apk/release/app-release.apk
-```
-
-#### Step 4: Transfer to Phone
-
-- Connect your phone via USB and copy the APK
-- Or email/cloud transfer to your phone
-- Or use a file sharing app (AirDroid, ShareMe, etc.)
-
-#### Step 5: Install on Phone
-
-1. Enable **Install from unknown sources** in your phone's Settings (under Security or Apps)
-2. Open the APK file on your phone
-3. Tap to install
-
----
-
-### Debug APK (Alternative)
-
-If you want a debug build with development tools:
-
-```bash
-cd android && ./gradlew assembleDebug
-```
-
-The debug APK will be at:
-```
-android/app/build/outputs/apk/debug/app-debug.apk
-```
-
----
-
-### EAS Build (No Local Setup Required)
-
-If you don't want to install Android Studio, you can use Expo's cloud build service:
-
-1. Install EAS CLI:
-   ```bash
-   npm install -g eas-cli
-   ```
-
-2. Login to Expo:
-   ```bash
-   eas login
-   ```
-
-3. Build:
-   ```bash
-   eas build --platform android
-   ```
-
-This will upload your project to Expo's servers and return a downloadable APK.
-
----
-
-### Notes
-
-- The release APK is optimized and smaller than debug
-- Both APK types work without a development server
-- The app's data is stored locally on the device (SQLite)
-- Uninstalling the app will delete all stored data
+| Action | Command |
+|--------|---------|
+| Development build (debug) | `npx expo run:android` |
+| Install debug build via ADB | `adb install -r android/app/build/outputs/apk/debug/app-debug.apk` |
+| Production build for Play Store | `npx eas build --platform android --profile production` |
+| Build + submit to Play Store | `npx eas build --platform android --profile production --auto-submit` |
 
 ---
 
 ## Database
 
-This project uses SQLite via `expo-sqlite`. Data persists locally on the device.
-
-### Database File
-
-- **Filename**: `stackers.db`
-- **Location (Emulator)**: `files/SQLite/stackers.db` (requires `run-as`)
-- **App package**: `com.thisme.stackers`
+SQLite via `expo-sqlite`. Data persists locally on device at `files/SQLite/stackers.db` (package `com.thisme.stackers`).
 
 ### Pull DB from Emulator
 
@@ -207,24 +94,9 @@ This project uses SQLite via `expo-sqlite`. Data persists locally on the device.
 adb shell "run-as com.thisme.stackers cat files/SQLite/stackers.db" > ~/Downloads/stackers.db
 ```
 
-Or for base64 encoding (safer for large files):
-```bash
-adb shell "run-as com.thisme.stackers base64 files/SQLite/stackers.db" | base64 -d > ~/Downloads/stackers.db
-```
-
-> **Note**: The app must be installed on a debuggable emulator/device. Run `npx expo run:android` (not Expo Go) to ensure debuggable build.
-
-To verify:
-```bash
-sqlite3 ~/Downloads/stackers.db ".tables"
-# Output: gold_price_history gold_price_latest stack_items user_settings
-```
-
 ### Open in DBeaver
 
-1. **Database** → **New Database Connection** → select **SQLite**
-2. Set **Database file** to: `~/Downloads/stackers.db`
-3. Finish
+Database → New Database Connection → SQLite → select `~/Downloads/stackers.db`
 
 ### Schema
 
@@ -232,7 +104,7 @@ sqlite3 ~/Downloads/stackers.db ".tables"
 | Column | Type | Description |
 |--------|------|-------------|
 | `id` | INTEGER | Primary key (auto-increment) |
-| `code` | TEXT | Item code (e.g., "1oz gold bar") |
+| `code` | TEXT | Item code |
 | `weight` | TEXT | Weight as string |
 | `purchasePrice` | TEXT | Purchase price as string |
 | `premium` | TEXT | Premium as string |
@@ -246,10 +118,21 @@ sqlite3 ~/Downloads/stackers.db ".tables"
 | `currency` | TEXT | Currency code (default: GBP) |
 | `unit` | TEXT | Unit code (default: toz) |
 | `hasApiKey` | INTEGER | 0 or 1 |
+| `manualPrice` | REAL | Manual gold price |
+| `manualHighPrice` | REAL | Manual gold high |
+| `manualLowPrice` | REAL | Manual gold low |
+| `previousManualPrice` | REAL | Previous manual gold price |
+| `manualSilverPrice` | REAL | Manual silver price |
+| `manualSilverHighPrice` | REAL | Manual silver high |
+| `manualSilverLowPrice` | REAL | Manual silver low |
+| `previousManualSilverPrice` | REAL | Previous manual silver price |
+| `manualGoldPremium` | REAL | Gold premium % |
+| `manualSilverPremium` | REAL | Silver premium % |
+| `defaultMetal` | TEXT | Default metal (gold/silver) |
 | `createdAt` | TEXT | ISO timestamp |
 | `updatedAt` | TEXT | ISO timestamp |
 
-#### gold_price_latest
+#### gold_price_latest / silver_price_latest
 | Column | Type | Description |
 |--------|------|-------------|
 | `id` | INTEGER | Primary key (always 1) |
@@ -265,346 +148,27 @@ sqlite3 ~/Downloads/stackers.db ".tables"
 | `unit` | TEXT | Unit code |
 | `fetchedAt` | TEXT | ISO timestamp |
 
-#### gold_price_history
+#### gold_price_history / silver_price_history
 | Column | Type | Description |
 |--------|------|-------------|
 | `id` | INTEGER | Primary key (auto-increment) |
 | `date` | TEXT | Date (YYYY-MM-DD) |
-| `price` | REAL | Price on that date |
+| `price` | REAL | Price |
 | `change` | REAL | Price change |
 | `changePercent` | REAL | Change percentage |
 
 ### Query Examples
 
-**List all tables:**
-```sql
-.tables
-```
-
-**Get user settings:**
-```sql
-SELECT * FROM user_settings;
-```
-
-**Get latest gold price:**
-```sql
-SELECT * FROM gold_price_latest;
-```
-
-**Get gold price history (last 30 days):**
-```sql
-SELECT * FROM gold_price_history ORDER BY date DESC LIMIT 30;
-```
-
-**Get all stack items:**
-```sql
-SELECT * FROM stack_items ORDER BY createdAt DESC;
-```
-
-**Get gold prices in a date range:**
-```sql
-SELECT * FROM gold_price_history
-WHERE date BETWEEN '2025-01-01' AND '2025-12-31'
-ORDER BY date;
-```
-
-**Count records in each table:**
-```sql
-SELECT 'stack_items' as tbl, COUNT(*) as cnt FROM stack_items
-UNION ALL
-SELECT 'gold_price_history', COUNT(*) FROM gold_price_history
-UNION ALL
-SELECT 'gold_price_latest', COUNT(*) FROM gold_price_latest;
-```
-
-### CLI Access (No DBeaver)
-
 ```bash
-# List all tables
+# List tables
 sqlite3 ~/Downloads/stackers.db ".tables"
 
-# View user settings
-sqlite3 ~/Downloads/stackers.db "SELECT * FROM user_settings;"
-
-# View latest gold price
+# Get latest gold price
 sqlite3 ~/Downloads/stackers.db "SELECT * FROM gold_price_latest;"
 
-# View gold price history (formatted)
+# Recent history
 sqlite3 ~/Downloads/stackers.db "SELECT * FROM gold_price_history ORDER BY date DESC LIMIT 10;"
 
-# Interactive mode
-sqlite3 ~/Downloads/stackers.db
-```
-
-### Reset / Repopulate DB
-
-To clear and repopulate the database:
-
-```bash
-adb shell "run-as com.thisme.stackers rm files/stackers.db"
-```
-
-Then rebuild and run the app - it will recreate all tables with default data.
-
----
-
-## Common Issues
-
-**"JAVA_HOME not found"** - Ensure JAVA_HOME is set correctly (see above)
-
-**"SDK not found"** - Open Android Studio and verify SDK is installed in SDK Manager
-
-**"Gradle build failed"** - Try cleaning and rebuilding:
-```bash
-cd android && ./gradlew clean
-cd android && ./gradlew assembleRelease
-```
-
----
-
-## Installing Directly on Physical Phone (ADB)
-
-For direct installation via USB debugging, no file transfer needed.
-
-### Prerequisites
-
-1. Enable **Developer Options** on your phone:
-   - Go to **Settings → About Phone**
-   - Tap **Build Number** 7 times
-   - Enter your PIN/pattern if prompted
-
-2. Enable **USB Debugging**:
-   - Go to **Settings → Developer Options**
-   - Enable **USB Debugging**
-
-3. Connect your phone via USB to your computer
-
-### Install via ADB
-
-```bash
-# Build the APK first
-cd android && ./gradlew assembleRelease
-
-# Find the APK
-cp android/app/build/outputs/apk/release/app-release.apk ../stackers-release.apk
-
-# Install on connected phone
-adb install -r stackers-release.apk
-```
-
-This installs the APK directly on your connected Android device.
-
-### If USB Debugging is Already Enabled
-
-```bash
-# Check if phone is connected
-adb devices
-
-# Install ( -r flag replaces existing app)
-adb install -r stackers-release.apk
-```
-
----
-
-## Custom App Icon (Launcher Icon)
-
-The app uses your custom logo as the launcher icon. To update the icon:
-
-### Icon Files Location
-
-- **Source**: `assets/images/stackers-logo.png` (should be square, 1024x1024 recommended)
-- **Generated to**: `android/app/src/main/res/mipmap-*/ic_launcher_foreground.webp`
-
-### Regenerate Launcher Icons
-
-```bash
-# Update the source logo if needed
-# Then regenerate the mipmap icons:
-
-magick assets/images/stackers-logo.png -resize 48x48 \
-  android/app/src/main/res/mipmap-hdpi/ic_launcher_foreground.webp
-
-magick assets/images/stackers-logo.png -resize 72x72 \
-  android/app/src/main/res/mipmap-mdpi/ic_launcher_foreground.webp
-
-magick assets/images/stackers-logo.png -resize 96x96 \
-  android/app/src/main/res/mipmap-xhdpi/ic_launcher_foreground.webp
-
-magick assets/images/stackers-logo.png -resize 144x144 \
-  android/app/src/main/res/mipmap-xxhdpi/ic_launcher_foreground.webp
-
-magick assets/images/stackers-logo.png -resize 192x192 \
-  android/app/src/main/res/mipmap-xxxhdpi/ic_launcher_foreground.webp
-
-# Rebuild the APK
-cd android && ./gradlew assembleRelease
-```
-
-### Using Expo's Asset Generator
-
-```bash
-npx expo generate:android-assets
-```
-
-This will regenerate all Android icons from your source logo.
-
----
-
-## Publishing to Google Play Store
-
-### Prerequisites
-
-1. **Google Play Developer Account** - https://play.google.com/console ($25 one-time fee)
-2. **Release APK or AAB** (Android App Bundle)
-
-### Target SDK Requirement
-
-As of August 2025, new apps must target **Android API 35** (Android 15). Ensure your `app.json` has:
-```json
-"android": {
-  "targetSdkVersion": 35
-}
-```
-
-### Step 1: Configure App in Play Console
-
-1. Go to https://play.google.com/console
-2. Create a new app (select "Android App")
-3. Fill in:
-   - App name: Stackers
-   - Default language: English
-   - App type: Apps
-   - Category: Finance
-
-### Step 2: Prepare Store Listing
-
-You'll need:
-- **Screenshots**: Take screenshots on a phone/emulator (1080x1920 recommended)
-- **Feature graphic**: 1024x500
-- **Phone icon**: 512x512
-- **Privacy policy URL**: Required if app collects data
-- **App description**: Describe the app's functionality
-
-### Step 3: Create Release
-
-1. In Play Console, go to **Release → Production**
-2. Upload your AAB or APK:
-   ```bash
-   # Create Android App Bundle (recommended)
-   cd android && ./gradlew assembleRelease
-   # AAB location: android/app/build/outputs/apk/release/app-release.apk
-   ```
-
-3. Set release notes
-4. Click **Review Release** → **Confirm Rollout**
-
-### Using EAS Build (No Local Android Studio)
-
-```bash
-# Install EAS CLI
-npm install -g eas-cli
-
-# Login to Expo
-eas login
-
-# Build for Android (creates AAB)
-eas build --platform android
-
-# Follow prompts - download the AAB from the link provided
-```
-
-### App Signing
-
-- **Play App Signing** (recommended): Google manages your signing key
-- **Self-signed**: You provide your own keystore
-
-For production, keep your keystore safe - you cannot update the app without the same key.
-
----
-
-## Publishing to iOS App Store
-
-### Prerequisites (Mac Required)
-
-1. **Apple Developer Account** - https://developer.apple.com ($99/year)
-2. **Xcode** - From Mac App Store
-3. **CocoaPods** - `sudo gem install cocoapods`
-
-### Step 1: Configure in Expo
-
-Update `app.json` with iOS details:
-```json
-"ios": {
-  "bundleIdentifier": "com.thisme.stackers",
-  "buildNumber": "1",
-  "supportsTablet": true
-}
-```
-
-### Step 2: Generate Native iOS Project
-
-```bash
-npx expo prebuild --platform ios
-```
-
-This creates the `ios/` folder.
-
-### Step 3: Configure Xcode
-
-1. Open `ios/Stackers.xcworkspace` in Xcode
-2. Select your team in **Signing & Capabilities**
-3. Set the bundle identifier if different
-
-### Step 4: Build for App Store
-
-```bash
-# Using xcodebuild
-cd ios && xcodebuild -workspace Stackers.xcworkspace \
-  -scheme Stackers \
-  -configuration Release \
-  -archive
-
-# Or use EAS
-eas build --platform ios
-```
-
-### Step 5: Upload via Transporter
-
-1. Download Transporter from Mac App Store
-2. Upload your `.ipa` file
-3. Go to App Store Connect to manage the release
-
-### Using EAS Submit (Easiest)
-
-```bash
-# Build and submit in one command
-eas build --platform ios --auto-submit
-```
-
-You'll need to log in to your Apple Developer account during the process.
-
----
-
-## Summary: Build Commands
-
-| Action | Command |
-|--------|---------|
-| Build Android Debug | `cd android && ./gradlew assembleDebug` |
-| Build Android Release | `cd android && ./gradlew assembleRelease` |
-| Copy APK to project root | `cp android/app/build/outputs/apk/release/app-release.apk ../stackers-release.apk` |
-| Install on phone (ADB) | `adb install -r ../stackers-release.apk` |
-| Build iOS (Mac) | `cd ios && pod install && xcodebuild` |
-| EAS Build (cloud) | `eas build --platform android` |
-
-### Quick Build + Install on Phone
-
-```bash
-# Step 1: Build
-cd android && ./gradlew assembleRelease
-
-# Step 2: Copy APK (optional - for easy access)
-cp android/app/build/outputs/apk/release/app-release.apk ../stackers-release.apk
-
-# Step 3: Install on connected phone
-adb install -r android/app/build/outputs/apk/release/app-release.apk
+# All stack items
+sqlite3 ~/Downloads/stackers.db "SELECT * FROM stack_items ORDER BY createdAt DESC;"
 ```
