@@ -119,23 +119,25 @@ export default function AccountScreen() {
           )}
 
           {(offGridMode || silverOffGridMode) && (
-            <View style={styles.priceRow}>
-              {offGridMode && (
-                <TouchableOpacity
-                  style={[globalStyles.button, styles.halfButton, styles.centerButton]}
-                  onPress={() => handleOpenModal('gold')}
-                >
-                  <Text style={[globalStyles.buttonText, { color: colors.gold }, styles.centerText]}>Overwrite Today Gold</Text>
-                </TouchableOpacity>
-              )}
-              {silverOffGridMode && (
-                <TouchableOpacity
-                  style={[globalStyles.button, styles.halfButton, styles.centerButton]}
-                  onPress={() => handleOpenModal('silver')}
-                >
-                  <Text style={[globalStyles.buttonText, { color: colors.silver }, styles.centerText]}>Overwrite Today Silver</Text>
-                </TouchableOpacity>
-              )}
+            <View style={styles.overwriteContainer}>
+              <View style={styles.priceRow}>
+                {offGridMode && (
+                  <TouchableOpacity
+                    style={[globalStyles.button, styles.compactButton, styles.centerButton, styles.goldBorder]}
+                    onPress={() => handleOpenModal('gold')}
+                  >
+                    <Text style={[globalStyles.buttonText, { color: colors.gold, fontSize: 13 }, styles.centerText]}>Overwrite Today Gold</Text>
+                  </TouchableOpacity>
+                )}
+                {silverOffGridMode && (
+                  <TouchableOpacity
+                    style={[globalStyles.button, styles.compactButton, styles.centerButton, styles.silverBorder]}
+                    onPress={() => handleOpenModal('silver')}
+                  >
+                    <Text style={[globalStyles.buttonText, { color: colors.silver, fontSize: 13 }, styles.centerText]}>Overwrite Today Silver</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
             </View>
           )}
         </View>
@@ -184,12 +186,22 @@ const styles = StyleSheet.create({
   section: {
     padding: 16,
   },
+  overwriteContainer: {
+    borderColor: colors.red,
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: 12,
+    marginTop: 20,
+  },
   priceRow: {
     flexDirection: 'row',
-    gap: 12,
+    gap: 10,
   },
-  halfButton: {
+  compactButton: {
     flex: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 8,
+    marginBottom: 0,
   },
   centerButton: {
     justifyContent: 'center',
@@ -197,6 +209,14 @@ const styles = StyleSheet.create({
   },
   centerText: {
     textAlign: 'center',
+  },
+  goldBorder: {
+    borderColor: colors.gold,
+    borderWidth: 1,
+  },
+  silverBorder: {
+    borderColor: colors.silver,
+    borderWidth: 1,
   },
   dangerButton: {
     marginTop: 20,

@@ -93,12 +93,13 @@ export default function GuideScreen() {
       <FeatureCard icon="📦" title="Your Stack" desc="All items with current values. Filter by gold or silver, edit or delete items." />
       <FeatureCard icon="📊" title="Portfolio" desc="Detailed breakdown with total value, profit/loss, and premium percentages." />
       <FeatureCard icon="➕" title="Add-2-Stack" desc="Add new items via camera, gallery, or manual entry with photo." />
-      <FeatureCard icon="⚙️" title="Account" desc="Settings, PIN management, this guide, and overwrite today's price for gold/silver in off-grid mode." />
+      <FeatureCard icon="⚙️" title="Account" desc="Settings, PIN management, this guide, and fix-a-mistake overwrite buttons for today's gold/silver price in off-grid mode. Resets the day's price, high, low, and chart entry." />
+      <FeatureCard icon="✏️" title="Overwrite Today Price" desc="In off-grid mode, Account tab shows red-bordered buttons to correct a mistaken price entry. Tapping opens a modal showing today's current price — enter the correct value, confirm, and the banner, high/low, and chart all update." />
 
       <SectionHeader title="Setup" color={colors.gold} />
 
       <FeatureCard icon="🔑" title="API Key" desc="Get a free key from metals.dev for live gold and silver prices." />
-      <FeatureCard icon="📡" title="Off Grid Mode" desc="Enter gold and silver prices manually without an API key. Overwrite today's price from Account tab." />
+      <FeatureCard icon="📡" title="Off Grid Mode" desc="Enter gold and silver prices manually without an API key. Correct mistaken entries via Overwrite Today buttons on Account tab — resets price, high/low, and chart for that day." />
       <FeatureCard icon="💱" title="Currency & Unit" desc="Choose GBP, USD, or EUR and troy ounces or grams." />
       <FeatureCard icon="📈" title="Chart Data" desc="12-month price history from Yahoo Finance, converted via Frankfurter exchange rates. Falls back to bundled data if offline." />
       <FeatureCard icon="🏷️" title="Default Metal" desc="Set your preferred metal (gold or silver) for the Home screen." />

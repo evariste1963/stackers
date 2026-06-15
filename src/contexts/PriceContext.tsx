@@ -268,39 +268,32 @@ export function PriceProvider({ children }: { children: ReactNode }) {
 
   const overwriteTodayPriceEntry = useCallback(async (metal: 'gold' | 'silver', newPrice: number) => {
     const currentSettings = settingsRef.current;
-    const currentPrice = metal === 'gold'
-      ? (currentSettings.manualPrice ?? 0)
-      : (currentSettings.manualSilverPrice ?? 0);
-    const change = currentPrice > 0 ? newPrice - currentPrice : 0;
-    const changePercent = currentPrice > 0 ? (change / currentPrice) * 100 : 0;
 
-    const updated = await updateTodayPriceEntry(metal, newPrice, change, changePercent);
+    const updated = await updateTodayPriceEntry(metal, newPrice, 0, 0);
     if (!updated) return;
 
     if (metal === 'gold') {
       const savedData = await saveGoldSpotPrice(
-        newPrice, newPrice, newPrice,
-        currentSettings.manualHighPrice ?? newPrice,
-        currentSettings.manualLowPrice ?? newPrice,
-        change, changePercent,
+        newPrice, newPrice, newPrice, newPrice, newPrice,
+        0, 0,
         currentSettings.currency, currentSettings.unit
       );
       await saveManualPriceToSettings(newPrice);
+      await saveManualHighLow(newPrice, newPrice);
       setGoldPriceData(savedData);
-      setSettings(prev => ({ ...prev, manualPrice: newPrice }));
+      setSettings(prev => ({ ...prev, manualPrice: newPrice, manualHighPrice: newPrice, manualLowPrice: newPrice }));
       const fullHistory = await getHistory('gold');
       setGoldHistory(fullHistory);
     } else {
       const savedData = await saveSilverSpotPrice(
-        newPrice, newPrice, newPrice,
-        currentSettings.manualSilverHighPrice ?? newPrice,
-        currentSettings.manualSilverLowPrice ?? newPrice,
-        change, changePercent,
+        newPrice, newPrice, newPrice, newPrice, newPrice,
+        0, 0,
         currentSettings.currency, currentSettings.unit
       );
       await saveManualSilverPrice(newPrice);
+      await saveManualSilverHighLow(newPrice, newPrice);
       setSilverPriceData(savedData);
-      setSettings(prev => ({ ...prev, manualSilverPrice: newPrice }));
+      setSettings(prev => ({ ...prev, manualSilverPrice: newPrice, manualSilverHighPrice: newPrice, manualSilverLowPrice: newPrice }));
       const fullHistory = await getHistory('silver');
       setSilverHistory(fullHistory);
     }
