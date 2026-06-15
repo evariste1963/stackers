@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback, useRef, ReactNode } from 'react';
 import { getLatestGoldPrice, getLatestSilverPrice, saveGoldSpotPrice, saveSilverSpotPrice, type MetalPriceData } from '@/services/metalPriceService';
-import { getHistory, saveToHistory, migrateStaticData, getHistoryLength, seedYahooHistory, clearAndReseedHistory, type HistoryEntry } from '@/services/historyService';
+import { getHistory, saveToHistory, migrateStaticData, getHistoryLength, seedYahooHistory, clearAndReseedHistory, getTodayPriceEntry, updateTodayPriceEntry, type HistoryEntry } from '@/services/historyService';
 import { getApiKey, getUserSettings, migrateFromKVStore, updateManualPrice as saveManualPriceToSettings, updateManualHighLow as saveManualHighLow, updateManualSilverPrice as saveManualSilverPrice, updateManualSilverHighLow as saveManualSilverHighLow, updateManualGoldPremium as saveManualGoldPremium, updateManualSilverPremium as saveManualSilverPremium, type UserSettings } from '@/services/settingsService';
 import { fetchGoldPrice, fetchSilverPrice } from '@/services/metalPriceApi';
 
@@ -28,6 +28,7 @@ interface PriceContextType {
   updateManualSilverPremium: (premium: number) => Promise<void>;
   getAdjustedBidPrice: (metal: 'gold' | 'silver') => number;
   refreshHistoryForCurrency: (currency: string) => Promise<void>;
+  overwriteTodayPriceEntry: (metal: 'gold' | 'silver', newPrice: number) => Promise<void>;
 }
 
 const PriceContext = createContext<PriceContextType | undefined>(undefined);
@@ -265,6 +266,46 @@ export function PriceProvider({ children }: { children: ReactNode }) {
     if (result.silver.length > 0) setSilverHistory(result.silver);
   }, []);
 
+  const overwriteTodayPriceEntry = useCallback(async (metal: 'gold' | 'silver', newPrice: number) => {
+    const currentSettings = settingsRef.current;
+    const currentPrice = metal === 'gold'
+      ? (currentSettings.manualPrice ?? 0)
+      : (currentSettings.manualSilverPrice ?? 0);
+    const change = currentPrice > 0 ? newPrice - currentPrice : 0;
+    const changePercent = currentPrice > 0 ? (change / currentPrice) * 100 : 0;
+
+    const updated = await updateTodayPriceEntry(metal, newPrice, change, changePercent);
+    if (!updated) return;
+
+    if (metal === 'gold') {
+      const savedData = await saveGoldSpotPrice(
+        newPrice, newPrice, newPrice,
+        currentSettings.manualHighPrice ?? newPrice,
+        currentSettings.manualLowPrice ?? newPrice,
+        change, changePercent,
+        currentSettings.currency, currentSettings.unit
+      );
+      await saveManualPriceToSettings(newPrice);
+      setGoldPriceData(savedData);
+      setSettings(prev => ({ ...prev, manualPrice: newPrice }));
+      const fullHistory = await getHistory('gold');
+      setGoldHistory(fullHistory);
+    } else {
+      const savedData = await saveSilverSpotPrice(
+        newPrice, newPrice, newPrice,
+        currentSettings.manualSilverHighPrice ?? newPrice,
+        currentSettings.manualSilverLowPrice ?? newPrice,
+        change, changePercent,
+        currentSettings.currency, currentSettings.unit
+      );
+      await saveManualSilverPrice(newPrice);
+      setSilverPriceData(savedData);
+      setSettings(prev => ({ ...prev, manualSilverPrice: newPrice }));
+      const fullHistory = await getHistory('silver');
+      setSilverHistory(fullHistory);
+    }
+  }, []);
+
   const getAdjustedBidPrice = useCallback((metal: 'gold' | 'silver'): number => {
     const priceData = metal === 'gold' ? goldPriceData : silverPriceData;
     const premium = metal === 'gold' ? settings.manualGoldPremium : settings.manualSilverPremium;
@@ -394,6 +435,7 @@ export function PriceProvider({ children }: { children: ReactNode }) {
       updateManualSilverPremium,
       getAdjustedBidPrice,
       refreshHistoryForCurrency,
+      overwriteTodayPriceEntry,
     }}>
       {children}
     </PriceContext.Provider>

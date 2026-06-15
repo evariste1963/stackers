@@ -186,6 +186,54 @@ export async function seedYahooHistory(metal: MetalType = 'gold', currency: stri
   }
 }
 
+export async function getTodayPriceEntry(metal: MetalType = 'gold'): Promise<HistoryEntry | null> {
+  try {
+    const database = await getDb();
+    const tableName = getHistoryTable(metal);
+    const today = new Date().toISOString().split('T')[0];
+    const row = await database.getFirstAsync<HistoryRow>(
+      `SELECT * FROM ${tableName} WHERE date = ? ORDER BY id DESC LIMIT 1`,
+      [today]
+    );
+    if (row) {
+      return {
+        date: row.date,
+        price: row.price,
+        gms: row.gms || row.price,
+        toz: row.toz || row.gms || row.price,
+        change: row.change,
+        changePercent: row.changePercent,
+      };
+    }
+    return null;
+  } catch (error) {
+    console.error('Error reading today history entry:', error);
+    return null;
+  }
+}
+
+export async function updateTodayPriceEntry(
+  metal: MetalType = 'gold',
+  price: number,
+  change: number = 0,
+  changePercent: number = 0
+): Promise<boolean> {
+  try {
+    const database = await getDb();
+    const tableName = getHistoryTable(metal);
+    const today = new Date().toISOString().split('T')[0];
+    const result = await database.runAsync(`
+      UPDATE ${tableName}
+      SET price = ?, gms = ?, toz = ?, change = ?, changePercent = ?
+      WHERE date = ?
+    `, [price, price, price, change, changePercent, today]);
+    return (result as unknown as { changes: number }).changes > 0;
+  } catch (error) {
+    console.error('Error updating today history entry:', error);
+    throw error;
+  }
+}
+
 export async function clearAndReseedHistory(currency: string = 'GBP'): Promise<{ gold: HistoryEntry[]; silver: HistoryEntry[] }> {
   try {
     const database = await getDb();

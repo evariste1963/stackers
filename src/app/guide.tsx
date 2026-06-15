@@ -93,12 +93,12 @@ export default function GuideScreen() {
       <FeatureCard icon="📦" title="Your Stack" desc="All items with current values. Filter by gold or silver, edit or delete items." />
       <FeatureCard icon="📊" title="Portfolio" desc="Detailed breakdown with total value, profit/loss, and premium percentages." />
       <FeatureCard icon="➕" title="Add-2-Stack" desc="Add new items via camera, gallery, or manual entry with photo." />
-      <FeatureCard icon="⚙️" title="Account" desc="Settings, PIN management, and this guide." />
+      <FeatureCard icon="⚙️" title="Account" desc="Settings, PIN management, this guide, and overwrite today's price for gold/silver in off-grid mode." />
 
       <SectionHeader title="Setup" color={colors.gold} />
 
       <FeatureCard icon="🔑" title="API Key" desc="Get a free key from metals.dev for live gold and silver prices." />
-      <FeatureCard icon="📡" title="Off Grid Mode" desc="Enter gold and silver prices manually without an API key." />
+      <FeatureCard icon="📡" title="Off Grid Mode" desc="Enter gold and silver prices manually without an API key. Overwrite today's price from Account tab." />
       <FeatureCard icon="💱" title="Currency & Unit" desc="Choose GBP, USD, or EUR and troy ounces or grams." />
       <FeatureCard icon="📈" title="Chart Data" desc="12-month price history from Yahoo Finance, converted via Frankfurter exchange rates. Falls back to bundled data if offline." />
       <FeatureCard icon="🏷️" title="Default Metal" desc="Set your preferred metal (gold or silver) for the Home screen." />
