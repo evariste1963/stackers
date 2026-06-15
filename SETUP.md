@@ -42,6 +42,8 @@ npx expo run:android
 adb install -r android/app/build/outputs/apk/debug/app-debug.apk
 ```
 
+> **Note:** Debug builds skip JS minification, ProGuard/R8 stripping, and resource shrinking. Faster builds, larger APK, retains full error details.
+
 Or scan QR code with Expo Go app for instant reload during development.
 
 ---
@@ -56,6 +58,8 @@ npx eas build --platform android --profile production
 ```
 
 This uploads to Expo cloud and returns a download URL for the signed `.aab`.
+
+> **Note:** Production builds enable JS minification (Hermes), ProGuard/R8 Java code stripping, and resource shrinking. Smaller AAB, optimized for Play Store distribution.
 
 #### Submit to Play Store
 
