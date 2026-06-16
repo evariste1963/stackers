@@ -1,5 +1,6 @@
 import { colors, globalStyles } from "@/styles/global";
 import { Text, View, ScrollView, StyleSheet } from 'react-native';
+import { useMemo } from 'react';
 import PageHeader from '@/components/PageHeader';
 import { useCallback, useState } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
@@ -8,12 +9,15 @@ import { useSwipeNavigation } from '@/hooks/useSwipeNavigation';
 import { getLatestGoldPrice, getLatestSilverPrice } from '@/services/metalPriceService';
 import { useStack } from '@/contexts/StackContext';
 import { usePrice } from '@/contexts/PriceContext';
+import { useTheme } from '@/contexts/ThemeContext';
 import { getCurrencySymbol, getUnitAbbrev } from '@/utils/formatters';
 
 export default function PortfolioScreen() {
   const { items, refresh } = useStack();
   const { swipeGesture } = useSwipeNavigation('portfolio');
   const { getAdjustedBidPrice, settings } = usePrice();
+  const { colors: themeColors } = useTheme();
+  const s = useMemo(() => createStyles(themeColors), [themeColors]);
 
   const [goldBid, setGoldBid] = useState<number | null>(null);
   const [goldSpot, setGoldSpot] = useState<number | null>(null);
@@ -94,178 +98,181 @@ export default function PortfolioScreen() {
 
   return (
     <GestureDetector gesture={swipeGesture}>
-      <ScrollView style={globalStyles.tabPageContainer}>
+      <ScrollView style={[globalStyles.tabPageContainer, { backgroundColor: themeColors.background }]}>
         <PageHeader title="Portfolio" />
 
-        <View style={styles.summaryCard}>
-          <Text style={styles.summaryLabel}>Total Value</Text>
-          <Text style={styles.summaryValue}>{symbol}{totalValue.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Text>
-          <Text style={styles.costLabel}>Cost: {symbol}{totalCost.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Text>
-          <Text style={[styles.profitLabel, totalProfit >= 0 ? styles.profitPositive : styles.profitNegative]}>
+        <View style={s.summaryCard}>
+          <Text style={s.summaryLabel}>Total Value</Text>
+          <Text style={s.summaryValue}>{symbol}{totalValue.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Text>
+          <Text style={s.costLabel}>Cost: {symbol}{totalCost.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Text>
+          <Text style={[s.profitLabel, totalProfit >= 0 ? s.profitPositive : s.profitNegative]}>
             {totalProfit >= 0 ? '+' : ''}{symbol}{Math.abs(totalProfit).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ({Math.abs(profitPercent).toFixed(2)}%)
           </Text>
         </View>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Gold</Text>
-          <View style={styles.statsRow}>
-            <View style={styles.stat}>
-              <Text style={styles.statLabel}>Items</Text>
-              <Text style={styles.statValue}>{goldItems.length}</Text>
+        <View style={s.section}>
+          <Text style={s.sectionTitle}>Gold</Text>
+          <View style={s.statsRow}>
+            <View style={s.stat}>
+              <Text style={s.statLabel}>Items</Text>
+              <Text style={s.statValue}>{goldItems.length}</Text>
             </View>
-            <View style={styles.stat}>
-              <Text style={styles.statLabel}>Weight</Text>
-              <Text style={styles.statValue}>{goldItems.reduce((s, i) => s + (parseFloat(i.weight) || 0), 0).toFixed(2)} {unitAbbr}</Text>
+            <View style={s.stat}>
+              <Text style={s.statLabel}>Weight</Text>
+              <Text style={s.statValue}>{goldItems.reduce((s, i) => s + (parseFloat(i.weight) || 0), 0).toFixed(2)} {unitAbbr}</Text>
             </View>
-            <View style={styles.stat}>
-              <Text style={styles.statLabel}>Value</Text>
-              <Text style={[styles.statValue, goldProfit >= 0 ? styles.valuePositive : styles.valueNegative]}>{symbol}{goldValue.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Text>
+            <View style={s.stat}>
+              <Text style={s.statLabel}>Value</Text>
+              <Text style={[s.statValue, goldProfit >= 0 ? s.valuePositive : s.valueNegative]}>{symbol}{goldValue.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Text>
             </View>
           </View>
-          <View style={styles.costRow}>
-            <Text style={styles.costLabel}>Cost: {symbol}{goldCost.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Text>
-            <Text style={[styles.profitLabel, goldProfit >= 0 ? styles.profitPositive : styles.profitNegative]}>
+          <View style={s.costRow}>
+            <Text style={s.costLabel}>Cost: {symbol}{goldCost.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Text>
+            <Text style={[s.profitLabel, goldProfit >= 0 ? s.profitPositive : s.profitNegative]}>
               {goldProfit >= 0 ? '+' : ''}{symbol}{Math.abs(goldProfit).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ({Math.abs(goldProfitPercent).toFixed(2)}%)
             </Text>
           </View>
           {goldBid && (
-            <View style={styles.priceRow}>
-              <Text style={styles.priceInfo}>Bid: {symbol}{goldAdjustedBid.toLocaleString('en-GB', { minimumFractionDigits: 2 })}/{unitAbbr}</Text>
+            <View style={s.priceRow}>
+              <Text style={s.priceInfo}>Bid: {symbol}{goldAdjustedBid.toLocaleString('en-GB', { minimumFractionDigits: 2 })}/{unitAbbr}</Text>
               {goldSpot && goldBid && (
-                <Text style={styles.priceInfo}>Premium: {goldPremium >= 0 ? '+' : ''}{Math.abs(goldPremium).toFixed(2)}%</Text>
+                <Text style={s.priceInfo}>Premium: {goldPremium >= 0 ? '+' : ''}{Math.abs(goldPremium).toFixed(2)}%</Text>
               )}
             </View>
           )}
         </View>
 
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.silver }]}>Silver</Text>
-          <View style={styles.statsRow}>
-            <View style={styles.stat}>
-              <Text style={styles.statLabel}>Items</Text>
-              <Text style={styles.statValue}>{silverItems.length}</Text>
+        <View style={s.section}>
+          <Text style={[s.sectionTitle, { color: themeColors.silver }]}>Silver</Text>
+          <View style={s.statsRow}>
+            <View style={s.stat}>
+              <Text style={s.statLabel}>Items</Text>
+              <Text style={s.statValue}>{silverItems.length}</Text>
             </View>
-            <View style={styles.stat}>
-              <Text style={styles.statLabel}>Weight</Text>
-              <Text style={styles.statValue}>{silverItems.reduce((s, i) => s + (parseFloat(i.weight) || 0), 0).toFixed(2)} {unitAbbr}</Text>
+            <View style={s.stat}>
+              <Text style={s.statLabel}>Weight</Text>
+              <Text style={s.statValue}>{silverItems.reduce((s, i) => s + (parseFloat(i.weight) || 0), 0).toFixed(2)} {unitAbbr}</Text>
             </View>
-            <View style={styles.stat}>
-              <Text style={styles.statLabel}>Value</Text>
-              <Text style={[styles.statValue, silverProfit >= 0 ? styles.valuePositive : styles.valueNegative]}>{symbol}{silverValue.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Text>
+            <View style={s.stat}>
+              <Text style={s.statLabel}>Value</Text>
+              <Text style={[s.statValue, silverProfit >= 0 ? s.valuePositive : s.valueNegative]}>{symbol}{silverValue.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Text>
             </View>
           </View>
-          <View style={styles.costRow}>
-            <Text style={styles.costLabel}>Cost: {symbol}{silverCost.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Text>
-            <Text style={[styles.profitLabel, silverProfit >= 0 ? styles.profitPositive : styles.profitNegative]}>
+          <View style={s.costRow}>
+            <Text style={s.costLabel}>Cost: {symbol}{silverCost.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Text>
+            <Text style={[s.profitLabel, silverProfit >= 0 ? s.profitPositive : s.profitNegative]}>
               {silverProfit >= 0 ? '+' : ''}{symbol}{Math.abs(silverProfit).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ({Math.abs(silverProfitPercent).toFixed(2)}%)
             </Text>
           </View>
           {silverBid && (
-            <View style={styles.priceRow}>
-              <Text style={styles.priceInfo}>Bid: {symbol}{silverAdjustedBid.toLocaleString('en-GB', { minimumFractionDigits: 2 })}/{unitAbbr}</Text>
+            <View style={s.priceRow}>
+              <Text style={s.priceInfo}>Bid: {symbol}{silverAdjustedBid.toLocaleString('en-GB', { minimumFractionDigits: 2 })}/{unitAbbr}</Text>
               {silverSpot && silverBid && (
-                <Text style={styles.priceInfo}>Premium: {silverPremium >= 0 ? '+' : ''}{Math.abs(silverPremium).toFixed(2)}%</Text>
+                <Text style={s.priceInfo}>Premium: {silverPremium >= 0 ? '+' : ''}{Math.abs(silverPremium).toFixed(2)}%</Text>
               )}
             </View>
           )}
         </View>
 
-        <View style={styles.spacer} />
+        <View style={s.spacer} />
       </ScrollView>
     </GestureDetector>
   );
 }
 
-const styles = StyleSheet.create({
-  summaryCard: {
-    backgroundColor: colors.themeGrey,
-    borderRadius: 12,
-    padding: 20,
-    marginBottom: 20,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: colors.gold,
-  },
-  summaryLabel: {
-    fontSize: 14,
-    color: colors.grey,
-    marginBottom: 8,
-  },
-  summaryValue: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: colors.gold,
-    marginBottom: 8,
-  },
-  costLabel: {
-    fontSize: 14,
-    color: colors.grey,
-    marginBottom: 4,
-  },
-  profitLabel: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  profitPositive: {
-    color: colors.changeGreen,
-  },
-  profitNegative: {
-    color: colors.red,
-  },
-  section: {
-    backgroundColor: colors.themeGrey,
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: colors.gold,
-    marginBottom: 12,
-  },
-  statsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  stat: {
-    alignItems: 'center',
-  },
-  statLabel: {
-    fontSize: 12,
-    color: colors.grey,
-    marginBottom: 4,
-  },
-  statValue: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.white,
-  },
-  valuePositive: {
-    color: colors.changeGreen,
-  },
-  valueNegative: {
-    color: colors.red,
-  },
-  costRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 8,
-    paddingTop: 8,
-    borderTopWidth: 1,
-    borderTopColor: colors.borderDark,
-  },
-  priceInfo: {
-    fontSize: 12,
-    color: colors.grey,
-    marginTop: 8,
-    textAlign: 'center',
-  },
-  priceRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  spacer: {
-    height: 40,
-  },
-});
+function createStyles(c: typeof colors) {
+  return StyleSheet.create({
+    summaryCard: {
+      backgroundColor: c.themeGrey,
+      borderRadius: 12,
+      padding: 20,
+      marginBottom: 20,
+      alignItems: 'center',
+      borderWidth: 1,
+      borderColor: c.gold,
+    },
+    summaryLabel: {
+      fontSize: 14,
+      color: c.grey,
+      marginBottom: 8,
+    },
+    summaryValue: {
+      fontSize: 32,
+      fontWeight: 'bold',
+      color: c.gold,
+      marginBottom: 8,
+    },
+    costLabel: {
+      fontSize: 14,
+      color: c.grey,
+      marginBottom: 4,
+    },
+    profitLabel: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: c.text,
+    },
+    profitPositive: {
+      color: c.changeGreen,
+    },
+    profitNegative: {
+      color: c.red,
+    },
+    section: {
+      backgroundColor: c.themeGrey,
+      borderRadius: 12,
+      padding: 16,
+      marginBottom: 16,
+    },
+    sectionTitle: {
+      fontSize: 18,
+      fontWeight: '600',
+      color: c.gold,
+      marginBottom: 12,
+    },
+    statsRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+    },
+    stat: {
+      alignItems: 'center',
+    },
+    statLabel: {
+      fontSize: 12,
+      color: c.grey,
+      marginBottom: 4,
+    },
+    statValue: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: c.text,
+    },
+    valuePositive: {
+      color: c.changeGreen,
+    },
+    valueNegative: {
+      color: c.red,
+    },
+    costRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginTop: 8,
+      paddingTop: 8,
+      borderTopWidth: 1,
+      borderTopColor: c.borderDark,
+    },
+    priceInfo: {
+      fontSize: 12,
+      color: c.grey,
+      marginTop: 8,
+      textAlign: 'center',
+    },
+    priceRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+    },
+    spacer: {
+      height: 40,
+    },
+  });
+}

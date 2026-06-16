@@ -5,6 +5,7 @@ import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { StackProvider } from "@/contexts/StackContext";
 import { PriceProvider } from "@/contexts/PriceContext";
 import { MetalProvider } from "@/contexts/MetalContext";
+import { ThemeProvider } from "@/contexts/ThemeContext";
 import { View, ActivityIndicator } from "react-native";
 import { colors } from "@/styles/global";
 import { useEffect, useState } from "react";
@@ -74,15 +75,17 @@ export default function RootLayout() {
     <GestureHandlerRootView style={styles.container}>
       <ErrorBoundary>
         <DbInitializer>
-          <AuthProvider>
-            <StackProvider>
-              <PriceProvider>
-                <MetalProvider>
-                  <AuthRouter />
-                </MetalProvider>
-              </PriceProvider>
-            </StackProvider>
-          </AuthProvider>
+          <ThemeProvider>
+            <AuthProvider>
+              <StackProvider>
+                <PriceProvider>
+                  <MetalProvider>
+                    <AuthRouter />
+                  </MetalProvider>
+                </PriceProvider>
+              </StackProvider>
+            </AuthProvider>
+          </ThemeProvider>
         </DbInitializer>
       </ErrorBoundary>
     </GestureHandlerRootView>

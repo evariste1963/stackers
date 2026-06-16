@@ -1,9 +1,11 @@
 import { Text, ScrollView, View, TouchableOpacity, StyleSheet } from 'react-native';
+import { useMemo } from 'react';
 import { GestureDetector } from 'react-native-gesture-handler';
 import { router } from 'expo-router';
 import { useEffect } from 'react';
 import { useSwipeNavigation } from '@/hooks/useSwipeNavigation';
 import { colors, globalStyles, toggleStyles } from '@/styles/global';
+import { useTheme } from '@/contexts/ThemeContext';
 import StackGrid from '@/components/StackGrid';
 import ChartArea from '@/components/ChartArea';
 import GoldPriceBanner from '@/components/GoldPriceBanner';
@@ -36,6 +38,8 @@ export default function HomeScreen() {
   const { items, refresh } = useStack();
   const { swipeGesture } = useSwipeNavigation('');
   const { selectedMetal, setSelectedMetal } = useMetal();
+  const { colors: themeColors } = useTheme();
+  const s = useMemo(() => createStyles(themeColors), [themeColors]);
 
   useEffect(() => {
     refresh();
@@ -76,8 +80,8 @@ export default function HomeScreen() {
 
   if (isSettingsLoading) {
     return (
-      <View style={styles.loadingContainer}>
-        <Text style={styles.loadingText}>Loading...</Text>
+      <View style={s.loadingContainer}>
+        <Text style={s.loadingText}>Loading...</Text>
       </View>
     );
   }
@@ -89,15 +93,15 @@ export default function HomeScreen() {
 
   return (
     <GestureDetector gesture={swipeGesture}>
-      <View style={globalStyles.tabPageContainer}>
+      <View style={[globalStyles.tabPageContainer, { backgroundColor: themeColors.background }]}>
         <PageHeader title="Stackers" />
 
         <View style={styles.toggleWrapper}>
-          <View style={toggleStyles.container}>
+          <View style={[toggleStyles.container, { backgroundColor: themeColors.toggleBg }]}>
             <TouchableOpacity
               style={[
                 toggleStyles.option,
-                selectedMetal === 'gold' && { backgroundColor: colors.gold }
+                selectedMetal === 'gold' && { backgroundColor: themeColors.gold }
               ]}
               onPress={() => setSelectedMetal('gold')}
             >
@@ -106,7 +110,7 @@ export default function HomeScreen() {
             <TouchableOpacity
               style={[
                 toggleStyles.option,
-                selectedMetal === 'silver' && { backgroundColor: colors.silver }
+                selectedMetal === 'silver' && { backgroundColor: themeColors.silver }
               ]}
               onPress={() => setSelectedMetal('silver')}
             >
@@ -138,19 +142,6 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  loadingContainer: {
-    flex: 1,
-    flexDirection: 'column',
-    backgroundColor: colors.background,
-    paddingHorizontal: 20,
-    paddingTop: 60,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingText: {
-    color: colors.gold,
-    fontSize: 16,
-  },
   toggleWrapper: {
     marginBottom: 0,
   },
@@ -161,3 +152,21 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
 });
+
+function createStyles(c: typeof colors) {
+  return StyleSheet.create({
+    loadingContainer: {
+      flex: 1,
+      flexDirection: 'column',
+      backgroundColor: c.background,
+      paddingHorizontal: 20,
+      paddingTop: 60,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    loadingText: {
+      color: c.gold,
+      fontSize: 16,
+    },
+  });
+}

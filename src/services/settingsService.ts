@@ -9,6 +9,7 @@ export interface UserSettings {
   unit: string;
   hasApiKey: boolean;
   defaultMetal: MetalType;
+  theme?: 'dark' | 'light';
   manualPrice?: number | null;
   manualHighPrice?: number | null;
   manualLowPrice?: number | null;
@@ -28,6 +29,7 @@ export const DEFAULT_USER_SETTINGS: UserSettings = {
   unit: 'toz',
   hasApiKey: false,
   defaultMetal: 'gold',
+  theme: 'dark',
   manualPrice: null,
   createdAt: '',
   updatedAt: '',
@@ -38,6 +40,7 @@ interface SettingsRow {
   unit: string;
   hasApiKey: number;
   defaultMetal: string;
+  theme: string | null;
   manualPrice: number | null;
   manualHighPrice: number | null;
   manualLowPrice: number | null;
@@ -73,6 +76,7 @@ function mapRowToUserSettings(row: SettingsRow): UserSettings {
     unit: row.unit,
     hasApiKey: Boolean(row.hasApiKey),
     defaultMetal: (row.defaultMetal || 'gold') as MetalType,
+    theme: (row.theme as 'dark' | 'light') || 'dark',
     manualPrice: row.manualPrice,
     manualHighPrice: row.manualHighPrice,
     manualLowPrice: row.manualLowPrice,
@@ -93,14 +97,15 @@ export async function saveUserSettings(settings: UserSettings): Promise<void> {
     const database = await getDb();
     await database.runAsync(`
       INSERT OR REPLACE INTO user_settings 
-      (id, currency, unit, hasApiKey, defaultMetal, manualPrice, manualHighPrice, manualLowPrice, previousManualPrice, manualSilverPrice, manualSilverHighPrice, manualSilverLowPrice, previousManualSilverPrice, manualGoldPremium, manualSilverPremium, createdAt, updatedAt)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      (id, currency, unit, hasApiKey, defaultMetal, theme, manualPrice, manualHighPrice, manualLowPrice, previousManualPrice, manualSilverPrice, manualSilverHighPrice, manualSilverLowPrice, previousManualSilverPrice, manualGoldPremium, manualSilverPremium, createdAt, updatedAt)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `, [
       1,
       settings.currency,
       settings.unit,
       settings.hasApiKey ? 1 : 0,
       settings.defaultMetal || 'gold',
+      settings.theme || 'dark',
       settings.manualPrice ?? null,
       settings.manualHighPrice ?? null,
       settings.manualLowPrice ?? null,
@@ -176,6 +181,20 @@ export async function removeApiKey(): Promise<void> {
 
 export async function updatePreference(key: 'currency' | 'unit' | 'defaultMetal', value: string): Promise<void> {
   await updateUserSetting(key, value);
+}
+
+export async function getThemeSetting(): Promise<'dark' | 'light'> {
+  try {
+    const database = await getDb();
+    const row = await database.getFirstAsync<{ theme: string | null }>('SELECT theme FROM user_settings WHERE id = 1');
+    return (row?.theme as 'dark' | 'light') || 'dark';
+  } catch {
+    return 'dark';
+  }
+}
+
+export async function updateThemeSetting(theme: 'dark' | 'light'): Promise<void> {
+  await updateUserSetting('theme', theme);
 }
 
 async function updateUserSetting(column: string, value: unknown): Promise<void> {

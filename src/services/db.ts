@@ -146,6 +146,7 @@ export async function initAllTables(): Promise<void> {
   await addColumnIfMissing(database, 'user_settings', 'defaultMetal', 'TEXT DEFAULT gold');
   await addColumnIfMissing(database, 'user_settings', 'manualGoldPremium', 'REAL');
   await addColumnIfMissing(database, 'user_settings', 'manualSilverPremium', 'REAL');
+  await addColumnIfMissing(database, 'user_settings', 'theme', 'TEXT DEFAULT dark');
   await addColumnIfMissing(database, 'stack_items', 'metal', 'TEXT DEFAULT gold');
 }
 

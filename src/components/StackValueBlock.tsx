@@ -1,6 +1,7 @@
 import React, { memo, useMemo } from 'react';
 import { Text, View, TouchableOpacity, StyleSheet } from 'react-native';
 import { colors } from '@/styles/global';
+import { useTheme } from '@/contexts/ThemeContext';
 import { ThemeColors, type MetalType } from '@/styles/themeColors';
 import { type UserSettings } from '@/services/settingsService';
 import { getCurrencySymbol } from '@/utils/formatters';
@@ -14,6 +15,9 @@ type StackValueBlockProps = {
 };
 
 function StackValueBlock({ value, costValue, settings, onPress, metal = 'gold' }: StackValueBlockProps) {
+  const { colors: themeColors } = useTheme();
+  const s = useMemo(() => createStyles(themeColors), [themeColors]);
+
   const { formattedCost, formattedValue, formattedChange, formattedChangePct, isPositive, changeColor } = useMemo(() => {
     const symbol = getCurrencySymbol(settings.currency);
 
@@ -30,7 +34,7 @@ function StackValueBlock({ value, costValue, settings, onPress, metal = 'gold' }
 
     const valueChange = numValue - numCost;
     const valueChangePct = numCost > 0 ? (valueChange / numCost) * 100 : 0;
-    const chgColor = valueChange >= 0 ? colors.changeGreen : colors.red;
+    const chgColor = valueChange >= 0 ? themeColors.changeGreen : themeColors.red;
 
     const sign = valueChange > 0 ? '+' : '';
     const changeStr = `${sign}${symbol}${Math.abs(valueChange).toFixed(2)}`;
@@ -44,27 +48,27 @@ function StackValueBlock({ value, costValue, settings, onPress, metal = 'gold' }
       isPositive: pos,
       changeColor: chgColor,
     };
-  }, [value, costValue, settings.currency]);
+  }, [value, costValue, settings.currency, themeColors]);
 
   return (
-    <TouchableOpacity style={styles.container} onPress={onPress} activeOpacity={0.7}>
-      <Text style={[styles.title, { color: ThemeColors[metal].primary }]}>Stack Value</Text>
+    <TouchableOpacity style={s.container} onPress={onPress} activeOpacity={0.7}>
+      <Text style={[s.title, { color: ThemeColors[metal].primary }]}>Stack Value</Text>
       <View style={styles.row}>
         <View style={styles.columnLeft}>
-          <Text style={[styles.label, styles.labelLeft]}>Total cost</Text>
-          <Text style={[styles.value, styles.valueLeft, { color: ThemeColors[metal].primary }]}>{formattedCost}</Text>
+          <Text style={[s.label, styles.labelLeft]}>Total cost</Text>
+          <Text style={[s.value, styles.valueLeft, { color: ThemeColors[metal].primary }]}>{formattedCost}</Text>
         </View>
         <View style={styles.columnRight}>
-          <Text style={[styles.label, styles.labelRight]}>Current value</Text>
-          <Text style={[styles.value, isPositive ? styles.valueGreen : styles.valueRed, styles.valueRight, { color: ThemeColors[metal].primary }]}>{formattedValue}</Text>
+          <Text style={[s.label, styles.labelRight]}>Current value</Text>
+          <Text style={[s.value, isPositive ? styles.valueGreen : styles.valueRed, styles.valueRight, { color: ThemeColors[metal].primary }]}>{formattedValue}</Text>
         </View>
       </View>
-      <View style={styles.changeContainer}>
+      <View style={s.changeContainer}>
         <View style={styles.changeRow}>
-          <Text style={[styles.changeValue, { color: changeColor }]}>
+          <Text style={[s.changeValue, { color: changeColor }]}>
             {formattedChange}
           </Text>
-          <Text style={[styles.changePercent, { color: changeColor }]}>
+          <Text style={[s.changePercent, { color: changeColor }]}>
             {formattedChangePct}
           </Text>
         </View>
@@ -76,14 +80,6 @@ function StackValueBlock({ value, costValue, settings, onPress, metal = 'gold' }
 export default memo(StackValueBlock);
 
 const styles = StyleSheet.create({
-  container: {
-    width: '100%',
-    backgroundColor: colors.themeGrey,
-    borderRadius: 12,
-    padding: 10,
-    marginBottom: 12,
-    marginTop: 10,
-  },
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -96,31 +92,11 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'flex-end',
   },
-  changeContainer: {
-    alignItems: 'center',
-    marginTop: 8,
-  },
-  title: {
-    fontSize: 16,
-    color: colors.gold,
-    fontWeight: 'bold',
-    marginBottom: 1,
-    textAlign: 'center',
-  },
-  label: {
-    fontSize: 12,
-    color: colors.grey,
-    marginBottom: 4,
-  },
   labelLeft: {
     textAlign: 'left',
   },
   labelRight: {
     textAlign: 'right',
-  },
-  value: {
-    fontSize: 18,
-    fontWeight: 'bold',
   },
   valueLeft: {
     textAlign: 'left',
@@ -129,10 +105,10 @@ const styles = StyleSheet.create({
     textAlign: 'right',
   },
   valueGreen: {
-    color: colors.changeGreen,
+    color: undefined,
   },
   valueRed: {
-    color: colors.red,
+    color: undefined,
   },
   changeRow: {
     flexDirection: 'row',
@@ -140,12 +116,45 @@ const styles = StyleSheet.create({
     gap: 4,
     marginTop: 2,
   },
-  changeValue: {
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  changePercent: {
-    fontSize: 14,
-    fontWeight: '500',
-  },
 });
+
+function createStyles(c: typeof colors) {
+  return StyleSheet.create({
+    container: {
+      width: '100%',
+      backgroundColor: c.themeGrey,
+      borderRadius: 12,
+      padding: 10,
+      marginBottom: 12,
+      marginTop: 10,
+    },
+    changeContainer: {
+      alignItems: 'center',
+      marginTop: 8,
+    },
+    title: {
+      fontSize: 16,
+      color: c.gold,
+      fontWeight: 'bold',
+      marginBottom: 1,
+      textAlign: 'center',
+    },
+    label: {
+      fontSize: 12,
+      color: c.grey,
+      marginBottom: 4,
+    },
+    value: {
+      fontSize: 18,
+      fontWeight: 'bold',
+    },
+    changeValue: {
+      fontSize: 14,
+      fontWeight: '600',
+    },
+    changePercent: {
+      fontSize: 14,
+      fontWeight: '500',
+    },
+  });
+}

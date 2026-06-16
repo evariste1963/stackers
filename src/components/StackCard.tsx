@@ -1,6 +1,7 @@
-import React, { memo } from 'react';
+import React, { memo, useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { colors } from '@/styles/global';
+import { useTheme } from '@/contexts/ThemeContext';
 
 type StackCardProps = {
   label: string;
@@ -15,37 +16,42 @@ function StackCard({
   goal,
   color,
 }: StackCardProps) {
+  const { colors: themeColors } = useTheme();
+  const s = useMemo(() => createStyles(themeColors), [themeColors]);
+
   return (
-    <View style={[styles.card, { borderLeftColor: color }]}>
-      <Text style={styles.label}>{label}</Text>
-      <Text style={[styles.value, { color }]}>{value}</Text>
-      <Text style={styles.goal}> {goal}</Text>
+    <View style={[s.card, { borderLeftColor: color }]}>
+      <Text style={s.label}>{label}</Text>
+      <Text style={[s.value, { color }]}>{value}</Text>
+      <Text style={s.goal}> {goal}</Text>
     </View>
   );
 }
 
 export default memo(StackCard);
 
-const styles = StyleSheet.create({
-  card: {
-    flex: 1,
-    backgroundColor: colors.themeGrey,
-    borderRadius: 12,
-    padding: 10,
-    borderLeftWidth: 3,
-  },
-  label: {
-    fontSize: 12,
-    color: colors.grey
-  },
-  value: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginTop: 4,
-  },
-  goal: {
-    fontSize: 12,
-    color: colors.grey,
-    marginTop: 2,
-  },
-});
+function createStyles(c: typeof colors) {
+  return StyleSheet.create({
+    card: {
+      flex: 1,
+      backgroundColor: c.themeGrey,
+      borderRadius: 12,
+      padding: 10,
+      borderLeftWidth: 3,
+    },
+    label: {
+      fontSize: 12,
+      color: c.grey,
+    },
+    value: {
+      fontSize: 16,
+      fontWeight: 'bold',
+      marginTop: 4,
+    },
+    goal: {
+      fontSize: 12,
+      color: c.grey,
+      marginTop: 2,
+    },
+  });
+}

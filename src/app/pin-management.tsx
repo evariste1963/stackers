@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
 import { colors } from '@/styles/global';
+import { useTheme } from '@/contexts/ThemeContext';
 import { PinPad } from '@/components/PinPad';
 
 type Step = 'current' | 'new' | 'confirm';
@@ -15,6 +16,8 @@ export default function PinManagementScreen() {
   const [pin, setPin] = useState('');
   const [newPin, setNewPin] = useState('');
   const { login, userSetPin, userChangePin, userRemovePin } = useAuth();
+  const { colors: themeColors } = useTheme();
+  const s = useMemo(() => createStyles(themeColors), [themeColors]);
 
   const activeMode: Mode = mode || 'set';
 
@@ -124,23 +127,25 @@ export default function PinManagementScreen() {
       onComplete={(pin) => { void handlePinComplete(pin); }}
       onPinChange={setPin}
       cancelButton={
-        <TouchableOpacity style={styles.cancelButton} onPress={() => router.back()}>
-          <Text style={styles.cancelText}>Cancel</Text>
+        <TouchableOpacity style={s.cancelButton} onPress={() => router.back()}>
+          <Text style={s.cancelText}>Cancel</Text>
         </TouchableOpacity>
       }
     />
   );
 }
 
-const styles = StyleSheet.create({
-  cancelButton: {
-    alignSelf: 'flex-start',
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    marginBottom: 20,
-  },
-  cancelText: {
-    color: colors.gold,
-    fontSize: 16,
-  },
-});
+function createStyles(c: typeof colors) {
+  return StyleSheet.create({
+    cancelButton: {
+      alignSelf: 'flex-start',
+      paddingVertical: 10,
+      paddingHorizontal: 16,
+      marginBottom: 20,
+    },
+    cancelText: {
+      color: c.gold,
+      fontSize: 16,
+    },
+  });
+}

@@ -1,6 +1,6 @@
-import { colors } from '@/styles/global';
 import { Ionicons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
+import { useTheme } from '@/contexts/ThemeContext';
 
 const tabs = [
   { name: 'index', title: 'Home', icon: 'home' },
@@ -11,6 +11,7 @@ const tabs = [
 ];
 
 export default function TabLayout() {
+  const { colors } = useTheme();
   return (
     <Tabs
       screenOptions={{
@@ -29,8 +30,8 @@ export default function TabLayout() {
           name={tab.name}
           options={{
             title: tab.title,
-            tabBarIcon: ({ size }) => (
-              <Ionicons name={tab.icon as any} size={size} color={colors.themeBlue} />
+            tabBarIcon: ({ color, size }) => (
+              <Ionicons name={tab.icon as any} size={size} color={color} />
             ),
           }}
         />

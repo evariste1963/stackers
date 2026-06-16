@@ -3,7 +3,7 @@ import { Link, useRouter } from 'expo-router';
 import { useState, useEffect } from 'react';
 import { getUserSettings } from '@/services/settingsService';
 import { usePrice } from '@/contexts/PriceContext';
-import { colors } from '@/styles/global';
+import { useTheme } from '@/contexts/ThemeContext';
 
 function SectionHeader({ title, color }: { title: string; color: string }) {
   return (
@@ -18,6 +18,7 @@ function SectionHeader({ title, color }: { title: string; color: string }) {
 }
 
 function FeatureCard({ icon, title, desc, iconColor, titleColor, descColor }: { icon: string; title: string; desc: string; iconColor?: string; titleColor?: string; descColor?: string }) {
+  const { colors } = useTheme();
   return (
     <View style={{
       flexDirection: 'row',
@@ -30,8 +31,8 @@ function FeatureCard({ icon, title, desc, iconColor, titleColor, descColor }: { 
     }}>
       <Text style={{ fontSize: 18, marginRight: 12, marginTop: 1, color: iconColor }}>{icon}</Text>
       <View style={{ flex: 1 }}>
-        <Text style={{ fontSize: 14, fontWeight: '600', color: titleColor || colors.white, marginBottom: 2 }}>{title}</Text>
-        <Text style={{ fontSize: 13, lineHeight: 18, color: descColor || colors.lightGrey }}>{desc}</Text>
+        <Text style={{ fontSize: 14, fontWeight: '600', color: titleColor || colors.text, marginBottom: 2 }}>{title}</Text>
+        <Text style={{ fontSize: 13, lineHeight: 18, color: descColor || colors.grey }}>{desc}</Text>
       </View>
     </View>
   );
@@ -42,6 +43,7 @@ export default function GuideScreen() {
   const { isSettingsLoading } = usePrice();
   const [hasApiKey, setHasApiKey] = useState(false);
   const [offGridMode, setOffGridMode] = useState(false);
+  const { colors } = useTheme();
 
   useEffect(() => {
     getUserSettings().then(s => {
@@ -70,7 +72,7 @@ export default function GuideScreen() {
 
       <View style={{ flexDirection: 'row', alignItems: 'center', paddingTop: 8, paddingBottom: 4 }}>
         <Image source={require('../../assets/images/stackers-logo.png')} style={{ width: 90, height: 40 }} resizeMode="contain" />
-        <Text style={{ flex: 1, fontSize: 22, fontWeight: 'bold', color: colors.white, textAlign: 'center', marginRight: 90 }}>Guide</Text>
+        <Text style={{ flex: 1, fontSize: 22, fontWeight: 'bold', color: colors.text, textAlign: 'center', marginRight: 90 }}>Guide</Text>
       </View>
 
       {showSetupApiKey && (

@@ -1,13 +1,13 @@
 import { globalStyles, colors } from "@/styles/global";
 import { Text, View, ScrollView, TouchableOpacity, StyleSheet, Linking, Modal, TextInput, Alert } from 'react-native';
-import { Link } from 'expo-router';
 import PageHeader from '@/components/PageHeader';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePrice } from '@/contexts/PriceContext';
+import { useTheme } from '@/contexts/ThemeContext';
 import { useRouter } from 'expo-router';
 import { GestureDetector } from 'react-native-gesture-handler';
 import { useSwipeNavigation } from '@/hooks/useSwipeNavigation';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { getTodayPriceEntry } from '@/services/historyService';
 import { formatCurrency } from '@/utils/formatters';
 
@@ -16,8 +16,10 @@ const PRIVACY_POLICY_URL = 'https://evariste1963.github.io/stackers/PRIVACY_POLI
 export default function AccountScreen() {
   const { hasPinSet, lock } = useAuth();
   const { offGridMode, silverOffGridMode, overwriteTodayPriceEntry, settings } = usePrice();
+  const { colors: themeColors } = useTheme();
   const router = useRouter();
   const { swipeGesture } = useSwipeNavigation('account');
+  const s = useMemo(() => createStyles(themeColors), [themeColors]);
 
   function handleLogOut() {
     lock();
@@ -62,31 +64,33 @@ export default function AccountScreen() {
 
   return (
     <GestureDetector gesture={swipeGesture}>
-      <ScrollView style={globalStyles.tabPageContainer}>
+      <ScrollView style={[globalStyles.tabPageContainer, { backgroundColor: themeColors.background }]}>
         <PageHeader title="Account" />
-        <View style={styles.section}>
-          <Link href="/guide" asChild>
-            <TouchableOpacity style={globalStyles.button}>
-              <Text style={globalStyles.buttonText}>Guide</Text>
-            </TouchableOpacity>
-          </Link>
+        <View style={s.section}>
+          <TouchableOpacity
+            style={[globalStyles.button, { backgroundColor: themeColors.themeGrey }]}
+            onPress={() => router.push('/guide')}
+          >
+            <Text style={globalStyles.buttonText}>Guide</Text>
+          </TouchableOpacity>
 
           <TouchableOpacity
-            style={globalStyles.button}
+            style={[globalStyles.button, { backgroundColor: themeColors.themeGrey }]}
             onPress={() => Linking.openURL(PRIVACY_POLICY_URL)}
           >
             <Text style={globalStyles.buttonText}>Privacy Policy</Text>
           </TouchableOpacity>
 
-          <Link href="/settings" asChild>
-            <TouchableOpacity style={globalStyles.button}>
-              <Text style={globalStyles.buttonText}>Settings</Text>
-            </TouchableOpacity>
-          </Link>
+          <TouchableOpacity
+            style={[globalStyles.button, { backgroundColor: themeColors.themeGrey }]}
+            onPress={() => router.push('/settings')}
+          >
+            <Text style={globalStyles.buttonText}>Settings</Text>
+          </TouchableOpacity>
 
           {!hasPinSet && (
             <TouchableOpacity
-              style={globalStyles.button}
+              style={[globalStyles.button, { backgroundColor: themeColors.themeGrey }]}
               onPress={() => router.push('/pin-management?mode=set')}
             >
               <Text style={globalStyles.buttonText}>Set PIN</Text>
@@ -96,45 +100,45 @@ export default function AccountScreen() {
           {hasPinSet && (
             <>
               <TouchableOpacity
-                style={globalStyles.button}
+                style={[globalStyles.button, { backgroundColor: themeColors.themeGrey }]}
                 onPress={() => router.push('/pin-management?mode=change')}
               >
                 <Text style={globalStyles.buttonText}>Change PIN</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={globalStyles.button}
+                style={[globalStyles.button, { backgroundColor: themeColors.themeGrey }]}
                 onPress={() => router.push('/pin-management?mode=remove')}
               >
                 <Text style={globalStyles.buttonText}>Remove PIN</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={[globalStyles.button, styles.dangerButton]}
+                style={[globalStyles.button, { backgroundColor: themeColors.themeGrey }, s.dangerButton]}
                 onPress={handleLogOut}
               >
-                <Text style={[globalStyles.buttonText, styles.dangerButtonText]}>Log Out</Text>
+                <Text style={[globalStyles.buttonText, s.dangerButtonText]}>Log Out</Text>
               </TouchableOpacity>
             </>
           )}
 
           {(offGridMode || silverOffGridMode) && (
-            <View style={styles.overwriteContainer}>
-              <View style={styles.priceRow}>
+            <View style={s.overwriteContainer}>
+              <View style={s.priceRow}>
                 {offGridMode && (
                   <TouchableOpacity
-                    style={[globalStyles.button, styles.compactButton, styles.centerButton, styles.goldBorder]}
+                    style={[globalStyles.button, { backgroundColor: themeColors.themeGrey }, s.compactButton, s.centerButton, s.goldBorder]}
                     onPress={() => handleOpenModal('gold')}
                   >
-                    <Text style={[globalStyles.buttonText, { color: colors.gold, fontSize: 13 }, styles.centerText]}>Overwrite Today Gold</Text>
+                    <Text style={[globalStyles.buttonText, { color: themeColors.gold, fontSize: 13 }, s.centerText]}>Overwrite Today Gold</Text>
                   </TouchableOpacity>
                 )}
                 {silverOffGridMode && (
                   <TouchableOpacity
-                    style={[globalStyles.button, styles.compactButton, styles.centerButton, styles.silverBorder]}
+                    style={[globalStyles.button, { backgroundColor: themeColors.themeGrey }, s.compactButton, s.centerButton, s.silverBorder]}
                     onPress={() => handleOpenModal('silver')}
                   >
-                    <Text style={[globalStyles.buttonText, { color: colors.silver, fontSize: 13 }, styles.centerText]}>Overwrite Today Silver</Text>
+                    <Text style={[globalStyles.buttonText, { color: themeColors.silver, fontSize: 13 }, s.centerText]}>Overwrite Today Silver</Text>
                   </TouchableOpacity>
                 )}
               </View>
@@ -147,31 +151,31 @@ export default function AccountScreen() {
           transparent
           onRequestClose={() => setModalVisible(false)}
         >
-          <View style={styles.modalOverlay}>
-            <View style={styles.modalContent}>
-              <Text style={styles.modalTitle}>Overwrite Today's {metalLabel} Price</Text>
+          <View style={s.modalOverlay}>
+            <View style={s.modalContent}>
+              <Text style={s.modalTitle}>Overwrite Today's {metalLabel} Price</Text>
               {lastPrice !== null && (
-                <Text style={styles.modalLabel}>
+                <Text style={s.modalLabel}>
                     Current today's price: {formatCurrency(lastPrice, settings.currency)}
                 </Text>
               )}
-              <Text style={styles.modalLabel}>
+              <Text style={s.modalLabel}>
                 Enter new {metalLabel.toLowerCase()} price ({settings.currency}/{settings.unit})
               </Text>
               <TextInput
-                style={styles.modalInput}
+                style={s.modalInput}
                 value={inputValue}
                 onChangeText={setInputValue}
                 keyboardType="numeric"
                 placeholder={`Enter ${metalLabel.toLowerCase()} price`}
-                placeholderTextColor="#666"
+                placeholderTextColor={themeColors.lightGrey}
               />
-              <View style={styles.modalButtons}>
-                <TouchableOpacity style={styles.modalCancelBtn} onPress={() => setModalVisible(false)}>
+              <View style={s.modalButtons}>
+                <TouchableOpacity style={s.modalCancelBtn} onPress={() => setModalVisible(false)}>
                   <Text style={globalStyles.buttonText}>Cancel</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.modalSaveBtn} onPress={handleConfirm}>
-                  <Text style={styles.modalSaveText}>Overwrite</Text>
+                <TouchableOpacity style={s.modalSaveBtn} onPress={handleConfirm}>
+                  <Text style={s.modalSaveText}>Overwrite</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -182,107 +186,109 @@ export default function AccountScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  section: {
-    padding: 16,
-  },
-  overwriteContainer: {
-    borderColor: colors.red,
-    borderWidth: 1,
-    borderRadius: 8,
-    padding: 12,
-    marginTop: 20,
-  },
-  priceRow: {
-    flexDirection: 'row',
-    gap: 10,
-  },
-  compactButton: {
-    flex: 1,
-    paddingVertical: 12,
-    paddingHorizontal: 8,
-    marginBottom: 0,
-  },
-  centerButton: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  centerText: {
-    textAlign: 'center',
-  },
-  goldBorder: {
-    borderColor: colors.gold,
-    borderWidth: 1,
-  },
-  silverBorder: {
-    borderColor: colors.silver,
-    borderWidth: 1,
-  },
-  dangerButton: {
-    marginTop: 20,
-    borderColor: colors.red,
-    borderWidth: 1,
-  },
-  dangerButtonText: {
-    color: colors.red,
-  },
-  modalOverlay: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-  },
-  modalContent: {
-    backgroundColor: colors.themeGrey,
-    borderRadius: 16,
-    padding: 24,
-    width: '85%',
-    maxWidth: 340,
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: colors.gold,
-    marginBottom: 16,
-    textAlign: 'center',
-  },
-  modalLabel: {
-    fontSize: 14,
-    color: colors.grey,
-    marginBottom: 8,
-  },
-  modalInput: {
-    backgroundColor: colors.background,
-    borderRadius: 8,
-    padding: 14,
-    fontSize: 18,
-    color: colors.white,
-    borderWidth: 1,
-    borderColor: colors.borderMid,
-    marginBottom: 20,
-  },
-  modalButtons: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  modalCancelBtn: {
-    flex: 1,
-    padding: 14,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: colors.borderMid,
-    alignItems: 'center',
-  },
-  modalSaveBtn: {
-    flex: 1,
-    padding: 14,
-    borderRadius: 8,
-    backgroundColor: colors.gold,
-    alignItems: 'center',
-  },
-  modalSaveText: {
-    color: colors.borderDark,
-    fontSize: 16,
-    fontWeight: '600',
-  },
-});
+function createStyles(c: typeof colors) {
+  return StyleSheet.create({
+    section: {
+      padding: 16,
+    },
+    overwriteContainer: {
+      borderColor: c.red,
+      borderWidth: 1,
+      borderRadius: 8,
+      padding: 12,
+      marginTop: 20,
+    },
+    priceRow: {
+      flexDirection: 'row',
+      gap: 10,
+    },
+    compactButton: {
+      flex: 1,
+      paddingVertical: 12,
+      paddingHorizontal: 8,
+      marginBottom: 0,
+    },
+    centerButton: {
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    centerText: {
+      textAlign: 'center',
+    },
+    goldBorder: {
+      borderColor: c.gold,
+      borderWidth: 1,
+    },
+    silverBorder: {
+      borderColor: c.silver,
+      borderWidth: 1,
+    },
+    dangerButton: {
+      marginTop: 20,
+      borderColor: c.red,
+      borderWidth: 1,
+    },
+    dangerButtonText: {
+      color: c.red,
+    },
+    modalOverlay: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    },
+    modalContent: {
+      backgroundColor: c.themeGrey,
+      borderRadius: 16,
+      padding: 24,
+      width: '85%',
+      maxWidth: 340,
+    },
+    modalTitle: {
+      fontSize: 20,
+      fontWeight: 'bold',
+      color: c.gold,
+      marginBottom: 16,
+      textAlign: 'center',
+    },
+    modalLabel: {
+      fontSize: 14,
+      color: c.grey,
+      marginBottom: 8,
+    },
+    modalInput: {
+      backgroundColor: c.background,
+      borderRadius: 8,
+      padding: 14,
+      fontSize: 18,
+      color: c.text,
+      borderWidth: 1,
+      borderColor: c.borderMid,
+      marginBottom: 20,
+    },
+    modalButtons: {
+      flexDirection: 'row',
+      gap: 12,
+    },
+    modalCancelBtn: {
+      flex: 1,
+      padding: 14,
+      borderRadius: 8,
+      borderWidth: 1,
+      borderColor: c.borderMid,
+      alignItems: 'center',
+    },
+    modalSaveBtn: {
+      flex: 1,
+      padding: 14,
+      borderRadius: 8,
+      backgroundColor: c.gold,
+      alignItems: 'center',
+    },
+    modalSaveText: {
+      color: c.borderDark,
+      fontSize: 16,
+      fontWeight: '600',
+    },
+  });
+}

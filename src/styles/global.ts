@@ -1,4 +1,7 @@
 import { StyleSheet } from "react-native";
+import { darkColors, type ThemeColors } from "./themes";
+
+export { darkColors, lightColors, type ThemeMode } from "./themes";
 
 export const spacing = {
   xs: 4,
@@ -20,49 +23,9 @@ export const typography = {
   },
 };
 
-interface ThemeColors {
-  background: string;
-  themeGrey: string;
-  toggleBg: string;
-  gold: string;
-  goldTint: string;
-  silver: string;
-  silverTint: string;
-  darkGold: string;
-  themeBlue: string;
-  chartAxis: string;
-  green: string;
-  changeGreen: string;
-  grey: string;
-  lightGrey: string;
-  borderDark: string;
-  borderMid: string;
-  red: string;
-  orange: string;
-  white: string;
-}
+export type { ThemeColors };
 
-export const colors: ThemeColors = {
-  background: "#000000",
-  themeGrey: "#1a1a1a",
-  toggleBg: "#2a2a2a",
-  gold: "#D4AF37",
-  goldTint: "rgba(212, 175, 55, 0.13)",
-  silver: "#C0C0C0",
-  silverTint: "rgba(192, 192, 192, 0.13)",
-  darkGold: "#B8860B",
-  themeBlue: "#13336f",
-  chartAxis: "#D4AF37",
-  green: "#006600",
-  changeGreen: "#00AA00",
-  grey: "#888888",
-  lightGrey: "#666666",
-  borderDark: "#333333",
-  borderMid: "#444444",
-  red: "#e74c3c",
-  orange: "#f39c12",
-  white: "#ffffff",
-};
+export const colors: ThemeColors = darkColors;
 
 export const globalStyles = StyleSheet.create({
   container: {

@@ -1,5 +1,6 @@
 import { colors, globalStyles, toggleStyles } from "@/styles/global";
 import { Text, View, TextInput, TouchableOpacity, Image, ScrollView, Modal, StyleSheet, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import { useMemo } from 'react';
 import PageHeader from '@/components/PageHeader';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
@@ -16,6 +17,7 @@ import { usePrice } from '@/contexts/PriceContext';
 import { Ionicons } from '@expo/vector-icons';
 import { ThemeColors } from '@/styles/themeColors';
 import { useMetal } from '@/contexts/MetalContext';
+import { useTheme } from '@/contexts/ThemeContext';
 
 export default function AddToStackScreen() {
   const { goldPriceData, silverPriceData, isLoading, settings, offGridMode, silverOffGridMode, refreshGoldPrice, refreshSilverPrice, updateManualPrice, updateManualSilverPrice } = usePrice();
@@ -25,6 +27,8 @@ export default function AddToStackScreen() {
   const isEditing = editId !== null;
   const { selectedMetal, setSelectedMetal: setMetal } = useMetal();
   const metal = selectedMetal;
+  const { colors: themeColors } = useTheme();
+  const s = useMemo(() => createStyles(themeColors), [themeColors]);
 
   const [code, setCode] = useState('');
   const [weight, setWeight] = useState('');
@@ -224,9 +228,9 @@ useFocusEffect(
 
   return (
     <GestureDetector gesture={swipeGesture}>
-      <View style={globalStyles.tabPageContainer}>
+      <View style={[globalStyles.tabPageContainer, { backgroundColor: themeColors.background }]}>
         <PageHeader title={isEditing ? 'Edit Item' : 'Add to Stack'} />
-        <View style={styles.bannerContainer}>
+        <View style={s.bannerContainer}>
           <GoldPriceBanner
             priceData={metal === 'gold' ? goldPriceData : silverPriceData}
             metal={metal}
@@ -239,26 +243,26 @@ useFocusEffect(
             onManualPriceChange={metal === 'gold' ? updateManualPrice : updateManualSilverPrice}
           />
         </View>
-        <KeyboardAvoidingView style={styles.keyboardView} behavior="padding" keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}>
-          <ScrollView style={styles.form} contentContainerStyle={styles.formContent} keyboardShouldPersistTaps="handled">
-            <View style={styles.imageBtnRow}>
-              <TouchableOpacity style={styles.imageBtn} onPress={openCamera}>
-                <View style={styles.imageBtnContent}>
-                  <Ionicons name="camera" size={18} color={ThemeColors[metal].primary} style={styles.imageBtnIcon} />
-                  <Text style={styles.imageBtnText}>Camera</Text>
+        <KeyboardAvoidingView style={s.keyboardView} behavior="padding" keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}>
+          <ScrollView style={s.form} contentContainerStyle={s.formContent} keyboardShouldPersistTaps="handled">
+            <View style={s.imageBtnRow}>
+              <TouchableOpacity style={s.imageBtn} onPress={openCamera}>
+                <View style={s.imageBtnContent}>
+                  <Ionicons name="camera" size={18} color={ThemeColors[metal].primary} style={s.imageBtnIcon} />
+                  <Text style={s.imageBtnText}>Camera</Text>
                 </View>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.imageBtn} onPress={openGallery}>
-                <View style={styles.imageBtnContent}>
-                  <Ionicons name="images" size={18} color={ThemeColors[metal].primary} style={styles.imageBtnIcon} />
-                  <Text style={styles.imageBtnText}>Gallery</Text>
+              <TouchableOpacity style={s.imageBtn} onPress={openGallery}>
+                <View style={s.imageBtnContent}>
+                  <Ionicons name="images" size={18} color={ThemeColors[metal].primary} style={s.imageBtnIcon} />
+                  <Text style={s.imageBtnText}>Gallery</Text>
                 </View>
               </TouchableOpacity>
             </View>
             {imageUri && (
-              <View style={styles.previewContainer}>
-                <Image source={{ uri: imageUri }} style={styles.preview} />
-                <TouchableOpacity style={styles.removeImageBtn} onPress={async () => {
+              <View style={s.previewContainer}>
+                <Image source={{ uri: imageUri }} style={s.preview} />
+                <TouchableOpacity style={s.removeImageBtn} onPress={async () => {
                   if (isNewCameraImage && imageUri) {
                     try {
                       const file = new File(imageUri);
@@ -273,66 +277,66 @@ useFocusEffect(
                   setImageSource('existing');
                   setIsNewCameraImage(false);
                 }}>
-                  <Ionicons name="close-circle" size={24} color={colors.red} />
+                  <Ionicons name="close-circle" size={24} color={themeColors.red} />
                 </TouchableOpacity>
               </View>
             )}
-            <View style={styles.metalSelector}>
-              <Text style={[styles.label, { color: ThemeColors[metal].primary }]}>Metal Type</Text>
-              <View style={toggleStyles.container}>
+            <View style={s.metalSelector}>
+              <Text style={[s.label, { color: ThemeColors[metal].primary }]}>Metal Type</Text>
+              <View style={[toggleStyles.container, { backgroundColor: themeColors.toggleBg }]}>
                 <TouchableOpacity
-                  style={[toggleStyles.option, metal === 'gold' && { backgroundColor: colors.gold }]}
+                  style={[toggleStyles.option, metal === 'gold' && { backgroundColor: themeColors.gold }]}
                   onPress={() => setMetal('gold')}
                 >
                   <Text style={[toggleStyles.optionText, metal === 'gold' && toggleStyles.optionTextActive]}>Gold</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  style={[toggleStyles.option, metal === 'silver' && { backgroundColor: colors.silver }]}
+                  style={[toggleStyles.option, metal === 'silver' && { backgroundColor: themeColors.silver }]}
                   onPress={() => setMetal('silver')}
                 >
                   <Text style={[toggleStyles.optionText, metal === 'silver' && toggleStyles.optionTextActive]}>Silver</Text>
                 </TouchableOpacity>
               </View>
             </View>
-            <View style={styles.row}>
-              <View style={styles.col}>
-                <Text style={[styles.label, { color: ThemeColors[metal].primary }]}>Item</Text>
-                <TextInput style={[styles.input, { color: ThemeColors[metal].primary, borderColor: ThemeColors[metal].primary }]} placeholder="Coin" placeholderTextColor="#444" value={code} onChangeText={setCode} />
+            <View style={s.row}>
+              <View style={s.col}>
+                <Text style={[s.label, { color: ThemeColors[metal].primary }]}>Item</Text>
+                <TextInput style={[s.input, { color: ThemeColors[metal].primary, borderColor: ThemeColors[metal].primary }]} placeholder="Coin" placeholderTextColor={themeColors.lightGrey} value={code} onChangeText={setCode} />
               </View>
-              <View style={styles.col}>
-                <Text style={[styles.label, styles.labelRight, { color: ThemeColors[metal].primary }]}>Weight ({getUnitAbbrev(weightUnit)})</Text>
+              <View style={s.col}>
+                <Text style={[s.label, s.labelRight, { color: ThemeColors[metal].primary }]}>Weight ({getUnitAbbrev(weightUnit)})</Text>
                 <TextInput
-                  style={[styles.input, { color: ThemeColors[metal].primary, borderColor: ThemeColors[metal].primary }]}
+                  style={[s.input, { color: ThemeColors[metal].primary, borderColor: ThemeColors[metal].primary }]}
                   placeholder={`Weight (${getUnitAbbrev(weightUnit)})`}
-                  placeholderTextColor="#444"
+                  placeholderTextColor={themeColors.lightGrey}
                   value={weight}
                   onChangeText={setWeight}
                 />
               </View>
             </View>
-            <View style={styles.row}>
-              <View style={styles.col}>
-                <Text style={[styles.label, { color: ThemeColors[metal].primary }]}>Cost/{getUnitAbbrev(weightUnit)}</Text>
+            <View style={s.row}>
+              <View style={s.col}>
+                <Text style={[s.label, { color: ThemeColors[metal].primary }]}>Cost/{getUnitAbbrev(weightUnit)}</Text>
                 <TextInput
-                  style={[styles.input, totalAmount ? styles.disabledInput : null, { color: ThemeColors[metal].primary, borderColor: ThemeColors[metal].primary }]}
+                  style={[s.input, totalAmount ? s.disabledInput : null, { color: ThemeColors[metal].primary, borderColor: ThemeColors[metal].primary }]}
                   placeholder={`Cost/${getUnitAbbrev(weightUnit)}`}
-                  placeholderTextColor="#444"
+                  placeholderTextColor={themeColors.lightGrey}
                   value={costPerUnit}
                   onChangeText={setPurchasePrice}
                   editable={!totalAmount}
                 />
               </View>
-              <Text style={[styles.orText, { color: ThemeColors[metal].primary }]}>OR</Text>
-              <View style={styles.col}>
-                <Text style={[styles.label, styles.labelRight, { color: ThemeColors[metal].primary }]}>Total Amount</Text>
-                <TextInput style={[styles.input, { color: ThemeColors[metal].primary, borderColor: ThemeColors[metal].primary }]} placeholder="1234" placeholderTextColor="#444" value={totalAmount} onChangeText={setTotalAmount} />
+              <Text style={[s.orText, { color: ThemeColors[metal].primary }]}>OR</Text>
+              <View style={s.col}>
+                <Text style={[s.label, s.labelRight, { color: ThemeColors[metal].primary }]}>Total Amount</Text>
+                <TextInput style={[s.input, { color: ThemeColors[metal].primary, borderColor: ThemeColors[metal].primary }]} placeholder="1234" placeholderTextColor={themeColors.lightGrey} value={totalAmount} onChangeText={setTotalAmount} />
               </View>
             </View>
-            <TouchableOpacity style={styles.submitBtn} onPress={handleSubmit} disabled={submitting}>
-              <Text style={[styles.submitBtnText, { color: ThemeColors[metal].primary }]}>{submitting ? (isEditing ? 'Updating...' : 'Saving...') : (isEditing ? 'Update' : 'Submit')}</Text>
+            <TouchableOpacity style={s.submitBtn} onPress={handleSubmit} disabled={submitting}>
+              <Text style={[s.submitBtnText, { color: ThemeColors[metal].primary }]}>{submitting ? (isEditing ? 'Updating...' : 'Saving...') : (isEditing ? 'Update' : 'Submit')}</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.cancelBtn} onPress={handleCancel}>
-              <Text style={[styles.cancelBtnText, { color: ThemeColors[metal].primary }]}>Cancel</Text>
+            <TouchableOpacity style={s.cancelBtn} onPress={handleCancel}>
+              <Text style={[s.cancelBtnText, { color: ThemeColors[metal].primary }]}>Cancel</Text>
             </TouchableOpacity>
           </ScrollView>
         </KeyboardAvoidingView>
@@ -342,16 +346,16 @@ useFocusEffect(
           animationType="fade"
           onRequestClose={() => setModalVisible(false)}
         >
-          <View style={styles.modalOverlay}>
-            <View style={[styles.modalContent, { borderColor: ThemeColors[metal].primary }]}>
-              <Text style={[styles.modalTitle, { color: ThemeColors[metal].primary }]}>Success!</Text>
-              <Text style={styles.modalMessage}>Submit Something Else?</Text>
-              <View style={styles.modalButtons}>
-                <TouchableOpacity style={styles.yesBtn} onPress={handleModalYes}>
-                  <Text style={[styles.modalBtnText, { color: ThemeColors[metal].primary }]}>Yes</Text>
+          <View style={s.modalOverlay}>
+            <View style={[s.modalContent, { borderColor: ThemeColors[metal].primary }]}>
+              <Text style={[s.modalTitle, { color: ThemeColors[metal].primary }]}>Success!</Text>
+              <Text style={s.modalMessage}>Submit Something Else?</Text>
+              <View style={s.modalButtons}>
+                <TouchableOpacity style={s.yesBtn} onPress={handleModalYes}>
+                  <Text style={[s.modalBtnText, { color: ThemeColors[metal].primary }]}>Yes</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.noBtn} onPress={handleModalNo}>
-                  <Text style={[styles.modalBtnText, { color: ThemeColors[metal].primary }]}>No</Text>
+                <TouchableOpacity style={s.noBtn} onPress={handleModalNo}>
+                  <Text style={[s.modalBtnText, { color: ThemeColors[metal].primary }]}>No</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -362,187 +366,189 @@ useFocusEffect(
   );
 }
 
-const styles = StyleSheet.create({
-  keyboardView: {
-    flex: 1,
-  },
-  form: {
-    flex: 1,
-  },
-  bannerContainer: {
-    paddingTop: 0,
-    marginBottom: 10,
-  },
-  cameraBtn: {
-    backgroundColor: colors.themeBlue,
-    padding: 14,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  metalSelector: {
-    marginBottom: 16,
-  },
-  imageBtnRow: {
-    flexDirection: 'row',
-    gap: 12,
-    marginBottom: 12,
-  },
-  imageBtn: {
-    flex: 1,
-    backgroundColor: colors.themeBlue,
-    padding: 14,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  imageBtnContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  imageBtnIcon: {
-    marginRight: 6,
-  },
-  imageBtnText: {
-    color: colors.gold,
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  previewContainer: {
-    position: 'relative',
-    marginBottom: 12,
-  },
-  preview: {
-    width: '100%',
-    height: 200,
-    borderRadius: 8,
-    resizeMode: 'cover',
-  },
-  removeImageBtn: {
-    position: 'absolute',
-    top: 8,
-    right: 8,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    borderRadius: 12,
-  },
-  row: {
-    flexDirection: 'row',
-    gap: 16,
-    marginBottom: 16,
-  },
-  orText: {
-    alignSelf: 'center',
-    color: colors.gold,
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginTop: 20,
-  },
-  col: {
-    flex: 1,
-  },
-  label: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.gold,
-    marginBottom: 4,
-  },
-  input: {
-    backgroundColor: colors.themeGrey,
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 18,
-    color: colors.gold,
-    borderWidth: 1,
-    borderColor: colors.gold,
-  },
-  disabledInput: {
-    opacity: 0.5,
-  },
-  formContent: {
-    paddingBottom: 40,
-  },
-  cameraIcon: {
-    marginRight: 8,
-  },
-  labelRight: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.gold,
-    marginBottom: 4,
-    textAlign: 'right',
-  },
-  submitBtn: {
-    backgroundColor: colors.green,
-    padding: 16,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginTop: 16,
-  },
-  cancelBtn: {
-    backgroundColor: colors.themeGrey,
-    padding: 16,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginTop: 12,
-  },
-  submitBtnText: {
-    color: colors.gold,
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
-  cancelBtnText: {
-    color: colors.gold,
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
-  modalBtnText: {
-    color: colors.gold,
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.9)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalContent: {
-    backgroundColor: colors.themeGrey,
-    borderRadius: 16,
-    padding: 24,
-    width: '80%',
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: colors.gold,
-  },
-  modalTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: colors.gold,
-    marginBottom: 8,
-  },
-  modalMessage: {
-    fontSize: 18,
-    color: colors.white,
-    marginBottom: 24,
-    textAlign: 'center',
-  },
-  modalButtons: {
-    flexDirection: 'row',
-    gap: 16,
-  },
-  yesBtn: {
-    backgroundColor: colors.themeBlue,
-    paddingVertical: 12,
-    paddingHorizontal: 32,
-    borderRadius: 8,
-  },
-  noBtn: {
-    backgroundColor: colors.themeGrey,
-    paddingVertical: 12,
-    paddingHorizontal: 32,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: colors.gold,
-  },
-});
+function createStyles(c: typeof colors) {
+  return StyleSheet.create({
+    keyboardView: {
+      flex: 1,
+    },
+    form: {
+      flex: 1,
+    },
+    bannerContainer: {
+      paddingTop: 0,
+      marginBottom: 10,
+    },
+    cameraBtn: {
+      backgroundColor: c.themeBlue,
+      padding: 14,
+      borderRadius: 8,
+      alignItems: 'center',
+      marginBottom: 12,
+    },
+    metalSelector: {
+      marginBottom: 16,
+    },
+    imageBtnRow: {
+      flexDirection: 'row',
+      gap: 12,
+      marginBottom: 12,
+    },
+    imageBtn: {
+      flex: 1,
+      backgroundColor: c.themeBlue,
+      padding: 14,
+      borderRadius: 8,
+      alignItems: 'center',
+    },
+    imageBtnContent: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    imageBtnIcon: {
+      marginRight: 6,
+    },
+    imageBtnText: {
+      color: c.gold,
+      fontSize: 16,
+      fontWeight: '600',
+    },
+    previewContainer: {
+      position: 'relative',
+      marginBottom: 12,
+    },
+    preview: {
+      width: '100%',
+      height: 200,
+      borderRadius: 8,
+      resizeMode: 'cover',
+    },
+    removeImageBtn: {
+      position: 'absolute',
+      top: 8,
+      right: 8,
+      backgroundColor: 'rgba(0,0,0,0.5)',
+      borderRadius: 12,
+    },
+    row: {
+      flexDirection: 'row',
+      gap: 16,
+      marginBottom: 16,
+    },
+    orText: {
+      alignSelf: 'center',
+      color: c.gold,
+      fontSize: 16,
+      fontWeight: 'bold',
+      marginTop: 20,
+    },
+    col: {
+      flex: 1,
+    },
+    label: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: c.gold,
+      marginBottom: 4,
+    },
+    input: {
+      backgroundColor: c.themeGrey,
+      borderRadius: 8,
+      padding: 12,
+      fontSize: 18,
+      color: c.gold,
+      borderWidth: 1,
+      borderColor: c.gold,
+    },
+    disabledInput: {
+      opacity: 0.5,
+    },
+    formContent: {
+      paddingBottom: 40,
+    },
+    cameraIcon: {
+      marginRight: 8,
+    },
+    labelRight: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: c.gold,
+      marginBottom: 4,
+      textAlign: 'right',
+    },
+    submitBtn: {
+      backgroundColor: c.green,
+      padding: 16,
+      borderRadius: 8,
+      alignItems: 'center',
+      marginTop: 16,
+    },
+    cancelBtn: {
+      backgroundColor: c.themeGrey,
+      padding: 16,
+      borderRadius: 8,
+      alignItems: 'center',
+      marginTop: 12,
+    },
+    submitBtnText: {
+      color: c.gold,
+      fontSize: 20,
+      fontWeight: 'bold',
+    },
+    cancelBtnText: {
+      color: c.gold,
+      fontSize: 20,
+      fontWeight: 'bold',
+    },
+    modalBtnText: {
+      color: c.gold,
+      fontSize: 18,
+      fontWeight: 'bold',
+    },
+    modalOverlay: {
+      flex: 1,
+      backgroundColor: 'rgba(0,0,0,0.9)',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    modalContent: {
+      backgroundColor: c.themeGrey,
+      borderRadius: 16,
+      padding: 24,
+      width: '80%',
+      alignItems: 'center',
+      borderWidth: 2,
+      borderColor: c.gold,
+    },
+    modalTitle: {
+      fontSize: 24,
+      fontWeight: 'bold',
+      color: c.gold,
+      marginBottom: 8,
+    },
+    modalMessage: {
+      fontSize: 18,
+      color: c.text,
+      marginBottom: 24,
+      textAlign: 'center',
+    },
+    modalButtons: {
+      flexDirection: 'row',
+      gap: 16,
+    },
+    yesBtn: {
+      backgroundColor: c.themeBlue,
+      paddingVertical: 12,
+      paddingHorizontal: 32,
+      borderRadius: 8,
+    },
+    noBtn: {
+      backgroundColor: c.themeGrey,
+      paddingVertical: 12,
+      paddingHorizontal: 32,
+      borderRadius: 8,
+      borderWidth: 1,
+      borderColor: c.gold,
+    },
+  });
+}

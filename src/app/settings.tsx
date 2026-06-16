@@ -8,11 +8,13 @@ import { saveGoldSpotPrice, saveSilverSpotPrice } from '@/services/metalPriceSer
 import { AVAILABLE_CURRENCIES, AVAILABLE_UNITS, METALS_DEV_URL } from '@/config';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePrice } from '@/contexts/PriceContext';
+import { useTheme } from '@/contexts/ThemeContext';
 
 export default function SettingsScreen() {
   const router = useRouter();
   const { isAuthenticated, hasPinSet } = useAuth();
   const { updateManualPrice: setManualPriceCtx, updateManualSilverPrice: setManualSilverPriceCtx, refreshHistoryForCurrency } = usePrice();
+  const { colors: themeColors, theme, toggleTheme } = useTheme();
   const [settings, setSettings] = useState<UserSettings>({
     currency: 'GBP',
     unit: 'toz',
@@ -224,79 +226,91 @@ export default function SettingsScreen() {
       style={{ flex: 1 }}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <ScrollView style={globalStyles.container} keyboardShouldPersistTaps="handled">
+      <ScrollView style={[globalStyles.container, { backgroundColor: themeColors.background }]} keyboardShouldPersistTaps="handled">
         <View style={localStyles.header}>
-          <Text style={localStyles.title}>Settings</Text>
+          <Text style={[localStyles.title, { color: colors.gold }]}>Settings</Text>
         </View>
 
-        <View style={globalStyles.settingsSection}>
+        <View style={[globalStyles.settingsSection, { backgroundColor: themeColors.themeGrey }]}>
+          <View style={localStyles.switchRow}>
+            <Text style={[localStyles.switchLabel, { color: themeColors.text }]}>{theme === 'dark' ? 'Dark Mode' : 'Light Mode'}</Text>
+            <Switch
+              value={theme === 'dark'}
+              onValueChange={toggleTheme}
+              trackColor={{ false: themeColors.toggleBg, true: colors.gold }}
+              thumbColor={colors.white}
+            />
+          </View>
+        </View>
+
+        <View style={[globalStyles.settingsSection, { backgroundColor: themeColors.themeGrey }]}>
           <Text style={globalStyles.settingsSectionTitle}>Currency</Text>
           {hasStackItems && (
-            <Text style={localStyles.notConfiguredText}>Cannot change - items in stack</Text>
+            <Text style={[localStyles.notConfiguredText, { color: themeColors.red }]}>Cannot change - items in stack</Text>
           )}
           <View style={localStyles.optionsRow}>
             {AVAILABLE_CURRENCIES.map((curr) => (
               <TouchableOpacity
                 key={curr.code}
-                style={[toggleStyles.optionButton, settings.currency === curr.code && toggleStyles.optionButtonActive, hasStackItems && localStyles.optionDisabled]}
+                style={[toggleStyles.optionButton, { backgroundColor: themeColors.themeGrey, borderColor: themeColors.borderMid }, settings.currency === curr.code && toggleStyles.optionButtonActive, hasStackItems && localStyles.optionDisabled]}
                 onPress={() => !hasStackItems && handleCurrencyChange(curr.code)}
                 disabled={hasStackItems}
               >
-                <Text style={[toggleStyles.optionButtonText, settings.currency === curr.code && toggleStyles.optionButtonTextActive]}>{curr.code} ({curr.symbol})</Text>
+                <Text style={[toggleStyles.optionButtonText, { color: themeColors.grey }, settings.currency === curr.code && toggleStyles.optionButtonTextActive]}>{curr.code} ({curr.symbol})</Text>
               </TouchableOpacity>
             ))}
           </View>
         </View>
 
-        <View style={globalStyles.settingsSection}>
+        <View style={[globalStyles.settingsSection, { backgroundColor: themeColors.themeGrey }]}>
           <Text style={globalStyles.settingsSectionTitle}>Weight Unit</Text>
           {hasStackItems && (
-            <Text style={localStyles.notConfiguredText}>Cannot change - items in stack</Text>
+            <Text style={[localStyles.notConfiguredText, { color: themeColors.red }]}>Cannot change - items in stack</Text>
           )}
           <View style={localStyles.optionsRow}>
             {AVAILABLE_UNITS.map((u) => (
               <TouchableOpacity
                 key={u.code}
-                style={[toggleStyles.optionButton, settings.unit === u.code && toggleStyles.optionButtonActive, hasStackItems && localStyles.optionDisabled]}
+                style={[toggleStyles.optionButton, { backgroundColor: themeColors.themeGrey, borderColor: themeColors.borderMid }, settings.unit === u.code && toggleStyles.optionButtonActive, hasStackItems && localStyles.optionDisabled]}
                 onPress={() => !hasStackItems && handleUnitChange(u.code)}
                 disabled={hasStackItems}
               >
-                <Text style={[toggleStyles.optionButtonText, settings.unit === u.code && toggleStyles.optionButtonTextActive]}>{u.name} ({u.abbrev})</Text>
+                <Text style={[toggleStyles.optionButtonText, { color: themeColors.grey }, settings.unit === u.code && toggleStyles.optionButtonTextActive]}>{u.name} ({u.abbrev})</Text>
               </TouchableOpacity>
             ))}
           </View>
         </View>
 
-        <View style={globalStyles.settingsSection}>
+        <View style={[globalStyles.settingsSection, { backgroundColor: themeColors.themeGrey }]}>
           <Text style={globalStyles.settingsSectionTitle}>Default Metal</Text>
           <View style={localStyles.optionsRow}>
             <TouchableOpacity
-              style={[toggleStyles.optionButton, settings.defaultMetal === 'gold' && toggleStyles.optionButtonActive]}
+              style={[toggleStyles.optionButton, { backgroundColor: themeColors.themeGrey, borderColor: themeColors.borderMid }, settings.defaultMetal === 'gold' && toggleStyles.optionButtonActive]}
               onPress={() => handleDefaultMetalChange('gold')}
             >
-              <Text style={[toggleStyles.optionButtonText, settings.defaultMetal === 'gold' && toggleStyles.optionButtonTextActive]}>Gold</Text>
+              <Text style={[toggleStyles.optionButtonText, { color: themeColors.grey }, settings.defaultMetal === 'gold' && toggleStyles.optionButtonTextActive]}>Gold</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[toggleStyles.optionButton, settings.defaultMetal === 'silver' && toggleStyles.optionButtonActive]}
+              style={[toggleStyles.optionButton, { backgroundColor: themeColors.themeGrey, borderColor: themeColors.borderMid }, settings.defaultMetal === 'silver' && toggleStyles.optionButtonActive]}
               onPress={() => handleDefaultMetalChange('silver')}
             >
-              <Text style={[toggleStyles.optionButtonText, settings.defaultMetal === 'silver' && toggleStyles.optionButtonTextActive]}>Silver</Text>
+              <Text style={[toggleStyles.optionButtonText, { color: themeColors.grey }, settings.defaultMetal === 'silver' && toggleStyles.optionButtonTextActive]}>Silver</Text>
             </TouchableOpacity>
           </View>
         </View>
 
-        <View style={globalStyles.settingsSection}>
+        <View style={[globalStyles.settingsSection, { backgroundColor: themeColors.themeGrey }]}>
           <Text style={globalStyles.settingsSectionTitle}>API Key</Text>
 
           {settings.hasApiKey ? (
             <View style={localStyles.statusContainer}>
-              <Text style={localStyles.statusText}>API Key configured ✓</Text>
+              <Text style={[localStyles.statusText, { color: themeColors.changeGreen }]}>API Key configured ✓</Text>
               <TouchableOpacity
-                style={[localStyles.removeButton, (hasPinSet && !isAuthenticated) && localStyles.removeDisabled]}
+                style={[localStyles.removeButton, { borderColor: themeColors.red }, (hasPinSet && !isAuthenticated) && localStyles.removeDisabled]}
                 onPress={handleRemoveApiKey}
                 disabled={hasPinSet && !isAuthenticated}
               >
-                <Text style={localStyles.removeButtonText}>Remove</Text>
+                <Text style={[localStyles.removeButtonText, { color: themeColors.red }]}>Remove</Text>
               </TouchableOpacity>
             </View>
           ) : (
@@ -305,9 +319,9 @@ export default function SettingsScreen() {
                 <View style={{ flex: 1 }}>
                   <Text style={globalStyles.inputLabel}>Gold Price ({settings.currency}/{settings.unit})</Text>
                   <TextInput
-                    style={globalStyles.input}
+                    style={[globalStyles.input, { backgroundColor: themeColors.themeGrey, color: themeColors.text, borderColor: themeColors.borderMid }]}
                     placeholder="Price"
-                    placeholderTextColor={colors.lightGrey}
+                    placeholderTextColor={themeColors.lightGrey}
                     value={manualInputs.gold}
                     onChangeText={(v) => setManualInputs(prev => ({ ...prev, gold: v }))}
                     keyboardType="numeric"
@@ -316,9 +330,9 @@ export default function SettingsScreen() {
                 <View style={{ flex: 0.6 }}>
                   <Text style={globalStyles.inputLabel}>Premium %</Text>
                   <TextInput
-                    style={globalStyles.input}
+                    style={[globalStyles.input, { backgroundColor: themeColors.themeGrey, color: themeColors.text, borderColor: themeColors.borderMid }]}
                     placeholder="%"
-                    placeholderTextColor={colors.lightGrey}
+                    placeholderTextColor={themeColors.lightGrey}
                     value={manualInputs.goldPremium}
                     onChangeText={(v) => setManualInputs(prev => ({ ...prev, goldPremium: v }))}
                     keyboardType="numeric"
@@ -330,9 +344,9 @@ export default function SettingsScreen() {
                 <View style={{ flex: 1 }}>
                   <Text style={globalStyles.inputLabel}>Silver Price ({settings.currency}/{settings.unit})</Text>
                   <TextInput
-                    style={globalStyles.input}
+                    style={[globalStyles.input, { backgroundColor: themeColors.themeGrey, color: themeColors.text, borderColor: themeColors.borderMid }]}
                     placeholder="Price"
-                    placeholderTextColor={colors.lightGrey}
+                    placeholderTextColor={themeColors.lightGrey}
                     value={manualInputs.silver}
                     onChangeText={(v) => setManualInputs(prev => ({ ...prev, silver: v }))}
                     keyboardType="numeric"
@@ -341,9 +355,9 @@ export default function SettingsScreen() {
                 <View style={{ flex: 0.6 }}>
                   <Text style={globalStyles.inputLabel}>Premium %</Text>
                   <TextInput
-                    style={globalStyles.input}
+                    style={[globalStyles.input, { backgroundColor: themeColors.themeGrey, color: themeColors.text, borderColor: themeColors.borderMid }]}
                     placeholder="%"
-                    placeholderTextColor={colors.lightGrey}
+                    placeholderTextColor={themeColors.lightGrey}
                     value={manualInputs.silverPremium}
                     onChangeText={(v) => setManualInputs(prev => ({ ...prev, silverPremium: v }))}
                     keyboardType="numeric"
@@ -352,20 +366,20 @@ export default function SettingsScreen() {
               </View>
 
               <TouchableOpacity
-                style={[localStyles.saveButton, (!hasGold || !hasSilver) && localStyles.buttonDisabled]}
+                style={[localStyles.saveButton, { backgroundColor: colors.gold }, (!hasGold || !hasSilver) && localStyles.buttonDisabled]}
                 onPress={handleManualPriceSubmit}
                 disabled={!hasGold || !hasSilver}
               >
-                <Text style={localStyles.saveButtonText}>Submit Prices</Text>
+                <Text style={[localStyles.saveButtonText, { color: colors.white }]}>Submit Prices</Text>
               </TouchableOpacity>
 
-              <View style={localStyles.offGridContainer}>
+              <View style={[localStyles.offGridContainer, { backgroundColor: themeColors.themeGrey, borderColor: colors.gold }]}>
                 <View style={localStyles.offGridRow}>
-                  <Text style={localStyles.offGridLabel}>Off Grid Mode</Text>
+                  <Text style={[localStyles.offGridLabel, { color: colors.gold }]}>Off Grid Mode</Text>
                   <Switch
                     value={offGridMode}
                     onValueChange={handleOffGridModeToggle}
-                    trackColor={{ false: colors.themeGrey, true: colors.gold }}
+                    trackColor={{ false: themeColors.toggleBg, true: colors.gold }}
                     thumbColor={colors.white}
                   />
                 </View>
@@ -374,23 +388,23 @@ export default function SettingsScreen() {
               {!offGridMode && (
                 <>
                   <TouchableOpacity style={localStyles.linkButton} onPress={openMetalsDev}>
-                    <Text style={localStyles.linkButtonText}>Get free API key at metals.dev ↗</Text>
+                    <Text style={[localStyles.linkButtonText, { color: themeColors.text }]}>Get free API key at metals.dev ↗</Text>
                   </TouchableOpacity>
                   <TextInput
-                    style={globalStyles.input}
+                    style={[globalStyles.input, { backgroundColor: themeColors.themeGrey, color: themeColors.text, borderColor: themeColors.borderMid }]}
                     placeholder="Enter your API key"
-                    placeholderTextColor={colors.lightGrey}
+                    placeholderTextColor={themeColors.lightGrey}
                     value={manualInputs.gold}
                     onChangeText={(v) => setManualInputs(prev => ({ ...prev, gold: v }))}
                     autoCapitalize="none"
                     autoCorrect={false}
                   />
                   <TouchableOpacity
-                    style={[localStyles.saveButton, isSaving && localStyles.buttonDisabled]}
+                    style={[localStyles.saveButton, { backgroundColor: colors.gold }, isSaving && localStyles.buttonDisabled]}
                     onPress={handleSaveApiKey}
                     disabled={isSaving}
                   >
-                    <Text style={localStyles.saveButtonText}>
+                    <Text style={[localStyles.saveButtonText, { color: colors.white }]}>
                       {isSaving ? 'Saving...' : 'Save API Key'}
                     </Text>
                   </TouchableOpacity>
@@ -401,8 +415,8 @@ export default function SettingsScreen() {
         </View>
 
         {(offGridMode || settings.hasApiKey) && (
-          <TouchableOpacity style={localStyles.continueButton} onPress={() => router.replace('/guide')}>
-            <Text style={localStyles.continueButtonText}>Continue</Text>
+          <TouchableOpacity style={[localStyles.continueButton, { backgroundColor: colors.gold }]} onPress={() => router.replace('/guide')}>
+            <Text style={[localStyles.continueButtonText, { color: colors.white }]}>Continue</Text>
           </TouchableOpacity>
         )}
 
@@ -488,6 +502,15 @@ const localStyles = StyleSheet.create({
     flexDirection: 'row',
     gap: 10,
     marginBottom: 0,
+  },
+  switchRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  switchLabel: {
+    fontSize: 16,
+    fontWeight: '600',
   },
   offGridContainer: {
     backgroundColor: colors.themeGrey,

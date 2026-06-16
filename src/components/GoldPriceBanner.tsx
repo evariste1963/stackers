@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { Text, View, TouchableOpacity, TextInput, Modal, Alert, ActivityIndicator } from 'react-native';
 import { colors } from '@/styles/global';
+import { useTheme } from '@/contexts/ThemeContext';
 import { type MetalPriceData } from '@/services/metalPriceService';
 import { ThemeColors, type MetalType } from '@/styles/themeColors';
 import { type UserSettings } from '@/services/settingsService';
@@ -35,19 +36,21 @@ function formatChangePercent(changePercent: number | undefined): string {
   return `(${symbol}${changePercent.toFixed(2)}%)`;
 }
 
-function getChangeColor(change: number | undefined): string {
-  if (change === undefined || change === null) return colors.grey;
-  if (change < 0) return colors.red;
-  if (change === 0) return colors.orange;
-  return colors.changeGreen;
+function getChangeColor(change: number | undefined, c: typeof colors): string {
+  if (change === undefined || change === null) return c.grey;
+  if (change < 0) return c.red;
+  if (change === 0) return c.orange;
+  return c.changeGreen;
 }
 
 export default function GoldPriceBanner({ priceData, metal = 'gold', isLoading, error, refreshPrice, settings, showRefresh = true, offGridMode = false, onManualPriceChange }: GoldPriceBannerProps) {
+  const { colors: themeColors } = useTheme();
   const metalLabel = metal === 'gold' ? 'Gold' : 'Silver';
   const [modalVisible, setModalVisible] = useState(false);
   const [manualPriceInput, setManualPriceInput] = useState(priceData?.price?.toString() || '');
 
-  const changeColor = useMemo(() => getChangeColor(priceData?.change), [priceData?.change]);
+  const changeColor = useMemo(() => getChangeColor(priceData?.change, themeColors), [priceData?.change, themeColors]);
+  const s = useMemo(() => createStyles(themeColors), [themeColors]);
 
   const handleUpdatePrice = () => {
     const price = parseFloat(manualPriceInput);
@@ -77,48 +80,48 @@ export default function GoldPriceBanner({ priceData, metal = 'gold', isLoading, 
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.content}>
-        <View style={styles.left}>
-          <Text style={styles.label}>{metalLabel} Price ({settings.currency}/{settings.unit})</Text>
-          <View style={styles.priceRow}>
-            <Text style={[styles.price, { color: ThemeColors[metal].primary }]}>{formatPrice(priceData?.price, showRefresh, settings.currency)}</Text>
+    <View style={s.container}>
+      <View style={s.content}>
+        <View style={s.left}>
+          <Text style={s.label}>{metalLabel} Price ({settings.currency}/{settings.unit})</Text>
+          <View style={s.priceRow}>
+            <Text style={[s.price, { color: ThemeColors[metal].primary }]}>{formatPrice(priceData?.price, showRefresh, settings.currency)}</Text>
             {priceData?.change !== undefined && priceData?.change !== null && (
-              <View style={styles.changeBlockWrapper}>
-                <Text style={[styles.changeValue, { color: changeColor }]}>
+              <View style={s.changeBlockWrapper}>
+                <Text style={[s.changeValue, { color: changeColor }]}>
                   {formatChange(priceData?.change)}
                 </Text>
-                <Text style={[styles.changeValue, { color: changeColor }]}>
+                <Text style={[s.changeValue, { color: changeColor }]}>
                   {formatChangePercent(priceData?.changePercent)}
                 </Text>
               </View>
             )}
           </View>
           {priceData?.date && (
-            <Text style={styles.date}>Last updated: {formatDate(priceData.date)}</Text>
+            <Text style={s.date}>Last updated: {formatDate(priceData.date)}</Text>
           )}
-          {error && <Text style={styles.error}>{error}</Text>}
+          {error && <Text style={s.error}>{error}</Text>}
         </View>
         {showRefresh && (
-          <View style={styles.right}>
+          <View style={s.right}>
             {offGridMode ? (
               <TouchableOpacity
-                style={styles.button}
+                style={s.button}
                 onPress={() => { setManualPriceInput(priceData?.price?.toString() || ''); setModalVisible(true); }}
               >
-                <Text style={styles.buttonText}>Update</Text>
-                <Text style={styles.buttonText}>Price</Text>
+                <Text style={s.buttonText}>Update</Text>
+                <Text style={s.buttonText}>Price</Text>
               </TouchableOpacity>
             ) : (
               <TouchableOpacity
-                style={[styles.button, isLoading && styles.buttonLoading, isLoading && styles.buttonDisabled]}
+                style={[s.button, isLoading && s.buttonLoading, isLoading && s.buttonDisabled]}
                 onPress={refreshPrice}
                 disabled={isLoading}
               >
                 {isLoading ? (
-                  <ActivityIndicator size="small" color={colors.white} />
+                  <ActivityIndicator size="small" color={themeColors.text} />
                 ) : (
-                  <Text style={styles.buttonText}>↻ Refresh</Text>
+                  <Text style={s.buttonText}>↻ Refresh</Text>
                 )}
               </TouchableOpacity>
             )}
@@ -131,24 +134,24 @@ export default function GoldPriceBanner({ priceData, metal = 'gold', isLoading, 
         transparent
         onRequestClose={() => setModalVisible(false)}
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Update {metalLabel} Price</Text>
-            <Text style={styles.modalLabel}>Enter new {metalLabel.toLowerCase()} price ({settings.currency}/{settings.unit})</Text>
+        <View style={s.modalOverlay}>
+          <View style={s.modalContent}>
+            <Text style={s.modalTitle}>Update {metalLabel} Price</Text>
+            <Text style={s.modalLabel}>Enter new {metalLabel.toLowerCase()} price ({settings.currency}/{settings.unit})</Text>
             <TextInput
-              style={styles.modalInput}
+              style={s.modalInput}
               value={manualPriceInput}
               onChangeText={setManualPriceInput}
               keyboardType="numeric"
               placeholder={`Enter ${metalLabel.toLowerCase()} price`}
-              placeholderTextColor="#666"
+              placeholderTextColor={themeColors.lightGrey}
             />
-            <View style={styles.modalButtons}>
-              <TouchableOpacity style={styles.modalCancelBtn} onPress={() => setModalVisible(false)}>
-                <Text style={styles.buttonText}>Cancel</Text>
+            <View style={s.modalButtons}>
+              <TouchableOpacity style={s.modalCancelBtn} onPress={() => setModalVisible(false)}>
+                <Text style={s.buttonText}>Cancel</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.modalSaveBtn} onPress={handleUpdatePrice}>
-                <Text style={styles.modalSaveText}>Save Price</Text>
+              <TouchableOpacity style={s.modalSaveBtn} onPress={handleUpdatePrice}>
+                <Text style={s.modalSaveText}>Save Price</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -158,137 +161,138 @@ export default function GoldPriceBanner({ priceData, metal = 'gold', isLoading, 
   );
 }
 
-const styles = {
-  container: {
-    width: '100%',
-    backgroundColor: colors.themeGrey,
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 15,
-  },
-  content: {
-    flexDirection: 'row',
-    marginLeft: 0,
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  left: {
-    flex: 1,
-  },
-  label: {
-    fontSize: 12,
-    color: colors.grey,
-    marginBottom: 4,
-  } as const,
-  price: {
-    fontSize: 26,
-    fontWeight: 'bold',
-    flexShrink: 1,
-    flex: 0.6,
-    adjustsFontSizeToFit: true,
-    minimumFontScale: 0.7,
-    numberOfLines: 1,
-  } as const,
-  priceRow: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  changeBlockWrapper: {
-    flex: 0.4,
-    alignItems: 'flex-start',
-  },
-  changeValue: {
-    fontSize: 12,
-    fontWeight: '500',
-  },
-  date: {
-    fontSize: 11,
-    color: colors.lightGrey,
-    marginTop: 4,
-  },
-  error: {
-    fontSize: 11,
-    color: colors.red,
-    marginTop: 4,
-  },
-  button: {
-    backgroundColor: colors.themeBlue,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  buttonLoading: {
-    backgroundColor: 'transparent',
-  },
-  buttonDisabled: {
-    opacity: 0.7,
-  },
-  buttonText: {
-    color: colors.gold,
-    fontSize: 12,
-    fontWeight: '600',
-  } as const,
-  right: {
-    flex: 0,
-  },
-  modalOverlay: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-  },
-  modalContent: {
-    backgroundColor: colors.themeGrey,
-    borderRadius: 16,
-    padding: 24,
-    width: '85%',
-    maxWidth: 340,
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: colors.gold,
-    marginBottom: 16,
-    textAlign: 'center',
-  } as const,
-  modalLabel: {
-    fontSize: 14,
-    color: colors.grey,
-    marginBottom: 8,
-  } as const,
-  modalInput: {
-    backgroundColor: colors.background,
-    borderRadius: 8,
-    padding: 14,
-    fontSize: 18,
-    color: colors.white,
-    borderWidth: 1,
-    borderColor: colors.borderMid,
-    marginBottom: 20,
-  },
-  modalButtons: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  modalCancelBtn: {
-    flex: 1,
-    padding: 14,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: colors.borderMid,
-    alignItems: 'center',
-  },
-  modalSaveBtn: {
-    flex: 1,
-    padding: 14,
-    borderRadius: 8,
-    backgroundColor: colors.gold,
-    alignItems: 'center',
-  },
-  modalSaveText: {
-    color: colors.borderDark,
-    fontSize: 16,
-    fontWeight: '600',
-  } as const,
-} as const;
+function createStyles(c: typeof colors) {
+  return {
+    container: {
+      width: '100%',
+      backgroundColor: c.themeGrey,
+      borderRadius: 12,
+      padding: 16,
+      marginBottom: 15,
+    },
+    content: {
+      flexDirection: 'row',
+      marginLeft: 0,
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    left: {
+      flex: 1,
+    },
+    label: {
+      fontSize: 12,
+      color: c.grey,
+      marginBottom: 4,
+    },
+    price: {
+      fontSize: 26,
+      fontWeight: 'bold',
+      flexShrink: 1,
+      flex: 0.6,
+      adjustsFontSizeToFit: true,
+      minimumFontScale: 0.7,
+    },
+    priceRow: {
+      flexDirection: 'row',
+      gap: 8,
+    },
+    changeBlockWrapper: {
+      flex: 0.4,
+      alignItems: 'flex-start',
+    },
+    changeValue: {
+      fontSize: 12,
+      fontWeight: '500',
+    },
+    date: {
+      fontSize: 11,
+      color: c.lightGrey,
+      marginTop: 4,
+    },
+    error: {
+      fontSize: 11,
+      color: c.red,
+      marginTop: 4,
+    },
+    button: {
+      backgroundColor: c.themeBlue,
+      paddingHorizontal: 12,
+      paddingVertical: 10,
+      borderRadius: 12,
+      alignItems: 'center',
+    },
+    buttonLoading: {
+      backgroundColor: 'transparent',
+    },
+    buttonDisabled: {
+      opacity: 0.7,
+    },
+    buttonText: {
+      color: c.gold,
+      fontSize: 12,
+      fontWeight: '600',
+    },
+    right: {
+      flex: 0,
+    },
+    modalOverlay: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    },
+    modalContent: {
+      backgroundColor: c.themeGrey,
+      borderRadius: 16,
+      padding: 24,
+      width: '85%',
+      maxWidth: 340,
+    },
+    modalTitle: {
+      fontSize: 20,
+      fontWeight: 'bold',
+      color: c.gold,
+      marginBottom: 16,
+      textAlign: 'center',
+    },
+    modalLabel: {
+      fontSize: 14,
+      color: c.grey,
+      marginBottom: 8,
+    },
+    modalInput: {
+      backgroundColor: c.background,
+      borderRadius: 8,
+      padding: 14,
+      fontSize: 18,
+      color: c.text,
+      borderWidth: 1,
+      borderColor: c.borderMid,
+      marginBottom: 20,
+    },
+    modalButtons: {
+      flexDirection: 'row',
+      gap: 12,
+    },
+    modalCancelBtn: {
+      flex: 1,
+      padding: 14,
+      borderRadius: 8,
+      borderWidth: 1,
+      borderColor: c.borderMid,
+      alignItems: 'center',
+    },
+    modalSaveBtn: {
+      flex: 1,
+      padding: 14,
+      borderRadius: 8,
+      backgroundColor: c.gold,
+      alignItems: 'center',
+    },
+    modalSaveText: {
+      color: c.borderDark,
+      fontSize: 16,
+      fontWeight: '600',
+    },
+  } as const;
+}

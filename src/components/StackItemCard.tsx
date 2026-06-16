@@ -1,6 +1,7 @@
 import React, { memo, useMemo, useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View, Image, Alert } from 'react-native';
 import { colors } from '@/styles/global';
+import { useTheme } from '@/contexts/ThemeContext';
 import type { StackItem } from '@/services/stackStorage';
 import { deleteItems } from '@/services/stackStorage';
 import { getUnitAbbrev, getCurrencySymbol } from '@/utils/formatters';
@@ -17,6 +18,8 @@ type StackItemCardProps = {
 };
 
 function StackItemCard({ item, latestPrice, currency, weightUnit = 'toz', onDeleted, onPress, metal = 'gold' }: StackItemCardProps) {
+  const { colors: themeColors } = useTheme();
+  const s = useMemo(() => createStyles(themeColors), [themeColors]);
   const [imageError, setImageError] = useState(false);
 
   const handleDelete = () => {
@@ -66,9 +69,9 @@ function StackItemCard({ item, latestPrice, currency, weightUnit = 'toz', onDele
   }, [item.weight, item.purchasePrice, latestPrice, currency, weightUnit]);
 
   return (
-    <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.8} disabled={!onPress}>
-      <TouchableOpacity style={styles.deleteBtn} onPress={handleDelete} activeOpacity={0.6}>
-        <Text style={styles.deleteIcon}>✕</Text>
+    <TouchableOpacity style={s.card} onPress={onPress} activeOpacity={0.8} disabled={!onPress}>
+      <TouchableOpacity style={s.deleteBtn} onPress={handleDelete} activeOpacity={0.6}>
+        <Text style={s.deleteIcon}>✕</Text>
       </TouchableOpacity>
       <View style={styles.imageContainer}>
         {item.imageUri && !imageError ? (
@@ -79,33 +82,33 @@ function StackItemCard({ item, latestPrice, currency, weightUnit = 'toz', onDele
           />
         ) : (
           <View style={styles.placeholder}>
-            <Text style={[styles.placeholderText, { color: ThemeColors[metal].primary }]}>{item.code}</Text>
+            <Text style={[s.placeholderText, { color: ThemeColors[metal].primary }]}>{item.code}</Text>
           </View>
         )}
       </View>
-      <View style={styles.info}>
-        <Text style={[styles.code, { color: ThemeColors[metal].primary }]}>{item.code}</Text>
-        <Text style={styles.detail}>Weight {unitAbbrev}: {item.weight}</Text>
-        <Text style={styles.detail}>Cost/{unitAbbrev}: {sym}{costPerToz.toFixed(2)}</Text>
-        <Text style={styles.detail}>Total cost: {sym}{totalCost.toFixed(2)}</Text>
+      <View style={s.info}>
+        <Text style={[s.code, { color: ThemeColors[metal].primary }]}>{item.code}</Text>
+        <Text style={s.detail}>Weight {unitAbbrev}: {item.weight}</Text>
+        <Text style={s.detail}>Cost/{unitAbbrev}: {sym}{costPerToz.toFixed(2)}</Text>
+        <Text style={s.detail}>Total cost: {sym}{totalCost.toFixed(2)}</Text>
 
-        <View style={styles.divider} />
+        <View style={s.divider} />
 
         {latestPrice !== null && currentValue !== null ? (
           <>
-            <Text style={styles.valueLabel}>Current value</Text>
-            <Text style={[styles.valueAmount, { color: ThemeColors[metal].primary }]}>{sym}{currentValue.toFixed(2)}</Text>
+            <Text style={s.valueLabel}>Current value</Text>
+            <Text style={[s.valueAmount, { color: ThemeColors[metal].primary }]}>{sym}{currentValue.toFixed(2)}</Text>
             <View style={styles.changeRow}>
-              <Text style={[styles.changePct, isPositive ? styles.positive : styles.negative]}>
+              <Text style={[s.changePct, isPositive ? s.positive : s.negative]}>
                 {isPositive ? '+' : ''}{valueChangePct?.toFixed(1)}%
               </Text>
-              <Text style={[styles.changeAmt, isPositive ? styles.positive : styles.negative]}>
+              <Text style={[s.changeAmt, isPositive ? s.positive : s.negative]}>
                 {isPositive ? '+' : ''}{sym}{Math.abs(valueChange ?? 0).toFixed(2)}
               </Text>
             </View>
           </>
         ) : (
-          <Text style={[styles.detail, styles.noPrice]}>No price data</Text>
+          <Text style={[s.detail, s.noPrice]}>No price data</Text>
         )}
       </View>
     </TouchableOpacity>
@@ -115,29 +118,6 @@ function StackItemCard({ item, latestPrice, currency, weightUnit = 'toz', onDele
 export default memo(StackItemCard);
 
 const styles = StyleSheet.create({
-  card: {
-    width: '48%',
-    backgroundColor: colors.themeGrey,
-    borderRadius: 8,
-    overflow: 'hidden',
-  },
-  deleteBtn: {
-    position: 'absolute',
-    top: 6,
-    right: 6,
-    width: 26,
-    height: 26,
-    borderRadius: 13,
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 10,
-  },
-  deleteIcon: {
-    color: colors.red,
-    fontSize: 14,
-    fontWeight: 'bold',
-  },
   imageContainer: {
     width: '100%',
     height: 120,
@@ -154,61 +134,89 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  placeholderText: {
-    color: colors.gold,
-    fontSize: 24,
-    fontWeight: 'bold',
-  },
-  info: {
-    padding: 8,
-  },
-  code: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: colors.gold,
-    marginBottom: 4,
-  },
-  detail: {
-    fontSize: 11,
-    color: colors.grey,
-    marginBottom: 2,
-  },
-  noPrice: {
-    fontStyle: 'italic',
-    marginTop: 4,
-  },
-  divider: {
-    height: 1,
-    backgroundColor: colors.lightGrey,
-    marginVertical: 4,
-  },
-  valueLabel: {
-    fontSize: 10,
-    color: colors.grey,
-    marginBottom: 1,
-  },
-  valueAmount: {
-    fontSize: 15,
-    fontWeight: 'bold',
-    color: colors.gold,
-    marginBottom: 2,
-  },
   changeRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
-  changePct: {
-    fontSize: 10,
-    fontWeight: '600',
-  },
-  changeAmt: {
-    fontSize: 10,
-    fontWeight: '600',
-  },
-  positive: {
-    color: colors.changeGreen,
-  },
-  negative: {
-    color: colors.red,
-  },
 });
+
+function createStyles(c: typeof colors) {
+  return StyleSheet.create({
+    card: {
+      width: '48%',
+      backgroundColor: c.themeGrey,
+      borderRadius: 8,
+      overflow: 'hidden',
+    },
+    deleteBtn: {
+      position: 'absolute',
+      top: 6,
+      right: 6,
+      width: 26,
+      height: 26,
+      borderRadius: 13,
+      backgroundColor: 'rgba(0,0,0,0.6)',
+      justifyContent: 'center',
+      alignItems: 'center',
+      zIndex: 10,
+    },
+    deleteIcon: {
+      color: c.red,
+      fontSize: 14,
+      fontWeight: 'bold',
+    },
+    placeholderText: {
+      color: c.gold,
+      fontSize: 24,
+      fontWeight: 'bold',
+    },
+    info: {
+      padding: 8,
+    },
+    code: {
+      fontSize: 16,
+      fontWeight: 'bold',
+      color: c.gold,
+      marginBottom: 4,
+    },
+    detail: {
+      fontSize: 11,
+      color: c.grey,
+      marginBottom: 2,
+    },
+    noPrice: {
+      fontStyle: 'italic',
+      marginTop: 4,
+    },
+    divider: {
+      height: 1,
+      backgroundColor: c.lightGrey,
+      marginVertical: 4,
+    },
+    valueLabel: {
+      fontSize: 10,
+      color: c.grey,
+      marginBottom: 1,
+    },
+    valueAmount: {
+      fontSize: 15,
+      fontWeight: 'bold',
+      color: c.gold,
+      marginBottom: 2,
+    },
+    changePct: {
+      fontSize: 10,
+      fontWeight: '600',
+    },
+    changeAmt: {
+      fontSize: 10,
+      fontWeight: '600',
+    },
+    positive: {
+      color: c.changeGreen,
+    },
+    negative: {
+      color: c.red,
+    },
+  });
+}
