@@ -105,6 +105,7 @@ export default function GuideScreen() {
       <FeatureCard icon="💱" title="Currency & Unit" desc="Choose GBP, USD, or EUR and troy ounces or grams." />
       <FeatureCard icon="📈" title="Chart Data" desc="12-month price history from Yahoo Finance, converted via Frankfurter exchange rates. Falls back to bundled data if offline." />
       <FeatureCard icon="🏷️" title="Default Metal" desc="Set your preferred metal (gold or silver) for the Home screen." />
+      <FeatureCard icon="🌓" title="Theme" desc="Toggle between Dark Mode and Light Mode in Account &gt; Settings. Preference is saved across sessions." />
 
       <SectionHeader title="Adding Items" color={colors.gold} />
 
