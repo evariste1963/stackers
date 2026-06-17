@@ -48,5 +48,6 @@ app-example
 
 # Build outputs
 *.apk
+*.aab
 stackers-debug.apk
 stackers-release.apk
