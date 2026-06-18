@@ -15,7 +15,7 @@ Stackers is a precious metals portfolio tracker. This privacy policy explains ho
 - **Portfolio items**: Records of your precious metals holdings (weight, purchase price, premium, photos)
 - **Gold/silver price data**: Historical and current price information fetched from third-party APIs
 - **App settings**: Your preferred currency, unit, and display preferences
-- **API key**: If you choose to enter a metals.dev API key for live prices, it is stored in encrypted device storage (expo-secure-store)
+- **API key**: If you choose to enter a goldapi.io API key for live prices, it is stored in encrypted device storage (expo-secure-store)
 
 ## Camera Access
 
@@ -23,9 +23,9 @@ Stackers may request access to your device's camera to allow you to take photos 
 
 ## Third-Party Services
 
-Stackers can optionally fetch live precious metals prices from **metals.dev** if you provide an API key. When enabled:
+Stackers can optionally fetch live precious metals prices from **goldapi.io** if you provide an API key. When enabled:
 
-- A network request is made to metals.dev with your API key to fetch current prices
+- A network request is made to goldapi.io with your API key to fetch current prices
 - No personal information or portfolio data is sent with these requests
 - No data is shared with any other third parties
 
