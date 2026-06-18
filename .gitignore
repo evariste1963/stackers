@@ -51,3 +51,6 @@ app-example
 *.aab
 stackers-debug.apk
 stackers-release.apk
+
+# Service account credentials
+google-service-account.json
