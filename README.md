@@ -23,7 +23,7 @@ On first launch, the app will fetch the latest gold price. To enable live price 
 2. Enter your API key
 3. Tap **Save**
 
-Get a free API key at [metals.dev](https://metals.dev)
+Get a free API key at [metalpriceapi.com](https://metalpriceapi.com)
 
 ### Currency & Units
 

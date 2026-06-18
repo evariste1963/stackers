@@ -100,7 +100,7 @@ export default function GuideScreen() {
 
       <SectionHeader title="Setup" color={colors.gold} />
 
-      <FeatureCard icon="🔑" title="API Key" desc="Get a free key from metals.dev for live gold and silver prices." />
+      <FeatureCard icon="🔑" title="API Key" desc="Get a free key from metalpriceapi.com for live gold and silver prices." />
       <FeatureCard icon="📡" title="Off Grid Mode" desc="Enter gold and silver prices manually without an API key. Correct mistaken entries via Overwrite Today buttons on Account tab — resets price, high/low, and chart for that day." />
       <FeatureCard icon="💱" title="Currency & Unit" desc="Choose GBP, USD, or EUR and troy ounces or grams." />
       <FeatureCard icon="📈" title="Chart Data" desc="12-month price history from Yahoo Finance, converted via Frankfurter exchange rates. Falls back to bundled data if offline." />

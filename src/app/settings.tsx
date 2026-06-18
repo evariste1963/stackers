@@ -5,7 +5,7 @@ import { Text, View, TextInput, TouchableOpacity, ScrollView, Alert, Linking, Sw
 import { getUserSettings, updateApiKey, removeApiKey, updatePreference, updateManualPrice, updateManualSilverPrice, updateManualGoldPremium, updateManualSilverPremium, type UserSettings } from '@/services/settingsService';
 import { getAllItems } from '@/services/stackStorage';
 import { saveGoldSpotPrice, saveSilverSpotPrice } from '@/services/metalPriceService';
-import { AVAILABLE_CURRENCIES, AVAILABLE_UNITS, METALS_DEV_URL } from '@/config';
+import { AVAILABLE_CURRENCIES, AVAILABLE_UNITS, METALPRICE_API_URL } from '@/config';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePrice } from '@/contexts/PriceContext';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -207,8 +207,8 @@ export default function SettingsScreen() {
     }
   }, [settings.manualPrice, settings.manualSilverPrice, clearAllPrices]);
 
-  const openMetalsDev = useCallback(() => {
-    Linking.openURL(METALS_DEV_URL);
+  const openMetalpriceApi = useCallback(() => {
+    Linking.openURL(METALPRICE_API_URL);
   }, []);
 
   const hasGold = useMemo(() => !!manualInputs.gold.trim(), [manualInputs.gold]);
@@ -388,8 +388,8 @@ export default function SettingsScreen() {
 
               {!offGridMode && (
                 <>
-                  <TouchableOpacity style={localStyles.linkButton} onPress={openMetalsDev}>
-                    <Text style={[localStyles.linkButtonText, { color: themeColors.text }]}>Get free API key at metals.dev ↗</Text>
+                  <TouchableOpacity style={localStyles.linkButton} onPress={openMetalpriceApi}>
+                    <Text style={[localStyles.linkButtonText, { color: themeColors.text }]}>Get free API key at metalpriceapi.com ↗</Text>
                   </TouchableOpacity>
                   <TextInput
                     style={[globalStyles.input, { backgroundColor: themeColors.themeGrey, color: themeColors.text, borderColor: themeColors.borderMid }]}

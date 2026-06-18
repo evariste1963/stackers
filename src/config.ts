@@ -26,7 +26,7 @@ export const AVAILABLE_UNITS: UnitOption[] = [
   { code: 'gram', name: 'Gram', abbrev: 'g' },
 ];
 
-export const METALS_DEV_URL = 'https://metals.dev/pricing';
+export const METALPRICE_API_URL = 'https://metalpriceapi.com';
 
 export const DEFAULT_SETTINGS = {
   currency: 'GBP',

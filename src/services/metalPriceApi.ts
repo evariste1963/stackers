@@ -1,4 +1,11 @@
-const METALS_DEV_BASE_URL = 'https://api.metals.dev/v1/metal/spot';
+const METALPRICE_API_BASE_URL = 'https://api.metalpriceapi.com/v1';
+
+const METAL_TO_SYMBOL: Record<string, string> = {
+  gold: 'XAU',
+  silver: 'XAG',
+};
+
+const OUNCE_TO_GRAM = 31.1035;
 
 export type MetalType = 'gold' | 'silver';
 
@@ -6,24 +13,6 @@ const VALID_METALS: MetalType[] = ['gold', 'silver'];
 
 function isValidMetal(metal: string): metal is MetalType {
   return VALID_METALS.includes(metal as MetalType);
-}
-
-export interface SpotMetalResponse {
-  status: string;
-  timestamp: string;
-  currency: string;
-  unit: string;
-  metal: string;
-  rate?: {
-    price: number;
-    ask: number;
-    bid: number;
-    high: number;
-    low: number;
-    change: number;
-    change_percent: number;
-  };
-  message?: string;
 }
 
 export interface MetalPriceResult {
@@ -36,39 +25,45 @@ export interface MetalPriceResult {
   changePercent: number;
 }
 
-function validateResponse(data: unknown): asserts data is SpotMetalResponse {
+interface MetalPriceApiResponse {
+  success: boolean;
+  base: string;
+  timestamp: number;
+  rates: Record<string, number>;
+  error?: {
+    code: number;
+    info: string;
+  };
+}
+
+function validateResponse(data: unknown, currency: string): asserts data is MetalPriceApiResponse {
   if (!data || typeof data !== 'object') {
     throw new Error('Invalid response: not an object');
   }
 
   const response = data as Record<string, unknown>;
 
-  if (typeof response.status !== 'string') {
-    throw new Error('Invalid response: missing status field');
+  if (response.success !== true) {
+    const errorInfo = response.error
+      ? (typeof response.error === 'object' ? (response.error as Record<string, unknown>).info : 'Unknown error')
+      : 'Unknown error';
+    throw new Error(`API error: ${errorInfo}`);
   }
 
-  if (response.status !== 'success') {
-    const message = typeof response.message === 'string' ? response.message : 'Unknown error';
-    throw new Error(`API returned status: ${response.status} - ${message}`);
+  if (!response.rates || typeof response.rates !== 'object') {
+    throw new Error('Invalid response: missing rates');
   }
 
-  if (!response.rate || typeof response.rate !== 'object') {
-    throw new Error('Invalid response: missing or invalid rate field');
-  }
-
-  const rate = response.rate as Record<string, unknown>;
-  const requiredRateFields = ['price', 'ask', 'bid', 'high', 'low', 'change', 'change_percent'] as const;
-  for (const field of requiredRateFields) {
-    if (typeof rate[field] !== 'number') {
-      throw new Error(`Invalid response: missing ${field} in rate`);
-    }
+  const rates = response.rates as Record<string, unknown>;
+  if (typeof rates[currency] !== 'number') {
+    throw new Error(`Invalid response: missing rate for currency ${currency}`);
   }
 }
 
 export async function fetchMetalPrice(
   metal: MetalType,
-  apiKey: string, 
-  currency: string = 'GBP', 
+  apiKey: string,
+  currency: string = 'GBP',
   unit: string = 'toz',
   timeoutMs: number = 10000
 ): Promise<MetalPriceResult> {
@@ -76,8 +71,9 @@ export async function fetchMetalPrice(
     throw new Error(`Invalid metal: ${metal}. Must be one of: ${VALID_METALS.join(', ')}`);
   }
 
-  const url = `${METALS_DEV_BASE_URL}?api_key=${encodeURIComponent(apiKey)}&metal=${encodeURIComponent(metal)}&currency=${encodeURIComponent(currency)}&unit=${encodeURIComponent(unit)}`;
-  
+  const symbol = METAL_TO_SYMBOL[metal];
+  const url = `${METALPRICE_API_BASE_URL}/latest?api_key=${encodeURIComponent(apiKey)}&base=${symbol}&currencies=USD,GBP,EUR`;
+
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
@@ -97,23 +93,29 @@ export async function fetchMetalPrice(
   }
 
   const data = await response.json();
-  
-  validateResponse(data);
+
+  validateResponse(data, currency);
+
+  let price = data.rates[currency];
+
+  if (unit === 'gram') {
+    price = price / OUNCE_TO_GRAM;
+  }
 
   return {
-    price: data.rate!.price,
-    ask: data.rate!.ask,
-    bid: data.rate!.bid,
-    high: data.rate!.high,
-    low: data.rate!.low,
-    change: data.rate!.change,
-    changePercent: data.rate!.change_percent,
+    price,
+    ask: price,
+    bid: price,
+    high: price,
+    low: price,
+    change: 0,
+    changePercent: 0,
   };
 }
 
 export async function fetchGoldPrice(
-  apiKey: string, 
-  currency: string = 'GBP', 
+  apiKey: string,
+  currency: string = 'GBP',
   unit: string = 'toz',
   timeoutMs: number = 10000
 ): Promise<MetalPriceResult> {
@@ -121,8 +123,8 @@ export async function fetchGoldPrice(
 }
 
 export async function fetchSilverPrice(
-  apiKey: string, 
-  currency: string = 'GBP', 
+  apiKey: string,
+  currency: string = 'GBP',
   unit: string = 'toz',
   timeoutMs: number = 10000
 ): Promise<MetalPriceResult> {
