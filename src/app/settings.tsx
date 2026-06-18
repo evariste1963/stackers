@@ -13,7 +13,7 @@ import { useTheme } from '@/contexts/ThemeContext';
 export default function SettingsScreen() {
   const router = useRouter();
   const { isAuthenticated, hasPinSet } = useAuth();
-  const { updateManualPrice: setManualPriceCtx, updateManualSilverPrice: setManualSilverPriceCtx, refreshHistoryForCurrency } = usePrice();
+  const { updateManualPrice: setManualPriceCtx, updateManualSilverPrice: setManualSilverPriceCtx, refreshHistoryForCurrency, refreshSettings } = usePrice();
   const { colors: themeColors, theme, toggleTheme } = useTheme();
   const [settings, setSettings] = useState<UserSettings>({
     currency: 'GBP',
@@ -86,6 +86,7 @@ export default function SettingsScreen() {
     setIsSaving(true);
     try {
       await updateApiKey(key);
+      await refreshSettings();
       setSettings(prev => ({ ...prev, hasApiKey: true }));
       setManualInputs(prev => ({ ...prev, gold: '' }));
       Alert.alert('Success', 'API key saved successfully', [
