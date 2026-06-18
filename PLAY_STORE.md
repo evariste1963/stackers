@@ -51,7 +51,7 @@
 - [x] Review `AndroidManifest.xml` — requested: INTERNET, READ_EXTERNAL_STORAGE, WRITE_EXTERNAL_STORAGE, VIBRATE, SYSTEM_ALERT_WINDOW
 - [x] Removed `RECORD_AUDIO` (app only takes photos, not video)
 - [ ] Justify remaining permissions in Play Console
-  - **INTERNET**: Required for metals.dev API (live prices)
+   - **INTERNET**: Required for goldapi.io API (live prices)
   - **READ/WRITE_EXTERNAL_STORAGE** (maxSdk=32): Needed by expo-image-picker for photo capture on older Android
   - **VIBRATE**: Default RN permission, harmless
   - **SYSTEM_ALERT_WINDOW**: Debug-only (not in release build)
@@ -93,7 +93,7 @@
   to the cloud.
   
   Features:
-  • Live gold & silver prices in GBP, USD, EUR — updated from metals.dev
+  • Live gold & silver prices in GBP, USD, EUR — updated from goldapi.io
   • Portfolio tracking with purchase details, weights, and premiums
   • Interactive price history charts
   • Off Grid mode — fully offline, no network requests
