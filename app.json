@@ -2,7 +2,7 @@
   "expo": {
     "name": "stackers",
     "slug": "stackers",
-    "version": "1.0.0",
+    "version": "1.1.1",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "stackers",
@@ -21,6 +21,7 @@
       },
       "predictiveBackGestureEnabled": false,
       "package": "com.thisme.stackers",
+      "versionCode": 3,
       "targetSdkVersion": 34
     },
     "web": {
