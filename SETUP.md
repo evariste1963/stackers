@@ -30,7 +30,7 @@ npx expo start
 
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-./gradlew bundleRelease  and then upload the .abb file to the create new release page.
+./gradlew bundleRelease  and then upload the .aab file to the create new release page.
 
 path: ~/Coding/stackers/android/app/build/outputs/bundle/release/app-release.aab
 
