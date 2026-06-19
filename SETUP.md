@@ -26,8 +26,17 @@ npx expo start
 
 ## ⚠️ CRITICAL: Build Procedures
 
-**The upload keystore is managed by Expo EAS servers. Never use `./gradlew assembleRelease` for production builds — it will sign with the wrong key and be rejected by Play Store.**
+**The upload keystore is managed by Expo EAS servers. Never use `./gradlew assembleRelease` for production builds — it will sign with the wrong key and be rejected by Play Store.** NO LONGER THE CASE - USE:
 
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+./gradlew bundleRelease  and then upload the .abb file to the create new release page.
+
+path: ~/Coding/stackers/android/app/build/outputs/bundle/release/app-release.aab
+
+--------------  THIS WORKS!!! ----------------------------------------------
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ---
 
 ### 1. Building for Local Testing (Install Direct to Device)
