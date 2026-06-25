@@ -122,8 +122,8 @@ export async function initAllTables(): Promise<void> {
 
   await database.execAsync(`
     CREATE INDEX IF NOT EXISTS idx_stack_items_metal ON stack_items(metal);
-    CREATE INDEX IF NOT EXISTS idx_gold_price_history_date ON gold_price_history(date);
-    CREATE INDEX IF NOT EXISTS idx_silver_price_history_date ON silver_price_history(date);
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_gold_price_history_date ON gold_price_history(date);
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_silver_price_history_date ON silver_price_history(date);
   `);
 
   const existingSettings = await database.getFirstAsync('SELECT id FROM user_settings WHERE id = 1');

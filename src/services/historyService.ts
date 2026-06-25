@@ -79,6 +79,20 @@ export async function saveToHistory(
   try {
     const database = await getDb();
     const tableName = getHistoryTable(metal);
+
+    const existing = await database.getFirstAsync<HistoryRow>(
+      `SELECT * FROM ${tableName} WHERE date = ?`, [targetDate]
+    );
+    if (existing && price <= existing.price) {
+      return {
+        date: existing.date,
+        price: existing.price,
+        gms: existing.gms || existing.price,
+        toz: existing.toz || existing.gms || existing.price,
+        change: existing.change,
+        changePercent: existing.changePercent,
+      };
+    }
     
     await database.runAsync(`
       INSERT OR REPLACE INTO ${tableName} (date, price, change, changePercent)
@@ -187,29 +201,24 @@ export async function seedYahooHistory(metal: MetalType = 'gold', currency: stri
 }
 
 export async function getTodayPriceEntry(metal: MetalType = 'gold'): Promise<HistoryEntry | null> {
-  try {
-    const database = await getDb();
-    const tableName = getHistoryTable(metal);
-    const today = new Date().toISOString().split('T')[0];
-    const row = await database.getFirstAsync<HistoryRow>(
-      `SELECT * FROM ${tableName} WHERE date = ? ORDER BY id DESC LIMIT 1`,
-      [today]
-    );
-    if (row) {
-      return {
-        date: row.date,
-        price: row.price,
-        gms: row.gms || row.price,
-        toz: row.toz || row.gms || row.price,
-        change: row.change,
-        changePercent: row.changePercent,
-      };
-    }
-    return null;
-  } catch (error) {
-    console.error('Error reading today history entry:', error);
-    return null;
+  const database = await getDb();
+  const tableName = getHistoryTable(metal);
+  const today = new Date().toISOString().split('T')[0];
+  const row = await database.getFirstAsync<HistoryRow>(
+    `SELECT * FROM ${tableName} WHERE date = ? ORDER BY id DESC LIMIT 1`,
+    [today]
+  );
+  if (row) {
+    return {
+      date: row.date,
+      price: row.price,
+      gms: row.gms || row.price,
+      toz: row.toz || row.gms || row.price,
+      change: row.change,
+      changePercent: row.changePercent,
+    };
   }
+  return null;
 }
 
 export async function updateTodayPriceEntry(
