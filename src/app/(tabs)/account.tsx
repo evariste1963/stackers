@@ -124,6 +124,7 @@ export default function AccountScreen() {
 
           {(offGridMode || silverOffGridMode) && (
             <View style={s.overwriteContainer}>
+              <Text style={s.overwriteLabel}>Correct price entry errors</Text>
               <View style={s.priceRow}>
                 {offGridMode && (
                   <TouchableOpacity
@@ -197,6 +198,12 @@ function createStyles(c: typeof colors) {
       borderRadius: 8,
       padding: 12,
       marginTop: 20,
+    },
+    overwriteLabel: {
+      fontSize: 13,
+      color: c.red,
+      marginBottom: 8,
+      textAlign: 'center',
     },
     priceRow: {
       flexDirection: 'row',
